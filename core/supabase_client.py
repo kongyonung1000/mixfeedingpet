@@ -7,8 +7,23 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 
+def _load_env_if_needed():
+    if not os.environ.get("SUPABASE_URL"):
+        env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            os.environ[k.strip()] = v.strip()
+            except Exception:
+                pass
+
 class SupabaseDietRepository:
     def __init__(self):
+        _load_env_if_needed()
         self.url = os.environ.get("SUPABASE_URL")
         self.key = os.environ.get("SUPABASE_ANON_KEY")
         self.client = None
