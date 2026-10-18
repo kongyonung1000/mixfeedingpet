@@ -36,6 +36,84 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
+    <!-- ======================================================== -->
+    <!-- 🔒 비공개 접근 차단 게이트 (인라인 절대 잠금) -->
+    <!-- ======================================================== -->
+    <div id="private-gate-shield" style="position: fixed; inset: 0; z-index: 999999; background: #0f172a; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div style="background: white; border-radius: 24px; padding: 36px 32px; max-width: 420px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center;">
+            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 18px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px;">
+                🔒
+            </div>
+            <h2 style="font-size: 20px; font-weight: 800; color: #1e293b; margin: 0 0 4px;">처방사료 믹스피딩 추천</h2>
+            <p style="font-size: 13px; color: #64748b; margin: 0 0 16px;">Veterinary Clinical Nutrition System</p>
+            <div style="display: inline-block; padding: 4px 12px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700; border-radius: 20px; margin-bottom: 20px;">
+                ⚠️ 비공개 승인 사용자 전용
+            </div>
+
+            <div id="gate-alert" style="display: none; padding: 10px; background: #fee2e2; border: 1px solid #fecaca; color: #dc2626; font-size: 12px; font-weight: 600; border-radius: 10px; margin-bottom: 16px; text-align: left;">
+                아이디 또는 비밀번호가 올바르지 않습니다.
+            </div>
+
+            <form onsubmit="verifyGateAccess(event)" style="text-align: left;">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">사용자 아이디 (ID)</label>
+                    <input type="text" id="gate-in-user" required autocomplete="username" placeholder="아이디를 입력하세요" style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; outline: none; background: #f8fafc;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">비밀번호 (Password)</label>
+                    <input type="password" id="gate-in-pass" required autocomplete="current-password" placeholder="비밀번호를 입력하세요" style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; outline: none; background: #f8fafc;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3);">
+                    인증 및 입장하기 ➔
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4";
+            const USER = "vet";
+
+            function checkAuth() {
+                if (localStorage.getItem("vet_mix_auth") === "granted" || sessionStorage.getItem("vet_mix_auth") === "granted") {
+                    const shield = document.getElementById("private-gate-shield");
+                    if (shield) shield.style.display = "none";
+                }
+            }
+            checkAuth();
+
+            window.verifyGateAccess = async function(e) {
+                e.preventDefault();
+                const u = document.getElementById("gate-in-user").value.trim();
+                const p = document.getElementById("gate-in-pass").value.trim();
+                const alertBox = document.getElementById("gate-alert");
+
+                const buf = new TextEncoder().encode(p);
+                const digest = await crypto.subtle.digest("SHA-256", buf);
+                const pHash = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+                if (u === USER && pHash === HASH) {
+                    localStorage.setItem("vet_mix_auth", "granted");
+                    sessionStorage.setItem("vet_mix_auth", "granted");
+                    document.getElementById("private-gate-shield").style.display = "none";
+                    alertBox.style.display = "none";
+                } else {
+                    alertBox.style.display = "block";
+                    document.getElementById("gate-in-pass").value = "";
+                    document.getElementById("gate-in-pass").focus();
+                }
+            };
+
+            window.handleGateLogout = function(e) {
+                if (e) e.preventDefault();
+                localStorage.removeItem("vet_mix_auth");
+                sessionStorage.removeItem("vet_mix_auth");
+                location.reload();
+            };
+        })();
+    </script>
+
     <!-- Header -->
     <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-600 text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between">
