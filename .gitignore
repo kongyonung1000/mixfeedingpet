@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+venv/
+env/
+ENV/
+
+# Large PDF files (GitHub blocks files > 100MB)
+*.pdf
+
+# Operating System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary / Scratch
+scratch/
+.system_generated/
