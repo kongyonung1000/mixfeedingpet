@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수의 임상 처방사료 복합질환 믹스피딩 추천 & 모니터링 시스템</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc;
+        }
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom: 3px solid #2563eb;
+            font-weight: 700;
+        }
+        .disease-checkbox:checked + label {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+        .bcs-card.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+            box-shadow: 0 0 0 2px #93c5fd;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-blue-700 p-2.5 rounded-xl shadow-md flex items-center justify-center">
+                    <i class="fa-solid fa-stethoscope text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight">처방사료 복합질환 믹스피딩 추천 알고리즘</h1>
+                    <p class="text-xs text-blue-100 font-medium">Veterinary Clinical Prescription Diet & Mix-Feeding Optimization Platform</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 text-xs">
+                <div class="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/20 flex items-center space-x-2">
+                    <span><i class="fa-solid fa-database mr-1 text-blue-300"></i> 사료 DB: 건식 67 / 습식 51</span>
+                    <span class="text-white/40">|</span>
+                    <span><i class="fa-solid fa-carrot mr-1 text-amber-300"></i> 화식 114</span>
+                </div>
+                <a href="/logout" class="bg-white/20 hover:bg-white/30 text-white font-semibold px-3 py-1.5 rounded-lg border border-white/30 transition flex items-center space-x-1.5" title="로그아웃">
+                    <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b border-slate-200 sticky top-[68px] z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button onclick="switchTab('profile-tab')" id="btn-profile-tab" class="tab-btn active py-4 px-2 text-sm font-semibold flex items-center space-x-2 border-b-2 border-transparent transition">
+                    <i class="fa-solid fa-id-card-clip"></i>
+                    <span>1. 환자 신상 & 복합 질환</span>
+                </button>
+                <button onclick="switchTab('feeding-tab')" id="btn-feeding-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                    <i class="fa-solid fa-bowl-food"></i>
+                    <span>2. 최적 믹스피딩 & 급여량</span>
+                </button>
+                <button onclick="switchTab('analytics-tab')" id="btn-analytics-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>3. 영양소 & 수분 분석 차트</span>
+                </button>
+                <button onclick="switchTab('monitoring-tab')" id="btn-monitoring-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>4. 모니터링 & 혈액검사 피드백</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================================================================= -->
+        <!-- TAB 1: 환자 신상 및 복합 질환 입력 -->
+        <!-- ================================================================= -->
+        <section id="profile-tab" class="tab-content space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-blue-600 rounded-full"></span>
+                        <h2 class="text-lg font-bold text-slate-800">환자 기본 신상 정보</h2>
+                    </div>
+                    <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full">필수 진료 정보</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <!-- 이름 -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">환자 이름</label>
+                        <input type="text" id="patient-name" value="콩이" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                    </div>
+
+                    <!-- 종 -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">종 (Species)</label>
+                        <select id="patient-species" onchange="onSpeciesChange()" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium">
+                            <option value="개" selected>🐶 반려견 (Dog)</option>
+                            <option value="고양이">🐱 반려묘 (Cat)</option>
+                        </select>
+                    </div>
+
+                    <!-- 체중 -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">현재 체중 (kg)</label>
+                        <input type="number" step="0.1" id="patient-weight" value="5.5" onchange="updateEnergyPreview()" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-blue-700">
+                    </div>
+
+                    <!-- 나이 -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">나이 (세)</label>
+                        <input type="number" step="0.5" id="patient-age" value="9.0" onchange="updateEnergyPreview()" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <!-- 성별 -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">성별 / 중성화</label>
+                        <select id="patient-gender" onchange="updateEnergyPreview()" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="수컷 (중성화 완료)" selected>수컷 (중성화 완료)</option>
+                            <option value="수컷 (중성화 안함)">수컷 (중성화 안함)</option>
+                            <option value="암컷 (중성화 완료)">암컷 (중성화 완료)</option>
+                            <option value="암컷 (중성화 안함)">암컷 (중성화 안함)</option>
+                        </select>
+                    </div>
+
+                    <!-- 품종 -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">품종 (Breed)</label>
+                        <input type="text" id="patient-breed" value="말티즈" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- 체형 & 근육 평가 (BCS & MCS) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-100">
+                    <!-- BCS -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-bold text-slate-700">BCS (Body Condition Score, 1~9 단계)</label>
+                            <span id="bcs-badge" class="text-xs font-extrabold px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">BCS 5 (이상적 정상 체중)</span>
+                        </div>
+                        <input type="range" id="patient-bcs" min="1" max="9" value="5" step="1" oninput="onBcsChange(this.value)" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <div class="flex justify-between text-[11px] text-slate-400 mt-1 font-medium">
+                            <span>1: 극심한 저체중</span>
+                            <span>3: 마름</span>
+                            <span class="text-blue-600 font-bold">5: 이상적 정상</span>
+                            <span>7: 과체중</span>
+                            <span class="text-red-500">9: 고도 비만</span>
+                        </div>
+                    </div>
+
+                    <!-- MCS -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">MCS (Muscle Condition Score, 근감소증 평가)</label>
+                        <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="mcs" value="정상 (Normal)" checked class="hidden peer">
+                                <div class="py-2.5 px-1 rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:text-blue-700 font-semibold transition">정상 (Normal)</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="mcs" value="경도 근감소 (Mild Loss)" class="hidden peer">
+                                <div class="py-2.5 px-1 rounded-xl border border-slate-200 peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-700 font-semibold transition">경도 근감소</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="mcs" value="중등도 근감소 (Moderate Loss)" class="hidden peer">
+                                <div class="py-2.5 px-1 rounded-xl border border-slate-200 peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:text-orange-700 font-semibold transition">중등도 근감소</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="mcs" value="중증 근감소 (Severe Loss)" class="hidden peer">
+                                <div class="py-2.5 px-1 rounded-xl border border-slate-200 peer-checked:border-red-600 peer-checked:bg-red-50 peer-checked:text-red-700 font-semibold transition">중증 근감소</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 식습관 및 분변 스코어 (흡수율 변수) -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 pt-6 border-t border-slate-100 bg-slate-50/70 p-4 rounded-xl">
+                    <!-- 식습관 -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">식습관 (Eating Habit)</label>
+                        <select id="patient-eating-habit" class="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="정상" selected>정상 (적절한 속도로 섭취)</option>
+                            <option value="급하게 먹음">급하게 먹음 (저작 부족, 흡수율 -3%)</option>
+                            <option value="불규칙 급여">불규칙 급여 (소화효소 분비 불균형, -2%)</option>
+                        </select>
+                    </div>
+
+                    <!-- 분변 스코어 -->
+                    <div class="lg:col-span-2">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-700">분변 스코어 (Fecal Score 1.0 ~ 7.0)</label>
+                            <span id="fecal-badge" class="text-xs font-bold px-2.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">Score 3.5 (이상적 정상 분변)</span>
+                        </div>
+                        <input type="range" id="patient-fecal" min="1.0" max="7.0" value="3.5" step="0.5" oninput="onFecalChange(this.value)" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+                            <span>1~2: 단단함/건조</span>
+                            <span class="text-emerald-600 font-bold">3~3.5: 정상 변</span>
+                            <span>4~4.5: 무른 변</span>
+                            <span>5~5.5: 점액/묽은 변</span>
+                            <span class="text-red-500">6~7: 설사</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 알러지 & 식이 금기 사항 -->
+                <div class="mt-6 pt-6 border-t border-slate-100">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">알러지 및 식이 금기 단백질원 (선택 시 사료 필터링)</label>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="닭고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">닭고기 (Chicken)</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="소고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">소고기 (Beef)</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="오리고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">오리고기 (Duck)</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="양고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">양고기 (Lamb)</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="돼지고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">돼지고기 (Pork)</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="연어" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">연어 / 생선 (Salmon/Fish)</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="칠면조" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">칠면조 (Turkey)</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 복합 질환 선택 카드 -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-indigo-600 rounded-full"></span>
+                        <h2 class="text-lg font-bold text-slate-800">복합 질환 선택 (Multi-Morbidity Matrix)</h2>
+                    </div>
+                    <span class="text-xs text-slate-500">여러 질환을 중복 선택하면 영양소 상충을 자동 해결합니다.</span>
+                </div>
+
+                <!-- Disease Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="disease-container">
+                    <!-- Heart -->
+                    <div>
+                        <input type="checkbox" id="dis-heart" name="disease" value="심장병 (MMVD, DCM, HCM, 울혈성심부전)" checked class="hidden disease-checkbox">
+                        <label for="dis-heart" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-rose-500 mt-0.5 text-lg"><i class="fa-solid fa-heart-pulse"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">심장병 (MMVD / DCM / HCM)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">저나트륨, 고품질단백질, 타우린/카르니틴/EPA+DHA</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- CKD -->
+                    <div>
+                        <input type="checkbox" id="dis-ckd" name="disease" value="만성신부전 (CKD IRIS 1-4단계)" checked class="hidden disease-checkbox">
+                        <label for="dis-ckd" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-amber-500 mt-0.5 text-lg"><i class="fa-solid fa-filter"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">만성신부전 (CKD IRIS 1~4단계)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">저인, 단백질 단계별 조절, 수분 극대화</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Pancreatitis -->
+                    <div>
+                        <input type="checkbox" id="dis-pancreas" name="disease" value="췌장염 (급성/만성/지방제한)" class="hidden disease-checkbox">
+                        <label for="dis-pancreas" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-orange-500 mt-0.5 text-lg"><i class="fa-solid fa-fire"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">췌장염 (급성 / 만성)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">극저지방 (&lt;10~12% DM), 고소화성 식단</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Cushing -->
+                    <div>
+                        <input type="checkbox" id="dis-cushing" name="disease" value="쿠싱 증후군 (부신피질기능항진증)" class="hidden disease-checkbox">
+                        <label for="dis-cushing" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-purple-500 mt-0.5 text-lg"><i class="fa-solid fa-dna"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">쿠싱 증후군 (부신피질항진)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">저지방, 근감소 방지 양질단백, 적정 섬유소</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Liver -->
+                    <div>
+                        <input type="checkbox" id="dis-liver" name="disease" value="만성간부전 / 간질환" class="hidden disease-checkbox">
+                        <label for="dis-liver" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-yellow-600 mt-0.5 text-lg"><i class="fa-solid fa-shield-virus"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">만성간부전 / 간질환</div>
+                                <div class="text-xs text-slate-500 mt-0.5">구리 엄격 제한, 아연 보충, 비육류 양질단백</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- IBD / GI -->
+                    <div>
+                        <input type="checkbox" id="dis-ibd" name="disease" value="염증성장질환 (IBD / 만성장병증)" class="hidden disease-checkbox">
+                        <label for="dis-ibd" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-teal-500 mt-0.5 text-lg"><i class="fa-solid fa-bacteria"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">염증성장질환 (IBD / 만성장염)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">가수분해/신규 단백질, 고소화율, 오메가3</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Diabetes -->
+                    <div>
+                        <input type="checkbox" id="dis-diabetes" name="disease" value="당뇨병 (Diabetes Mellitus)" class="hidden disease-checkbox">
+                        <label for="dis-diabetes" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-blue-500 mt-0.5 text-lg"><i class="fa-solid fa-syringe"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">당뇨병 (Diabetes)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">개: 고섬유 복합탄수 / 고양이: 초저탄수화물</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Urolithiasis -->
+                    <div>
+                        <input type="checkbox" id="dis-stones" name="disease" value="비뇨기 결석 (스트루바이트 / 칼슘옥살레이트)" class="hidden disease-checkbox">
+                        <label for="dis-stones" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-cyan-600 mt-0.5 text-lg"><i class="fa-solid fa-gem"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">비뇨기 결석 (Struvite/Oxalate)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">미네랄 조절, 요비중 희석 습식 급여</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Cognitive / Brain -->
+                    <div>
+                        <input type="checkbox" id="dis-brain" name="disease" value="인지기능장애 (치매 CDS) / 뇌신경" class="hidden disease-checkbox">
+                        <label for="dis-brain" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-pink-500 mt-0.5 text-lg"><i class="fa-solid fa-brain"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">치매 (인지기능장애 CDS)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">항산화제(Vit E/C), DHA, MCT 중쇄지방산</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Obesity -->
+                    <div>
+                        <input type="checkbox" id="dis-obesity" name="disease" value="비만 및 체중관리" class="hidden disease-checkbox">
+                        <label for="dis-obesity" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-indigo-400 mt-0.5 text-lg"><i class="fa-solid fa-weight-scale"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">비만 및 체중 감량</div>
+                                <div class="text-xs text-slate-500 mt-0.5">저칼로리 밀도, 고단백/고섬유 포만감</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Osteoarthritis -->
+                    <div>
+                        <input type="checkbox" id="dis-oa" name="disease" value="골관절염 / 관절질환" class="hidden disease-checkbox">
+                        <label for="dis-oa" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-emerald-500 mt-0.5 text-lg"><i class="fa-solid fa-bone"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">골관절염 / 관절질환</div>
+                                <div class="text-xs text-slate-500 mt-0.5">EPA+DHA 고농도, 글루코사민, 체중관리</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Feline Hyperthyroid -->
+                    <div id="cat-hyperthyroid-card" class="hidden">
+                        <input type="checkbox" id="dis-hyperthyroid" name="disease" value="갑상선기능항진증 (고양이)" class="hidden disease-checkbox">
+                        <label for="dis-hyperthyroid" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-amber-600 mt-0.5 text-lg"><i class="fa-solid fa-bolt"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">갑상선기능항진증 (고양이)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">극저요오드 식단 (&lt;0.32 ppm)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Calculate Action Button -->
+                <div class="mt-8 flex justify-end">
+                    <button type="button" onclick="runRecommendation()" class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-bold text-base shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-3 transition transform active:scale-95">
+                        <i class="fa-solid fa-calculator text-lg"></i>
+                        <span>최적 믹스피딩 & 급여량 계산하기</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 2: 최적 믹스피딩 및 급여량 결과 -->
+        <!-- ================================================================= -->
+        <section id="feeding-tab" class="tab-content space-y-6 hidden">
+            <!-- Summary Banner -->
+            <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 text-white rounded-2xl p-6 shadow-md border border-slate-800">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-white/10">
+                    <div class="p-2">
+                        <div class="text-xs text-slate-400 font-medium">휴지기 에너지 (RER)</div>
+                        <div class="text-2xl font-extrabold text-white mt-1"><span id="summary-rer">0</span> <span class="text-xs font-normal text-slate-300">kcal/day</span></div>
+                        <div class="text-[11px] text-slate-400 mt-0.5" id="summary-ideal-weight">이상체중: 0 kg</div>
+                    </div>
+                    <div class="p-2 md:pl-4">
+                        <div class="text-xs text-slate-400 font-medium">유지/일일 에너지 (DER)</div>
+                        <div class="text-2xl font-extrabold text-sky-400 mt-1"><span id="summary-der">0</span> <span class="text-xs font-normal text-slate-300">kcal/day</span></div>
+                        <div class="text-[11px] text-sky-200 mt-0.5" id="summary-der-reason">계수: 1.6</div>
+                    </div>
+                    <div class="p-2 md:pl-4">
+                        <div class="text-xs text-slate-400 font-medium">추정 소화 흡수율</div>
+                        <div class="text-2xl font-extrabold text-emerald-400 mt-1"><span id="summary-absorption">100</span> <span class="text-xs font-normal text-slate-300">%</span></div>
+                        <div class="text-[11px] text-emerald-200 mt-0.5" id="summary-fecal-desc">분변 상태: 정상</div>
+                    </div>
+                    <div class="p-2 md:pl-4">
+                        <div class="text-xs text-slate-400 font-medium">흡수율 보정 최종 급여 칼로리</div>
+                        <div class="text-2xl font-extrabold text-amber-400 mt-1"><span id="summary-adjusted-der">0</span> <span class="text-xs font-normal text-slate-300">kcal/day</span></div>
+                        <div class="text-[11px] text-amber-200 mt-0.5">총 1일 급여량: <span id="summary-total-g" class="font-bold">0</span> g/day</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Conflict Notes Box -->
+            <div id="clinical-notes-container" class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl text-xs space-y-1.5 text-amber-900">
+                <div class="font-bold flex items-center space-x-2 text-amber-800 text-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>수의 임상 영양학적 상충 해결 및 핵심 가이드라인</span>
+                </div>
+                <div id="clinical-notes-list" class="space-y-1 pl-5 list-disc"></div>
+            </div>
+
+            <!-- Mix-Feeding Mode Switcher & Sliders -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-blue-600 rounded-full"></span>
+                        <h2 class="text-lg font-bold text-slate-800">믹스피딩 급여 조합 모드</h2>
+                    </div>
+                    <!-- Mode Buttons -->
+                    <div class="flex flex-wrap gap-2 mt-2 sm:mt-0">
+                        <button onclick="setFeedingMode('DRY_WET_FRESH')" id="mode-btn-DRY_WET_FRESH" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-blue-600 bg-blue-50 text-blue-700 transition">건식 + 습식 + 화식</button>
+                        <button onclick="setFeedingMode('DRY_WET')" id="mode-btn-DRY_WET" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">건식 + 습식</button>
+                        <button onclick="setFeedingMode('DRY_DRY')" id="mode-btn-DRY_DRY" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">건식 + 건식</button>
+                        <button onclick="setFeedingMode('FRESH_ONLY')" id="mode-btn-FRESH_ONLY" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">화식 단독</button>
+                    </div>
+                </div>
+
+                <!-- Sliders for Ratio -->
+                <div id="ratio-slider-container" class="space-y-4 mb-6 p-4 bg-slate-50 rounded-xl">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span>칼로리 배분 비율 조정 (슬라이더로 조절 시 g수 실시간 연동)</span>
+                        <span id="ratio-status-text" class="text-blue-600">합계: 100%</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="ratio-inputs-grid">
+                        <!-- Dynamic sliders -->
+                    </div>
+                </div>
+
+                <!-- Recommended Food Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="food-cards-grid">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Water Intake Section -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-cyan-500 rounded-full"></span>
+                        <h2 class="text-lg font-bold text-slate-800">일일 수분 섭취량 목표 및 음수량 처방</h2>
+                    </div>
+                    <span class="text-xs font-bold text-cyan-600 px-3 py-1 bg-cyan-50 rounded-full">Water Balance</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                    <div class="space-y-2">
+                        <div class="text-xs text-slate-500 font-medium">1일 총 목표 수분 요구량</div>
+                        <div class="text-3xl font-extrabold text-cyan-700"><span id="water-target-ml">0</span> <span class="text-sm font-normal text-slate-500">ml/day</span></div>
+                        <div class="text-xs text-slate-400">환자 체중 및 질환(신부전/결석/심장) 보정치</div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="text-xs text-slate-500 font-medium">사료(건식/습식/화식)로부터 섭취 수분</div>
+                        <div class="text-3xl font-extrabold text-blue-600"><span id="water-from-diet-ml">0</span> <span class="text-sm font-normal text-slate-500">ml/day</span></div>
+                        <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                            <div id="water-coverage-bar" class="bg-blue-500 h-3 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <div class="text-xs text-slate-400 text-right">사료 수분 충족률: <span id="water-coverage-pct">0</span>%</div>
+                    </div>
+
+                    <div class="p-4 bg-sky-50 border border-sky-100 rounded-2xl space-y-1">
+                        <div class="text-xs font-bold text-sky-800">추가 필수 권장 음수량 (순수 물)</div>
+                        <div class="text-2xl font-black text-sky-600"><span id="water-extra-needed-ml">0</span> <span class="text-xs font-semibold">ml/day</span></div>
+                        <p class="text-[11px] text-sky-700 mt-1">종이컵(200ml) 기준 약 <strong id="water-cups-needed">0</strong> 컵을 별도 급수해 주세요.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 3: 영양소 비율 및 차트 분석 -->
+        <!-- ================================================================= -->
+        <section id="analytics-tab" class="tab-content space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- PFC Donut Chart -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col">
+                    <div class="border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-slate-800">PFC 대사 에너지(ME) 비율</h3>
+                        <span class="text-[11px] text-slate-400">단백질 : 지방 : 탄수화물</span>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-2 min-h-[220px]">
+                        <canvas id="pfcChart"></canvas>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
+                        <div class="p-2 bg-blue-50 rounded-xl">
+                            <div class="text-slate-500">단백질 (P)</div>
+                            <div class="font-bold text-blue-700" id="chart-p-pct">0%</div>
+                        </div>
+                        <div class="p-2 bg-amber-50 rounded-xl">
+                            <div class="text-slate-500">지방 (F)</div>
+                            <div class="font-bold text-amber-700" id="chart-f-pct">0%</div>
+                        </div>
+                        <div class="p-2 bg-emerald-50 rounded-xl">
+                            <div class="text-slate-500">탄수화물 (C)</div>
+                            <div class="font-bold text-emerald-700" id="chart-c-pct">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Minerals & Nutrients Compliance Table -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 lg:col-span-2 flex flex-col">
+                    <div class="border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-slate-800">핵심 임상 영양소 가이드라인 적합성 판정 (Per 1000 kcal)</h3>
+                        <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Clinical Compliance</span>
+                    </div>
+                    <div class="flex-1 overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
+                                <tr>
+                                    <th class="py-2.5 px-3">영양소</th>
+                                    <th class="py-2.5 px-3">혼합 사료 함량</th>
+                                    <th class="py-2.5 px-3">질환 임상 가이드라인</th>
+                                    <th class="py-2.5 px-3 text-center">적합성 판정</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100" id="compliance-table-body">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Radar / Bar Chart -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-slate-800">영양소 함량 상세 비교 그래프 (Per 1000 kcal)</h3>
+                    <span class="text-xs text-slate-400">단백질, 지방, 인(P), 나트륨(Na), 칼륨(K), EPA+DHA</span>
+                </div>
+                <div class="h-80">
+                    <canvas id="nutrientsBarChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================= -->
+        <!-- TAB 4: 보호자 모니터링 & 혈액검사 피드백 -->
+        <!-- ================================================================= -->
+        <section id="monitoring-tab" class="tab-content space-y-6 hidden">
+            <!-- Symptom Log Entry Form -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-rose-500 rounded-full"></span>
+                        <h2 class="text-lg font-bold text-slate-800">보호자 일일 증상 모니터링 기록</h2>
+                    </div>
+                    <span class="text-xs text-slate-500">설사, 구토, 잔여 식사량, 체중을 추적 관찰합니다.</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">체중 (kg)</label>
+                        <input type="number" step="0.1" id="log-weight" value="5.4" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">분변 스코어 (1~7)</label>
+                        <select id="log-fecal" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white outline-none">
+                            <option value="1">1 (딱딱함)</option>
+                            <option value="2">2 (단단함)</option>
+                            <option value="3.5" selected>3.5 (정상변)</option>
+                            <option value="4.5">4.5 (무른변)</option>
+                            <option value="5.5">5.5 (매우묽음)</option>
+                            <option value="6.5">6.5 (설사)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">구토 횟수 (회/일)</label>
+                        <input type="number" id="log-vomit" value="0" min="0" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">잔여 식사량 (%)</label>
+                        <select id="log-leftover" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white outline-none">
+                            <option value="0" selected>0% (전부 다 먹음)</option>
+                            <option value="20">20% (조금 남김)</option>
+                            <option value="50">50% (절반 남김)</option>
+                            <option value="80">80% (거의 안먹음)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="submitSymptomLog()" class="w-full py-2 px-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>기록 추가 및 평가</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Symptom Feedback Alert Box -->
+                <div id="symptom-alert-box" class="mt-4 p-4 rounded-xl text-xs hidden"></div>
+            </div>
+
+            <!-- Blood Lab Test Panel -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-red-600 rounded-full"></span>
+                        <h2 class="text-lg font-bold text-slate-800">혈액 검사(Lab Test) 결과 연동 & 급여 피드백</h2>
+                    </div>
+                    <span class="text-xs text-slate-400">검사 수치를 입력하면 영양학적 위험도와 조치 가이드를 제공합니다.</span>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">BUN (mg/dL)</label>
+                        <input type="number" step="0.1" id="lab-bun" placeholder="7-27" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Creatinine</label>
+                        <input type="number" step="0.1" id="lab-cr" placeholder="0.5-1.4" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">SDMA (ug/dL)</label>
+                        <input type="number" step="0.1" id="lab-sdma" placeholder="<14" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Phosphorus (P)</label>
+                        <input type="number" step="0.1" id="lab-p" placeholder="2.5-5.5" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Albumin (g/dL)</label>
+                        <input type="number" step="0.1" id="lab-alb" placeholder="2.5-4.0" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">cPL / Lipase</label>
+                        <input type="number" step="1" id="lab-cpl" placeholder="<200" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">ALT (U/L)</label>
+                        <input type="number" step="1" id="lab-alt" placeholder="10-100" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Potassium (K)</label>
+                        <input type="number" step="0.1" id="lab-k" placeholder="3.5-5.5" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button type="button" onclick="evaluateLabTest()" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-2">
+                        <i class="fa-solid fa-vial"></i>
+                        <span>혈액검사 피드백 분석 실행</span>
+                    </button>
+                </div>
+
+                <!-- Lab Feedback Report Result -->
+                <div id="lab-feedback-container" class="mt-4 p-4 rounded-xl text-xs hidden"></div>
+            </div>
+
+            <!-- Future Feature Slot: Fecal Kit Slot -->
+            <div class="bg-gradient-to-r from-slate-50 to-indigo-50/50 rounded-2xl p-6 border border-dashed border-indigo-200">
+                <div class="flex items-center space-x-3 mb-2">
+                    <span class="p-2 bg-indigo-100 text-indigo-700 rounded-xl"><i class="fa-solid fa-microscope text-lg"></i></span>
+                    <div>
+                        <h3 class="text-sm font-bold text-indigo-950">분변 키트 흡수율 & 마이크로바이옴 검증 (미래 기획 슬롯)</h3>
+                        <p class="text-xs text-indigo-600">당장은 필요 없으나 향후 키트 검사 연동을 위한 데이터 슬롯 및 인터페이스</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-xs opacity-75">
+                    <div class="p-3 bg-white rounded-xl border border-indigo-100">
+                        <div class="text-slate-400 font-medium">단백질 실제 소화율 (%)</div>
+                        <input type="text" disabled placeholder="키트 연동 시 자동 입력 (예: 89.2%)" class="mt-1 w-full bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-500">
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-indigo-100">
+                        <div class="text-slate-400 font-medium">지방 흡수 효율 (%)</div>
+                        <input type="text" disabled placeholder="키트 연동 시 자동 입력 (예: 94.5%)" class="mt-1 w-full bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-500">
+                    </div>
+                    <div class="p-3 bg-white rounded-xl border border-indigo-100">
+                        <div class="text-slate-400 font-medium">Dysbiosis / 마이크로바이옴 다양성</div>
+                        <input type="text" disabled placeholder="키트 연동 시 자동 입력 (예: 82 / 100)" class="mt-1 w-full bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-500">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+        <p>© 2026 Veterinary Clinical Prescription Diet & Mix-Feeding Algorithm Platform. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Private Access Gatekeeper Modal (SHA-256 단방향 암호화 보호) -->
+    <div id="private-access-gate" class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/85 backdrop-blur-md transition-opacity duration-300">
+        <div class="max-w-md w-full mx-4 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 sm:p-10 border border-white/30 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 mb-4">
+                <i class="fa-solid fa-stethoscope text-2xl"></i>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight">처방사료 믹스피딩 시스템</h2>
+            <p class="text-xs text-blue-600 font-semibold mt-1">Veterinary Clinical Nutrition System</p>
+            <div class="inline-block mt-3 mb-6 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full border border-amber-200">
+                <i class="fa-solid fa-lock mr-1"></i> 비공개 승인 사용자 전용
+            </div>
+
+            <div id="gate-error-msg" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-xl flex items-center space-x-2 text-left">
+                <i class="fa-solid fa-circle-exclamation text-base"></i>
+                <span id="gate-error-text">아이디 또는 비밀번호가 올바르지 않습니다.</span>
+            </div>
+
+            <form id="gate-login-form" onsubmit="handleGateLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">사용자 아이디 (ID)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-user text-sm"></i>
+                        </span>
+                        <input type="text" id="gate-username" required autocomplete="username" placeholder="아이디를 입력하세요" class="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50 focus:bg-white font-medium text-slate-800">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">비밀번호 (Password)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-key text-sm"></i>
+                        </span>
+                        <input type="password" id="gate-password" required autocomplete="current-password" placeholder="비밀번호를 입력하세요" class="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition bg-slate-50 focus:bg-white font-medium text-slate-800">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center space-x-2">
+                    <span>인증 및 입장하기</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+                <p class="text-[11px] text-slate-400">수의사 및 승인된 관계자만 접근이 허가된 비공개 시스템입니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- App JS -->
+    <script src="/static/js/app.js"></script>
+    <script>
+        // SHA-256 단방향 암호화 해시 검증 (평문 비밀번호 노출 0%)
+        const AUTH_USER = "vet";
+        const AUTH_HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4";
+
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function handleGateLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('gate-username').value.trim();
+            const p = document.getElementById('gate-password').value.trim();
+            const errorDiv = document.getElementById('gate-error-msg');
+
+            const pHash = await sha256(p);
+            if (u === AUTH_USER && pHash === AUTH_HASH) {
+                sessionStorage.setItem('vet_auth_verified', 'true');
+                document.getElementById('private-access-gate').classList.add('hidden');
+                errorDiv.classList.add('hidden');
+            } else {
+                errorDiv.classList.remove('hidden');
+                document.getElementById('gate-password').value = '';
+                document.getElementById('gate-password').focus();
+            }
+        }
+
+        function checkGateAuth() {
+            if (sessionStorage.getItem('vet_auth_verified') === 'true') {
+                document.getElementById('private-access-gate').classList.add('hidden');
+            } else {
+                document.getElementById('private-access-gate').classList.remove('hidden');
+            }
+        }
+
+        function handleGateLogout(e) {
+            if (e) e.preventDefault();
+            sessionStorage.removeItem('vet_auth_verified');
+            window.location.href = '/logout';
+        }
+
+        document.addEventListener('DOMContentLoaded', checkGateAuth);
+    </script>
+</body>
+</html>
