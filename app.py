@@ -2,12 +2,30 @@
 Flask Backend Web Server & REST API for Prescription Diet Recommendation System.
 Includes Bioavailability & Fecal Kit AI Calibration Engine.
 """
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import os
 import sys
+import hashlib
 
 # Ensure core modules can be imported
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+# Auto-load .env for local credentials
+def _load_env_if_needed():
+    env_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), ".env")
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        if k.strip() not in os.environ:
+                            os.environ[k.strip()] = v.strip()
+        except Exception:
+            pass
+
+_load_env_if_needed()
 
 from core.models import (
     Species, Gender, MuscleConditionScore, PatientProfile, FeedingMode,
@@ -22,6 +40,49 @@ from core.optimizer import MixFeedingOptimizer
 from core.monitoring import SymptomLog, BloodLabTest, MonitoringEngine
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "vet-mixfeeding-auth-secret-key-2026")
+
+# 비공개 승인 인증 정보 (코드에 평문 비밀번호를 절대 남기지 않고 단방향 해시로 검증)
+EXPECTED_USER = os.environ.get("SITE_USERNAME", "vet")
+EXPECTED_PW_HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4"
+
+def verify_credentials(user: str, pwd: str) -> bool:
+    if user != EXPECTED_USER:
+        return False
+    env_pw = os.environ.get("SITE_PASSWORD")
+    if env_pw:
+        return pwd == env_pw
+    return hashlib.sha256(pwd.encode()).hexdigest() == EXPECTED_PW_HASH
+
+@app.before_request
+def require_login():
+    # 정적 파일 및 로그인/로그아웃 페이지는 허용
+    if request.path.startswith('/static') or request.path in ['/login', '/logout']:
+        return None
+    if not session.get('authenticated'):
+        if request.path.startswith('/api'):
+            return jsonify({"error": "인증이 필요한 비공개 서비스입니다."}), 401
+        return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        if verify_credentials(username, password):
+            session['authenticated'] = True
+            session.permanent = True
+            return redirect(url_for('index'))
+        return render_template('login.html', error="아이디 또는 비밀번호가 올바르지 않습니다.")
+    if session.get('authenticated'):
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
 loader = get_data_loader()
 optimizer = MixFeedingOptimizer(loader)
 
