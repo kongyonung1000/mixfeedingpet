@@ -1,21 +1,48 @@
-# Python
+# ==========================================
+# 보안 및 민감 정보 차단 (최우선 순위)
+# ==========================================
+.env
+.env.*
+!.env.example
+*.env
+*.key
+*.pem
+*.cert
+*.pfx
+*secret*
+*password*
+credentials.json
+service_account.json
+secrets/
+
+# ==========================================
+# 대용량 파일 (GitHub 100MB 한도 차단)
+# ==========================================
+*.pdf
+
+# ==========================================
+# Python 환경 및 캐시
+# ==========================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.env
 venv/
 env/
 ENV/
+.venv/
 
-# Large PDF files (GitHub blocks files > 100MB)
-*.pdf
+# ==========================================
+# 임시 작업 및 스크래치
+# ==========================================
+scratch/
+.system_generated/
+.agents/
+*.log
 
-# Operating System
+# ==========================================
+# 운영체제 생성 파일
+# ==========================================
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Temporary / Scratch
-scratch/
-.system_generated/
