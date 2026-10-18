@@ -98,18 +98,29 @@ def tag_protein_sources(product_name: str) -> List[str]:
         sources.append("가수분해단백질")
     return sources
 
+DEFAULT_DATA_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 class DataLoader:
-    def __init__(self, data_dir: str = "."):
-        self.data_dir = data_dir
+    def __init__(self, data_dir: Optional[str] = None):
+        self.data_dir = data_dir or DEFAULT_DATA_DIR
         self.diets: List[DietProduct] = []
         self.ingredients: List[IngredientItem] = []
         self.supplements: List[SupplementProduct] = []
         self._load_all()
 
     def _load_all(self):
-        self._load_prescriptions()
-        self._load_ingredients()
-        self._load_supplements()
+        try:
+            self._load_prescriptions()
+        except Exception as e:
+            print(f"[DataLoader] 처방사료 로드 예외: {e}")
+        try:
+            self._load_ingredients()
+        except Exception as e:
+            print(f"[DataLoader] 원료 로드 예외: {e}")
+        try:
+            self._load_supplements()
+        except Exception as e:
+            print(f"[DataLoader] 영양제 로드 예외: {e}")
 
     def _load_supplements(self):
         supp_path = os.path.join(self.data_dir, "벳앤펫영양제데이터.xlsx")
