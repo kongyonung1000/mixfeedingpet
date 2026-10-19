@@ -392,7 +392,52 @@ def evaluate_lab():
     result = MonitoringEngine.evaluate_blood_lab(lab)
     return jsonify(result)
 
+from core.gut_cdss import (
+    GutEnvironmentCDSS, DIET_NUTRIENT_WEIGHTS, DIET_FORM_WEIGHTS,
+    DRUG_WEIGHTS, DISEASE_WEIGHTS
+)
+
+gut_cdss_engine = GutEnvironmentCDSS(attenuation_alpha=0.40)
+
+@app.route('/api/gut-cdss/evaluate', methods=['POST'])
+def evaluate_gut_cdss():
+    data = request.json or {}
+    age_years = float(data.get('age_years', 11.0) or 11.0)
+    weight_kg = float(data.get('weight_kg', 5.0) or 5.0)
+    selected_drugs = data.get('drugs', [])
+    selected_diseases = data.get('diseases', [])
+    diet_mix = data.get('diet_mix', [])  # [{"profile": "저지방사료", "ratio": 0.5}, ...]
+    measurements = data.get('measurements', {})
+
+    diet_weights_with_ratios = []
+    for item in diet_mix:
+        prof = item.get('profile', '중단백사료 (표준)')
+        ratio = float(item.get('ratio', 1.0) or 1.0)
+        w_dict = dict(DIET_NUTRIENT_WEIGHTS.get(prof, DIET_NUTRIENT_WEIGHTS['중단백사료 (표준)']))
+        if item.get('is_renal_high_fat'):
+            w_dict['fat'] = 1.20
+        diet_weights_with_ratios.append((w_dict, ratio))
+
+    baseline = gut_cdss_engine.compute_expected_baseline(
+        age_years=age_years,
+        weight_kg=weight_kg,
+        diet_weights_with_ratios=diet_weights_with_ratios,
+        selected_drugs=selected_drugs,
+        selected_diseases=selected_diseases
+    )
+    evaluation = gut_cdss_engine.evaluate_and_attribute(
+        measurements=measurements,
+        baseline_result=baseline,
+        selected_drugs=selected_drugs,
+        selected_diseases=selected_diseases
+    )
+    return jsonify({
+        "baseline": baseline,
+        "evaluation": evaluation
+    })
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     print(f"Starting Prescription Diet Recommendation Server on http://localhost:{port}")
     app.run(host='0.0.0.0', port=port, debug=True)
+
