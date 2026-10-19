@@ -40,78 +40,396 @@
     <!-- ======================================================== -->
     <!-- 🔒 비공개 접근 차단 게이트 (인라인 절대 잠금) -->
     <!-- ======================================================== -->
-    <div id="private-gate-shield" style="position: fixed; inset: 0; z-index: 999999; background: #0f172a; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <div style="background: white; border-radius: 24px; padding: 36px 32px; max-width: 420px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center;">
-            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 18px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px;">
-                🔒
+    <!-- ======================================================== -->
+    <!-- 🏥 수의 임상 SaaS 비공개 로그인 & 회원가입 통합 포털 -->
+    <!-- ======================================================== -->
+    <div id="private-gate-shield" style="position: fixed; inset: 0; z-index: 999999; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Pretendard', sans-serif; padding: 16px;">
+        <div style="background: white; border-radius: 24px; padding: 32px 28px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; border: 1px solid rgba(226, 232, 240, 0.8);">
+            
+            <!-- 브랜드 로고 & 타이틀 -->
+            <div style="width: 58px; height: 58px; background: linear-gradient(135deg, #2563eb, #4f46e5); border-radius: 16px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 26px; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3);">
+                <i class="fa-solid fa-stethoscope"></i>
             </div>
-            <h2 style="font-size: 20px; font-weight: 800; color: #1e293b; margin: 0 0 4px;">처방사료 믹스피딩 추천</h2>
-            <p style="font-size: 13px; color: #64748b; margin: 0 0 16px;">Veterinary Clinical Nutrition System</p>
-            <div style="display: inline-block; padding: 4px 12px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 700; border-radius: 20px; margin-bottom: 20px;">
-                ⚠️ 비공개 승인 사용자 전용
-            </div>
+            <h2 style="font-size: 21px; font-weight: 800; color: #1e293b; margin: 0 0 4px; letter-spacing: -0.5px;">처방사료 복합질환 믹스피딩</h2>
+            <p style="font-size: 13px; color: #64748b; margin: 0 0 16px; font-weight: 500;">Veterinary Clinical Multi-Morbidity SaaS</p>
 
-            <div id="gate-alert" style="display: none; padding: 10px; background: #fee2e2; border: 1px solid #fecaca; color: #dc2626; font-size: 12px; font-weight: 600; border-radius: 10px; margin-bottom: 16px; text-align: left;">
-                아이디 또는 비밀번호가 올바르지 않습니다.
-            </div>
-
-            <form onsubmit="verifyGateAccess(event)" style="text-align: left;">
-                <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">사용자 아이디 (ID)</label>
-                    <input type="text" id="gate-in-user" required autocomplete="username" placeholder="아이디를 입력하세요" style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; outline: none; background: #f8fafc;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">비밀번호 (Password)</label>
-                    <input type="password" id="gate-in-pass" required autocomplete="current-password" placeholder="비밀번호를 입력하세요" style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; outline: none; background: #f8fafc;">
-                </div>
-                <button type="submit" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3);">
-                    인증 및 입장하기 ➔
+            <!-- 탭 전환 버튼 (로그인 / 회원가입) -->
+            <div style="display: flex; background: #f1f5f9; border-radius: 12px; padding: 4px; margin-bottom: 20px;">
+                <button type="button" id="tab-btn-signin" onclick="switchAuthTab('signin')" style="flex: 1; padding: 9px; font-size: 13px; font-weight: 700; border-radius: 9px; border: none; cursor: pointer; background: white; color: #1e293b; box-shadow: 0 2px 4px rgba(0,0,0,0.06); transition: all 0.2s;">
+                    <i class="fa-solid fa-lock" style="margin-right: 4px;"></i> 로그인
                 </button>
+                <button type="button" id="tab-btn-signup" onclick="switchAuthTab('signup')" style="flex: 1; padding: 9px; font-size: 13px; font-weight: 700; border-radius: 9px; border: none; cursor: pointer; background: transparent; color: #64748b; transition: all 0.2s;">
+                    <i class="fa-solid fa-user-plus" style="margin-right: 4px;"></i> 수의사 회원가입
+                </button>
+            </div>
+
+            <!-- 알림 메시지 박스 -->
+            <div id="gate-alert" style="display: none; padding: 11px 14px; background: #fee2e2; border: 1px solid #fecaca; color: #dc2626; font-size: 12.5px; font-weight: 600; border-radius: 10px; margin-bottom: 16px; text-align: left; line-height: 1.4;"></div>
+            <div id="gate-success" style="display: none; padding: 11px 14px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; font-size: 12.5px; font-weight: 600; border-radius: 10px; margin-bottom: 16px; text-align: left; line-height: 1.4;"></div>
+
+            <!-- [1] 로그인 폼 -->
+            <form id="form-signin" onsubmit="handleSignIn(event)" style="text-align: left;">
+                <div style="margin-bottom: 13px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 5px;">아이디 (ID)</label>
+                    <input type="text" id="signin-user" required autocomplete="username" placeholder="아이디를 입력하세요" style="width: 100%; box-sizing: border-box; padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 11px; font-size: 14px; outline: none; background: #f8fafc; transition: border-color 0.2s;">
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 5px;">비밀번호 (Password)</label>
+                    <input type="password" id="signin-pass" required autocomplete="current-password" placeholder="비밀번호를 입력하세요" style="width: 100%; box-sizing: border-box; padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 11px; font-size: 14px; outline: none; background: #f8fafc; transition: border-color 0.2s;">
+                </div>
+                <button type="submit" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; border: none; border-radius: 11px; font-size: 14.5px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(37,99,235,0.3); transition: transform 0.1s;">
+                    로그인 및 시스템 접속 ➔
+                </button>
+                <div style="margin-top: 14px; text-align: center; font-size: 12px; color: #64748b;">
+                    처음 방문하셨나요? <a href="javascript:void(0)" onclick="switchAuthTab('signup')" style="color: #2563eb; font-weight: 700; text-decoration: underline;">회원가입하기</a>
+                </div>
             </form>
+
+            <!-- [2] 수의사 회원가입 폼 -->
+            <form id="form-signup" onsubmit="handleSignUp(event)" style="display: none; text-align: left;">
+                <div style="display: flex; gap: 10px; margin-bottom: 11px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">성명</label>
+                        <input type="text" id="signup-name" required placeholder="예: 김수의" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; background: #f8fafc;">
+                    </div>
+                    <div style="flex: 1.3;">
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">동물병원 / 소속</label>
+                        <input type="text" id="signup-clinic" required placeholder="예: 서울동물의료센터" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; background: #f8fafc;">
+                    </div>
+                </div>
+                <div style="margin-bottom: 11px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">희망 아이디 (영문/숫자 4자 이상)</label>
+                    <input type="text" id="signup-user" required autocomplete="username" placeholder="아이디를 생성하세요" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; background: #f8fafc;">
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">비밀번호 (6자 이상)</label>
+                        <input type="password" id="signup-pass" required autocomplete="new-password" placeholder="비밀번호" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; background: #f8fafc;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">비밀번호 확인</label>
+                        <input type="password" id="signup-pass-confirm" required autocomplete="new-password" placeholder="확인 입력" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; background: #f8fafc;">
+                    </div>
+                </div>
+                <button type="submit" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 11px; font-size: 14.5px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.3);">
+                    수의사 회원가입 완료 ➔
+                </button>
+                <div style="margin-top: 14px; text-align: center; font-size: 12px; color: #64748b;">
+                    이미 계정이 있으신가요? <a href="javascript:void(0)" onclick="switchAuthTab('signin')" style="color: #2563eb; font-weight: 700; text-decoration: underline;">로그인하기</a>
+                </div>
+            </form>
+
         </div>
     </div>
 
+    <!-- 👥 가입 회원 관리 모달 (마스터 관리자 전용) -->
+    <div id="members-modal" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px;">
+        <div style="background: white; border-radius: 20px; max-width: 620px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 26px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="background: #eff6ff; color: #2563eb; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 17px; font-weight: 800; color: #1e293b; margin: 0;">가입 수의사 회원 명단</h3>
+                        <p style="font-size: 12px; color: #64748b; margin: 0;">시스템에 등록된 원장님 및 수의사 목록입니다.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeMembersModal()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: #64748b; font-size: 16px;">✕</button>
+            </div>
+            <div id="members-table-container"></div>
+        </div>
+    </div>
+
+    <!-- SaaS 인증 및 회원 관리 스크립트 -->
     <script>
         (function() {
-            const HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4";
-            const USER = "vet";
+            const MASTER_USER = "vet";
+            const MASTER_HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4"; // mixfeeding7582
+            const USERS_KEY = "vet_saas_registered_users";
+            const SESSION_KEY = "vet_mix_auth_user";
 
-            function checkAuth() {
-                if (localStorage.getItem("vet_mix_auth") === "granted" || sessionStorage.getItem("vet_mix_auth") === "granted") {
-                    const shield = document.getElementById("private-gate-shield");
-                    if (shield) shield.style.display = "none";
+            // SHA-256 해시 계산기
+            async function sha256(str) {
+                const buf = new TextEncoder().encode(str);
+                const digest = await crypto.subtle.digest("SHA-256", buf);
+                return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+            }
+
+            // 가입 유저 목록 가져오기
+            function getRegisteredUsers() {
+                try {
+                    const raw = localStorage.getItem(USERS_KEY);
+                    return raw ? JSON.parse(raw) : [];
+                } catch(e) {
+                    return [];
                 }
             }
-            checkAuth();
 
-            window.verifyGateAccess = async function(e) {
-                e.preventDefault();
-                const u = document.getElementById("gate-in-user").value.trim();
-                const p = document.getElementById("gate-in-pass").value.trim();
+            // 탭 전환
+            window.switchAuthTab = function(tab) {
+                const btnIn = document.getElementById("tab-btn-signin");
+                const btnUp = document.getElementById("tab-btn-signup");
+                const formIn = document.getElementById("form-signin");
+                const formUp = document.getElementById("form-signup");
                 const alertBox = document.getElementById("gate-alert");
+                const successBox = document.getElementById("gate-success");
+                if (alertBox) alertBox.style.display = "none";
+                if (successBox) successBox.style.display = "none";
 
-                const buf = new TextEncoder().encode(p);
-                const digest = await crypto.subtle.digest("SHA-256", buf);
-                const pHash = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
-
-                if (u === USER && pHash === HASH) {
-                    localStorage.setItem("vet_mix_auth", "granted");
-                    sessionStorage.setItem("vet_mix_auth", "granted");
-                    document.getElementById("private-gate-shield").style.display = "none";
-                    alertBox.style.display = "none";
+                if (tab === "signin") {
+                    btnIn.style.background = "white";
+                    btnIn.style.color = "#1e293b";
+                    btnIn.style.boxShadow = "0 2px 4px rgba(0,0,0,0.06)";
+                    btnUp.style.background = "transparent";
+                    btnUp.style.color = "#64748b";
+                    btnUp.style.boxShadow = "none";
+                    formIn.style.display = "block";
+                    formUp.style.display = "none";
                 } else {
-                    alertBox.style.display = "block";
-                    document.getElementById("gate-in-pass").value = "";
-                    document.getElementById("gate-in-pass").focus();
+                    btnUp.style.background = "white";
+                    btnUp.style.color = "#1e293b";
+                    btnUp.style.boxShadow = "0 2px 4px rgba(0,0,0,0.06)";
+                    btnIn.style.background = "transparent";
+                    btnIn.style.color = "#64748b";
+                    btnIn.style.boxShadow = "none";
+                    formIn.style.display = "none";
+                    formUp.style.display = "block";
                 }
             };
 
+            // 로그인 처리
+            window.handleSignIn = async function(e) {
+                e.preventDefault();
+                const u = document.getElementById("signin-user").value.trim();
+                const p = document.getElementById("signin-pass").value.trim();
+                const alertBox = document.getElementById("gate-alert");
+                const successBox = document.getElementById("gate-success");
+                alertBox.style.display = "none";
+                successBox.style.display = "none";
+
+                if (!u || !p) {
+                    alertBox.textContent = "아이디와 비밀번호를 모두 입력해주세요.";
+                    alertBox.style.display = "block";
+                    return;
+                }
+
+                const pHash = await sha256(p);
+
+                // 1) 마스터 계정 검증
+                if (u === MASTER_USER && pHash === MASTER_HASH) {
+                    const masterProfile = { id: MASTER_USER, name: "대표 수의사 (관리자)", clinic: "하국동물의료원", role: "admin", createdAt: "2026-10-18" };
+                    grantSession(masterProfile);
+                    return;
+                }
+
+                // 2) 가입 회원 검증
+                const users = getRegisteredUsers();
+                const found = users.find(user => user.id.toLowerCase() === u.toLowerCase());
+                if (found && found.passwordHash === pHash) {
+                    grantSession(found);
+                    return;
+                }
+
+                // 인증 실패
+                alertBox.textContent = "아이디 또는 비밀번호가 올바르지 않습니다.";
+                alertBox.style.display = "block";
+                document.getElementById("signin-pass").value = "";
+                document.getElementById("signin-pass").focus();
+            };
+
+            // 회원가입 처리
+            window.handleSignUp = async function(e) {
+                e.preventDefault();
+                const name = document.getElementById("signup-name").value.trim();
+                const clinic = document.getElementById("signup-clinic").value.trim();
+                const user = document.getElementById("signup-user").value.trim();
+                const pass = document.getElementById("signup-pass").value.trim();
+                const passConfirm = document.getElementById("signup-pass-confirm").value.trim();
+                const alertBox = document.getElementById("gate-alert");
+                const successBox = document.getElementById("gate-success");
+                alertBox.style.display = "none";
+                successBox.style.display = "none";
+
+                if (user.length < 3) {
+                    alertBox.textContent = "아이디는 영문/숫자 3자 이상이어야 합니다.";
+                    alertBox.style.display = "block";
+                    return;
+                }
+                if (pass.length < 4) {
+                    alertBox.textContent = "비밀번호는 최소 4자 이상 입력해주세요.";
+                    alertBox.style.display = "block";
+                    return;
+                }
+                if (pass !== passConfirm) {
+                    alertBox.textContent = "비밀번호와 비밀번호 확인이 일치하지 않습니다.";
+                    alertBox.style.display = "block";
+                    return;
+                }
+
+                if (user.toLowerCase() === MASTER_USER.toLowerCase()) {
+                    alertBox.textContent = "이미 시스템 관리자로 예약된 아이디입니다.";
+                    alertBox.style.display = "block";
+                    return;
+                }
+
+                const users = getRegisteredUsers();
+                if (users.some(u => u.id.toLowerCase() === user.toLowerCase())) {
+                    alertBox.textContent = "이미 등록된 아이디입니다. 다른 아이디를 입력해주세요.";
+                    alertBox.style.display = "block";
+                    return;
+                }
+
+                const pHash = await sha256(pass);
+                const newUser = {
+                    id: user,
+                    name: name,
+                    clinic: clinic,
+                    passwordHash: pHash,
+                    role: "member",
+                    createdAt: new Date().toLocaleDateString("ko-KR")
+                };
+
+                users.push(newUser);
+                localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+                // 폼 초기화 및 성공 전환
+                document.getElementById("form-signup").reset();
+                switchAuthTab("signin");
+                document.getElementById("signin-user").value = user;
+                successBox.innerHTML = `🎉 <strong>${name}</strong> 수의사님, 회원가입이 완료되었습니다!<br>방금 생성하신 비밀번호로 로그인해주세요.`;
+                successBox.style.display = "block";
+                document.getElementById("signin-pass").focus();
+            };
+
+            // 세션 부여 & 화면 잠금 해제
+            function grantSession(userProfile) {
+                localStorage.setItem(SESSION_KEY, JSON.stringify(userProfile));
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(userProfile));
+                document.getElementById("private-gate-shield").style.display = "none";
+                updateHeaderProfile(userProfile);
+            }
+
+            // 헤더 프로필 뱃지 갱신
+            function updateHeaderProfile(user) {
+                const badge = document.getElementById("header-user-badge");
+                if (badge && user) {
+                    badge.innerHTML = `
+                        <div class="flex items-center space-x-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/30 text-xs">
+                            <i class="fa-solid fa-user-doctor text-sky-200"></i>
+                            <span class="font-bold text-white">${user.name}</span>
+                            <span class="text-white/60">(${user.clinic || '수의사'})</span>
+                            ${user.role === 'admin' ? `
+                                <button onclick="openMembersModal()" class="ml-1.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-2 py-0.5 rounded text-[11px] transition shadow flex items-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-users-gear"></i> 회원목록
+                                </button>
+                            ` : ''}
+                            <button onclick="handleGateLogout(event)" class="ml-1.5 bg-red-500/80 hover:bg-red-600 text-white font-semibold px-2 py-0.5 rounded text-[11px] transition cursor-pointer flex items-center gap-1">
+                                <i class="fa-solid fa-right-from-bracket"></i> 로그아웃
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // 로그아웃
             window.handleGateLogout = function(e) {
                 if (e) e.preventDefault();
-                localStorage.removeItem("vet_mix_auth");
-                sessionStorage.removeItem("vet_mix_auth");
+                localStorage.removeItem(SESSION_KEY);
+                sessionStorage.removeItem(SESSION_KEY);
                 location.reload();
             };
+
+            // 가입 회원 목록 모달 열기 (마스터 관리자 전용)
+            window.openMembersModal = function() {
+                const modal = document.getElementById("members-modal");
+                const container = document.getElementById("members-table-container");
+                const users = getRegisteredUsers();
+
+                let html = `
+                    <div style="font-size: 13px; color: #475569; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                        <span>총 등록 회원: <strong>${users.length + 1}명</strong> (마스터 1명 + 일반 ${users.length}명)</span>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569;">
+                                <th style="padding: 10px 8px;">구분</th>
+                                <th style="padding: 10px 8px;">성명</th>
+                                <th style="padding: 10px 8px;">동물병원 / 소속</th>
+                                <th style="padding: 10px 8px;">아이디</th>
+                                <th style="padding: 10px 8px;">가입일</th>
+                                <th style="padding: 10px 8px; text-align: center;">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid #f1f5f9; background: #f0fdf4;">
+                                <td style="padding: 10px 8px;"><span style="background: #bbf7d0; color: #166534; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 700;">마스터</span></td>
+                                <td style="padding: 10px 8px; font-weight: 700; color: #1e293b;">대표 수의사</td>
+                                <td style="padding: 10px 8px; color: #64748b;">하국동물의료원</td>
+                                <td style="padding: 10px 8px; font-family: monospace; font-weight: 600; color: #2563eb;">vet</td>
+                                <td style="padding: 10px 8px; color: #94a3b8; font-size: 12px;">시스템 기본</td>
+                                <td style="padding: 10px 8px; text-align: center; color: #94a3b8;">-</td>
+                            </tr>
+                `;
+
+                if (users.length === 0) {
+                    html += `
+                        <tr>
+                            <td colspan="6" style="padding: 24px; text-align: center; color: #94a3b8;">
+                                아직 회원가입한 친구(동료) 수의사가 없습니다.<br>동료분들이 회원가입을 완료하면 이곳에 자동으로 등록됩니다!
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    users.forEach((u, idx) => {
+                        html += `
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 10px 8px;"><span style="background: #e0f2fe; color: #0369a1; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">회원</span></td>
+                                <td style="padding: 10px 8px; font-weight: 600; color: #1e293b;">${u.name}</td>
+                                <td style="padding: 10px 8px; color: #64748b;">${u.clinic || '-'}</td>
+                                <td style="padding: 10px 8px; font-family: monospace; font-weight: 600; color: #3b82f6;">${u.id}</td>
+                                <td style="padding: 10px 8px; color: #94a3b8; font-size: 12px;">${u.createdAt || '-'}</td>
+                                <td style="padding: 10px 8px; text-align: center;">
+                                    <button onclick="deleteMember('${u.id}')" style="background: #fee2e2; color: #dc2626; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">삭제</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+                modal.style.display = "flex";
+            };
+
+            window.closeMembersModal = function() {
+                document.getElementById("members-modal").style.display = "none";
+            };
+
+            window.deleteMember = function(userId) {
+                if (confirm(`'${userId}' 회원을 정말 삭제하시겠습니까?`)) {
+                    let users = getRegisteredUsers();
+                    users = users.filter(u => u.id !== userId);
+                    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+                    openMembersModal();
+                }
+            };
+
+            // 세션 자동 확인
+            function checkActiveSession() {
+                try {
+                    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                    if (raw) {
+                        const user = JSON.parse(raw);
+                        const shield = document.getElementById("private-gate-shield");
+                        if (shield) shield.style.display = "none";
+                        updateHeaderProfile(user);
+                    }
+                } catch(e) {}
+            }
+
+            // 페이지 로드 시 즉각 실행
+            checkActiveSession();
         })();
     </script>
 
@@ -127,16 +445,15 @@
                     <p class="text-xs text-blue-100 font-medium">Veterinary Clinical Multi-Morbidity Diet Optimization & Bioavailability Error Tuner</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-3 text-xs bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/20">
-                <span><i class="fa-solid fa-database mr-1 text-blue-300"></i> 사료 DB: 건식 67종 / 습식 51종</span>
-                <span class="text-white/40">|</span>
-                <span><i class="fa-solid fa-pills mr-1 text-emerald-300"></i> 영양제 11종</span>
-                <span class="text-white/40">|</span>
-                <span><i class="fa-solid fa-vial-virus mr-1 text-amber-300"></i> 분변키트 5대 마커</span>
-                <span class="text-white/40">|</span>
-                <button onclick="handleGateLogout(event)" title="잠금 화면으로 전환" class="bg-red-500/80 hover:bg-red-600 text-white px-2 py-0.5 rounded transition font-semibold flex items-center gap-1 cursor-pointer">
-                    <i class="fa-solid fa-right-from-bracket"></i> 로그아웃
-                </button>
+            <div class="flex items-center space-x-3 text-xs">
+                <div class="hidden md:flex items-center space-x-3 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/20">
+                    <span><i class="fa-solid fa-database mr-1 text-blue-300"></i> 사료 118종</span>
+                    <span class="text-white/40">|</span>
+                    <span><i class="fa-solid fa-pills mr-1 text-emerald-300"></i> 영양제 11종</span>
+                    <span class="text-white/40">|</span>
+                    <span><i class="fa-solid fa-vial-virus mr-1 text-amber-300"></i> 분변키트 5대 마커</span>
+                </div>
+                <div id="header-user-badge"></div>
             </div>
         </div>
     </header>
