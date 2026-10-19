@@ -1253,8 +1253,8 @@
                     </div>
                 </div>
 
-                <!-- 현재 적용된 4대 축 요약 배지 -->
-                <div id="gut-cdss-context-bar" class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <!-- 현재 적용된 5대 가중치 축 요약 배지 (연령/체급 · 식이 · 약물 · 질병 · 혈액검사) -->
+                <div id="gut-cdss-context-bar" class="grid grid-cols-2 md:grid-cols-5 gap-2.5 text-xs">
                     <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
                         <div class="text-[11px] text-slate-400 font-bold">① 연령 · 체급 축</div>
                         <div id="cdss-ctx-age-size" class="font-extrabold text-slate-800 mt-0.5">7년령 이상 (노령기) / 소형견</div>
@@ -1271,6 +1271,64 @@
                         <div class="text-[11px] text-amber-600 font-bold">④ 기저 질환 축 (α=0.40)</div>
                         <div id="cdss-ctx-diseases" class="font-extrabold text-amber-900 mt-0.5">CKD stage 3, 4 + 만성췌장염</div>
                     </div>
+                    <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200">
+                        <div class="text-[11px] text-rose-600 font-bold">⑤ 혈액검사 중증도 축 ($\Delta W_{\text{Lab}}$)</div>
+                        <div id="cdss-ctx-lab" class="font-extrabold text-rose-900 mt-0.5">BUN 58 · Cr 2.8 · P 6.4 · cPL 420</div>
+                    </div>
+                </div>
+
+                <!-- 5번째 가중치 축: 혈액검사(Blood Lab) 수치 변수 입력 패널 (9대 마커 기대치에 추가 가중치 부여) -->
+                <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-200 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-0.5 bg-rose-600 text-white rounded-md text-[11px] font-black">축 ⑤ $\Delta W_{\text{Lab}}$</span>
+                            <h3 class="text-xs font-extrabold text-rose-950">혈액생화학 검사(Blood Lab) 중증도 가중치 변수 (9대 분변 마커 기대치 연동)</h3>
+                        </div>
+                        <span class="text-[11px] text-rose-700 font-medium">혈중 수치(BUN, cPL, Albumin, ALT 등)가 악화될수록 장관 내 요독 유입 및 효소 결핍 가중치($\Delta W_{\text{Lab}}$)가 9대 마커에 자동 가산됩니다.</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">BUN (정상 7~27)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">↑시 NH₃·인돌·잠혈↑</div>
+                            <input type="number" step="1" id="lab-bun" value="58.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">Creatinine (0.5~1.4)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">↑시 요독성 장염↑</div>
+                            <input type="number" step="0.1" id="lab-cr" value="2.8" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">SDMA (&lt;14 ug/dL)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">조기 사구체 여과율</div>
+                            <input type="number" step="1" id="lab-sdma" value="24.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">Phosphorus (2.5~5.5)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">↑시 인흡착제 증량</div>
+                            <input type="number" step="0.1" id="lab-p" value="6.4" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">Albumin (2.5~4.0)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">↓시 단백유실·흡수↓</div>
+                            <input type="number" step="0.1" id="lab-alb" value="2.6" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">cPL / Lipase (&lt;200)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">↑시 미소화지방 급증</div>
+                            <input type="number" step="10" id="lab-cpl" value="420" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">ALT (10~100 U/L)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">↑시 담즙·지방소화↓</div>
+                            <input type="number" step="10" id="lab-alt" value="85" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                        <div class="bg-white p-2 rounded-xl border border-rose-200/80">
+                            <label class="block text-[10px] font-bold text-slate-600">Potassium (3.5~5.5)</label>
+                            <div class="text-[9px] text-rose-500 mb-0.5">전해질·장운동성</div>
+                            <input type="number" step="0.1" id="lab-k" value="4.6" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1 text-xs font-extrabold text-rose-900 rounded-lg border border-slate-300 outline-none focus:border-rose-500">
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 9대 분변 마커 실측치(또는 시뮬레이션 측정치) 입력 그리드 -->
@@ -1278,63 +1336,68 @@
                     <div class="flex flex-wrap items-center justify-between border-b border-white/10 pb-3">
                         <div class="flex items-center space-x-2">
                             <i class="fa-solid fa-sliders text-amber-400"></i>
-                            <h3 class="text-sm font-extrabold">장내환경 9대 분변 마커 실측값 입력 (Fecal Biomarker Panel)</h3>
+                            <h3 class="text-sm font-extrabold">장내환경 9대 분변 마커 실측값 입력 (Fecal 9-Biomarker Panel)</h3>
                         </div>
-                        <span class="text-[11px] text-slate-400">괄호 안은 정상 성견 기준 범위이며, 아래 표에서 <strong>환자 맞춤형 기대 기준치(Expected Baseline)</strong>와 자동 비교됩니다.</span>
+                        <span class="text-[11px] text-slate-400">괄호 안은 정상 성견 기준 범위이며, 아래 표에서 <strong>5대 축(연령·식이·약물·질병·혈액검사)이 결합된 환자 맞춤 기대치</strong>와 자동 비교됩니다.</span>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 text-xs">
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-amber-300">① 분변 pH</label>
                             <div class="text-[10px] text-slate-400 mb-1">정상: 6.0~7.0</div>
-                            <input type="number" step="0.1" id="m9-ph" value="6.8" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-amber-400">
+                            <input type="number" step="0.1" id="m9-ph" value="6.8" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-amber-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-sky-300">② 암모니아</label>
                             <div class="text-[10px] text-slate-400 mb-1">10~30 μmol/g</div>
-                            <input type="number" step="0.5" id="m9-ammonia" value="32.0" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-sky-400">
+                            <input type="number" step="0.5" id="m9-ammonia" value="32.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-sky-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-indigo-300">③ 인돌 (Indole)</label>
                             <div class="text-[10px] text-slate-400 mb-1">5~25 μg/g</div>
-                            <input type="number" step="0.5" id="m9-indole" value="22.0" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-indigo-400">
+                            <input type="number" step="0.5" id="m9-indole" value="22.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-indigo-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-emerald-300">④ 젖산 (Lactate)</label>
                             <div class="text-[10px] text-slate-400 mb-1">5~12 mmol/g</div>
-                            <input type="number" step="0.2" id="m9-lactate" value="7.2" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-emerald-400">
+                            <input type="number" step="0.2" id="m9-lactate" value="7.2" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-emerald-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-rose-300">⑤ 잠혈 (Blood)</label>
                             <div class="text-[10px] text-slate-400 mb-1">&lt;10 ng/mL</div>
-                            <input type="number" step="1.0" id="m9-blood" value="5.0" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-rose-400">
+                            <input type="number" step="1.0" id="m9-blood" value="5.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-rose-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-blue-300">⑥ 미소화 단백질</label>
                             <div class="text-[10px] text-slate-400 mb-1">2.0~8.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-protein" value="7.0" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-blue-400">
+                            <input type="number" step="0.2" id="m9-protein" value="7.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-blue-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-teal-300">⑦ 미소화 탄수</label>
                             <div class="text-[10px] text-slate-400 mb-1">3.0~10.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-carbo" value="8.5" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-teal-400">
+                            <input type="number" step="0.2" id="m9-carbo" value="8.5" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-teal-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-yellow-300">⑧ 미소화 지방</label>
                             <div class="text-[10px] text-slate-400 mb-1">1.0~7.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-fat" value="9.5" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-yellow-400">
+                            <input type="number" step="0.2" id="m9-fat" value="9.5" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-yellow-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-purple-300">⑨ 추정 흡수율</label>
                             <div class="text-[10px] text-slate-400 mb-1">80~95 %</div>
-                            <input type="number" step="0.5" id="m9-absorption" value="68.0" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-purple-400">
+                            <input type="number" step="0.5" id="m9-absorption" value="68.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-purple-400">
                         </div>
                     </div>
 
-                    <div class="flex justify-end pt-2">
+                    <div class="flex flex-wrap items-center justify-between pt-2 gap-3">
+                        <div class="text-xs text-amber-300 font-semibold">
+                            <i class="fa-solid fa-scale-unbalanced-flip mr-1"></i>실측 흡수율(<span id="cdss-meas-abs-label">68.0</span>%) 반영 1일 보정 급여량:
+                            <strong id="cdss-recalc-kcal" class="text-white underline ml-1">0 kcal/day</strong>
+                            (<strong id="cdss-recalc-g" class="text-emerald-300">0 g/day</strong>)
+                        </div>
                         <button type="button" onclick="runGutEnvironmentCDSS()" class="px-7 py-3 bg-gradient-to-r from-indigo-500 via-blue-600 to-emerald-500 hover:from-indigo-600 hover:to-emerald-600 text-white font-black rounded-xl text-xs shadow-lg flex items-center space-x-2 transition transform active:scale-95">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <span>9대 마커 가중치 결합 & 5대 원인(식이·약물·질병·나이) 분해 진단 실행</span>
+                            <span>9대 분변 마커 + 혈액검사 가중치 결합 & 원인 분해 진단 실행</span>
                         </button>
                     </div>
                 </div>
@@ -1364,14 +1427,14 @@
                             </div>
                         </div>
 
-                        <!-- 우측(2칸): 5대 원인 기여도 분해 바 (식이 vs 약물 vs 질병 vs 나이 vs 기타) -->
+                        <!-- 우측(2칸): 5대 원인 기여도 분해 바 (식이 vs 약물 vs 질병+혈액중증도 vs 나이 vs 기타) -->
                         <div class="lg:col-span-2 p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
                             <div>
                                 <div class="flex flex-wrap items-center justify-between mb-2">
                                     <h4 class="text-sm font-black text-slate-800"><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5"></i>장내환경 변화 5대 원인 기여도 분해 (Differential Attribution)</h4>
-                                    <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">수의사 감별 진단 보조</span>
+                                    <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">혈액검사 가중치($\Delta W_{\text{Lab}}$) 연동 감별</span>
                                 </div>
-                                <p class="text-xs text-slate-500 mb-3">현재 관찰된 분변 마커의 편차와 비보상성 초과분이 <strong>식이(사료/간식), 약물, 기저 질병, 나이/체급, 기타(효소 한계 초과 등)</strong> 중 어디에서 기인했는지 백분율(%)로 분해합니다.</p>
+                                <p class="text-xs text-slate-500 mb-3">현재 관찰된 분변 마커의 편차와 비보상성 초과분이 <strong>식이(사료/간식), 약물, 질병+혈액검사 중증도, 나이/체급, 기타(효소 한계 초과 등)</strong> 중 어디에서 기인했는지 백분율(%)로 분해합니다.</p>
 
                                 <!-- 누적 스택 바 -->
                                 <div id="cdss-attribution-stack-bar" class="w-full h-5 rounded-xl overflow-hidden flex shadow-inner bg-slate-200 mb-3"></div>
@@ -1383,7 +1446,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. 9대 마커별 [정상치 vs 환자 맞춤 기대치 vs 실제 측정치] 정밀 판정 테이블 -->
+                    <!-- 2. 9대 마커별 [정상치 vs 환자 맞춤 기대치(혈액가중치 포함) vs 실제 측정치] 정밀 판정 테이블 -->
                     <div class="overflow-x-auto rounded-2xl border border-slate-200">
                         <table class="w-full text-xs text-left">
                             <thead class="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
@@ -1394,7 +1457,7 @@
                                     <th class="py-3 px-3 text-blue-700">환자 맞춤 기대치 (Expected)</th>
                                     <th class="py-3 px-3 text-slate-900">실제 측정치 (Measured)</th>
                                     <th class="py-3 px-3 text-center">CDSS 판정 상태</th>
-                                    <th class="py-3 px-3">요인별 가중 편차 및 임상 해석</th>
+                                    <th class="py-3 px-3">5대 축(연령·식이·약물·질병·혈액) 가중 편차 및 임상 해석</th>
                                 </tr>
                             </thead>
                             <tbody id="cdss-markers-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
@@ -1405,7 +1468,7 @@
                     <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-50 via-blue-50 to-sky-50 border border-indigo-200 space-y-2">
                         <div class="text-sm font-black text-indigo-950 flex items-center space-x-2">
                             <i class="fa-solid fa-robot text-indigo-600"></i>
-                            <span>💡 가중치 기반 AI 심층 분석 코멘트 (Expected vs Measured Clinical Reasoning)</span>
+                            <span>💡 9대 분변 마커 + 혈액검사 가중치($\Delta W_{\text{Lab}}$) 교차 검증 AI 분석 코멘트</span>
                         </div>
                         <div id="cdss-ai-comments-list" class="space-y-1.5 text-xs text-indigo-900 leading-relaxed pl-1"></div>
                     </div>
@@ -1456,243 +1519,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Fecal Kit 5-Marker POCT Calibration Panel -->
-            <div class="bg-gradient-to-br from-indigo-900 via-slate-900 to-blue-950 text-white rounded-2xl p-6 shadow-xl border border-indigo-500/30">
-                <div class="flex flex-wrap items-center justify-between border-b border-white/10 pb-4 mb-6">
-                    <div class="flex items-center space-x-3">
-                        <span class="p-2.5 bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 rounded-xl shadow-lg font-black"><i class="fa-solid fa-vial-virus text-xl"></i></span>
-                        <div>
-                            <h2 class="text-lg font-black text-white">분변 키트 5대 비색 마커 POCT 실측 & AI 캘리브레이션 튜너</h2>
-                            <p class="text-xs text-indigo-200">사전 추정치(A Priori)와 분변 비색 검사 결과를 대조하여 실제 사료 이용률과 흡수율 오차를 보정합니다.</p>
-                        </div>
-                    </div>
-                    <span class="text-xs font-extrabold px-3 py-1 bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-full">Digital Biomarker Validation</span>
-                </div>
-
-                <!-- 5 Colorimetric Markers Input Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <!-- Marker 1: pH -->
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 fecal-kit-card flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-extrabold text-amber-300">① 분변 pH</span>
-                                <span id="badge-kit-ph" class="text-[11px] font-bold px-2 py-0.5 bg-blue-500/30 text-blue-200 rounded-md">pH 6.8</span>
-                            </div>
-                            <p class="text-[11px] text-slate-300 mb-2">탄수화물 과발효(&lt;6.0) vs 단백부패(&gt;7.5)</p>
-                        </div>
-                        <div>
-                            <input type="range" id="kit-ph" min="5.0" max="8.5" step="0.1" value="6.8" oninput="document.getElementById('badge-kit-ph').innerText = 'pH ' + this.value" class="w-full h-1.5 bg-white/20 rounded-lg accent-amber-400 cursor-pointer">
-                            <div class="flex justify-between text-[10px] text-slate-400 mt-1">
-                                <span>5.0 (산성)</span>
-                                <span>6.8 (정상)</span>
-                                <span>8.5 (알칼리)</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Marker 2: Ammonia -->
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 fecal-kit-card flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-extrabold text-sky-300">② 암모니아/질소</span>
-                                <i class="fa-solid fa-droplet text-sky-400"></i>
-                            </div>
-                            <p class="text-[11px] text-slate-300 mb-2">단백질 소장 미소화 잔류량 검증</p>
-                        </div>
-                        <select id="kit-ammonia" class="w-full text-xs bg-slate-800/90 text-white px-2.5 py-2 rounded-xl border border-white/20 outline-none focus:border-sky-400">
-                            <option value="정상" selected>정상 (미소화 유실 없음)</option>
-                            <option value="주의(경도)">주의 (소화한계 근접)</option>
-                            <option value="높음(중등도)">높음 (단백질 흡수 불량)</option>
-                            <option value="매우 높음(고농도)">매우 높음 (단백 과다 유실)</option>
-                        </select>
-                    </div>
-
-                    <!-- Marker 3: Fecal Fat -->
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 fecal-kit-card flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-extrabold text-yellow-300">③ 중성지방(지방변)</span>
-                                <i class="fa-solid fa-cheese text-yellow-400"></i>
-                            </div>
-                            <p class="text-[11px] text-slate-300 mb-2">지방 흡수율(Steatorrhea) & 췌장기능</p>
-                        </div>
-                        <select id="kit-fat" class="w-full text-xs bg-slate-800/90 text-white px-2.5 py-2 rounded-xl border border-white/20 outline-none focus:border-yellow-400">
-                            <option value="음성 (0)" selected>음성 (0, 정상 흡수)</option>
-                            <option value="약양성 (1+)">약양성 (1+, 경미한 유실)</option>
-                            <option value="중등도 (2+)">중등도 (2+, 지방변 확인)</option>
-                            <option value="강양성 (3+)">강양성 (3+, 췌장효소 결핍)</option>
-                        </select>
-                    </div>
-
-                    <!-- Marker 4: Occult Blood -->
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 fecal-kit-card flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-extrabold text-rose-300">④ 잠혈/상피자극</span>
-                                <i class="fa-solid fa-biohazard text-rose-400"></i>
-                            </div>
-                            <p class="text-[11px] text-slate-300 mb-2">장벽 융모 손상 & 장관 투과성</p>
-                        </div>
-                        <select id="kit-blood" class="w-full text-xs bg-slate-800/90 text-white px-2.5 py-2 rounded-xl border border-white/20 outline-none focus:border-rose-400">
-                            <option value="음성 (-)" selected>음성 (-, 장벽 온전)</option>
-                            <option value="양성 (+)">양성 (+, 점막 미세출혈)</option>
-                            <option value="강양성 (++)">강양성 (++, 중증 장벽 손상)</option>
-                        </select>
-                    </div>
-
-                    <!-- Marker 5: Fecal Phosphate -->
-                    <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 fecal-kit-card flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-extrabold text-emerald-300">⑤ 분변 인/칼슘</span>
-                                <i class="fa-solid fa-link text-emerald-400"></i>
-                            </div>
-                            <p class="text-[11px] text-slate-300 mb-2">장내 인 결합 배출 vs 체내 축적</p>
-                        </div>
-                        <select id="kit-phosphate" class="w-full text-xs bg-slate-800/90 text-white px-2.5 py-2 rounded-xl border border-white/20 outline-none focus:border-emerald-400">
-                            <option value="낮음 (Low - 체내 흡수 위험)">낮음 (인 결합 부족 / 체내 흡수)</option>
-                            <option value="보통 (Normal)" selected>보통 (적정 배출)</option>
-                            <option value="높음 (High - 장내 배출 양호)">높음 (장내 결합 배설 원활)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Execute Button -->
-                <div class="mt-6 flex justify-end">
-                    <button type="button" onclick="runFecalKitCalibration()" class="px-8 py-3.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 hover:from-amber-500 hover:to-rose-600 text-slate-950 font-black rounded-xl text-sm shadow-xl flex items-center space-x-2 transition transform active:scale-95">
-                        <i class="fa-solid fa-sliders text-base"></i>
-                        <span>분변 키트 실측치 기반 AI 오차 보정(Calibration) 실행</span>
-                    </button>
-                </div>
-
-                <!-- Calibration Output Report Card -->
-                <div id="calibration-report-container" class="mt-6 p-6 bg-white/95 text-slate-900 rounded-2xl border border-amber-300 shadow-2xl space-y-6 hidden">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-2.5 h-6 bg-amber-500 rounded-full"></span>
-                            <h3 class="text-base font-extrabold text-slate-900">AI 캘리브레이션 오차 보정 리포트 (Calibration Result)</h3>
-                        </div>
-                        <span id="cal-phos-risk-badge" class="px-3 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-200">인 축적 위험도 평가중</span>
-                    </div>
-
-                    <!-- Comparison Grid -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                            <div class="text-xs text-slate-500 font-bold">단백질 흡수율 보정</div>
-                            <div class="text-lg font-black mt-1">
-                                <span id="cal-prot-prior" class="text-slate-400 line-through">82%</span>
-                                <span class="text-slate-400 mx-1">➔</span>
-                                <span id="cal-prot-after" class="text-blue-700 text-xl font-black">71%</span>
-                            </div>
-                            <div class="text-[11px] text-slate-400 mt-0.5">암모니아/pH 실측 반영</div>
-                        </div>
-
-                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                            <div class="text-xs text-slate-500 font-bold">지방 흡수율 보정</div>
-                            <div class="text-lg font-black mt-1">
-                                <span id="cal-fat-prior" class="text-slate-400 line-through">90%</span>
-                                <span class="text-slate-400 mx-1">➔</span>
-                                <span id="cal-fat-after" class="text-amber-700 text-xl font-black">80%</span>
-                            </div>
-                            <div class="text-[11px] text-slate-400 mt-0.5">지방변(Steatorrhea) 반영</div>
-                        </div>
-
-                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                            <div class="text-xs text-slate-500 font-bold">총 대사 이용률 보정</div>
-                            <div class="text-lg font-black mt-1">
-                                <span id="cal-overall-prior" class="text-slate-400 line-through">85%</span>
-                                <span class="text-slate-400 mx-1">➔</span>
-                                <span id="cal-overall-after" class="text-emerald-700 text-xl font-black">77%</span>
-                            </div>
-                            <div class="text-[11px] text-slate-400 mt-0.5">실제 대사 효율 확정</div>
-                        </div>
-
-                        <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200">
-                            <div class="text-xs text-amber-900 font-bold">최종 급여량(g) 재계산</div>
-                            <div class="text-lg font-black text-amber-800 mt-1">
-                                <span id="cal-der-after">0</span> kcal/day
-                            </div>
-                            <div class="text-xs font-bold text-amber-950 mt-0.5">
-                                총 1일 급여: <strong id="cal-total-g-after" class="text-blue-700">0</strong> g/day
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tuning Log Details -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
-                        <div class="font-bold text-slate-800 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-list-check text-blue-600"></i>
-                            <span>마커별 세부 오차 튜닝 로그</span>
-                        </div>
-                        <div id="cal-tuning-log-list" class="space-y-1.5 pl-2"></div>
-                    </div>
-
-                    <!-- Clinical Actions Recommended -->
-                    <div class="bg-blue-50/80 p-4 rounded-xl border border-blue-200 space-y-2 text-xs">
-                        <div class="font-bold text-blue-900 flex items-center space-x-1.5">
-                            <i class="fa-solid fa-prescription-bottle-medical text-blue-600"></i>
-                            <span>임상 조치 및 사료 믹스피딩 재조정 가이드</span>
-                        </div>
-                        <div id="cal-clinical-actions-list" class="space-y-1 pl-2 text-blue-950 font-medium"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Blood Lab Test Panel -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                    <div class="flex items-center space-x-3">
-                        <span class="w-2.5 h-6 bg-red-600 rounded-full"></span>
-                        <h2 class="text-lg font-bold text-slate-800">혈액 검사(Lab Test) 결과 연동 & 급여 피드백</h2>
-                    </div>
-                    <span class="text-xs text-slate-400">검사 수치를 입력하면 영양학적 위험도와 조치 가이드를 제공합니다.</span>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">BUN (mg/dL)</label>
-                        <input type="number" step="0.1" id="lab-bun" value="58.0" placeholder="7-27" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Creatinine</label>
-                        <input type="number" step="0.1" id="lab-cr" value="2.8" placeholder="0.5-1.4" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">SDMA (ug/dL)</label>
-                        <input type="number" step="0.1" id="lab-sdma" value="24.0" placeholder="<14" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Phosphorus (P)</label>
-                        <input type="number" step="0.1" id="lab-p" value="6.4" placeholder="2.5-5.5" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Albumin (g/dL)</label>
-                        <input type="number" step="0.1" id="lab-alb" value="2.6" placeholder="2.5-4.0" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">cPL / Lipase</label>
-                        <input type="number" step="1" id="lab-cpl" placeholder="<200" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">ALT (U/L)</label>
-                        <input type="number" step="1" id="lab-alt" placeholder="10-100" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Potassium (K)</label>
-                        <input type="number" step="0.1" id="lab-k" placeholder="3.5-5.5" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                </div>
-
-                <div class="mt-4 flex justify-end">
-                    <button type="button" onclick="evaluateLabTest()" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-2">
-                        <i class="fa-solid fa-vial"></i>
-                        <span>혈액검사 피드백 분석 실행</span>
-                    </button>
-                </div>
-
-                <div id="lab-feedback-container" class="mt-4 p-4 rounded-xl text-xs hidden"></div>
             </div>
 
             <!-- Symptom Log Entry Form -->
@@ -2418,141 +2244,6 @@
             }
         }
 
-        // Pure JS Bayesian Fecal Kit Calibration Engine
-        function runFecalKitCalibration() {
-            const kit_ph = parseFloat(document.getElementById('kit-ph').value) || 6.8;
-            const kit_amm = document.getElementById('kit-ammonia').value;
-            const kit_fat = document.getElementById('kit-fat').value;
-            const kit_blood = document.getElementById('kit-blood').value;
-            const kit_phos = document.getElementById('kit-phosphate').value;
-
-            const lab_p = parseFloat(document.getElementById('lab-p').value) || null;
-
-            let cal_prot = currentPriorBioavailability.prior_protein_absorb_pct;
-            let cal_fat = currentPriorBioavailability.prior_fat_absorb_pct;
-            let cal_carb = currentPriorBioavailability.prior_carb_absorb_pct;
-            let cal_overall = currentPriorBioavailability.prior_overall_absorb_pct;
-            let barrier = currentPriorBioavailability.gut_barrier_intact_pct;
-
-            const tuning_log = [];
-            const clinical_actions = [];
-
-            // 1. pH
-            if (kit_ph < 6.0) {
-                cal_carb = Math.max(40, cal_carb - 12);
-                cal_overall = Math.max(45, cal_overall - 5);
-                tuning_log.push({ marker: "① 분변 pH (<6.0 산성)", result: `pH ${kit_ph}`, effect: "소장 탄수화물 흡수 실패 ➔ 대장 과발효/유기산 산화", adj: "탄수화물 흡수율 -12%, 총 흡수율 -5%" });
-                clinical_actions.push("사료 내 난소화성 전분 비율을 줄이고 고소화성 탄수화물/섬유소로 조절하십시오.");
-            } else if (kit_ph > 7.5) {
-                cal_prot = Math.max(40, cal_prot - 6);
-                tuning_log.push({ marker: "① 분변 pH (>7.5 알칼리성)", result: `pH ${kit_ph}`, effect: "단백질 미소화 잔류물 대장 유입 ➔ 단백 부패(Putrefaction) 진행", adj: "단백질 흡수율 -6% 추가 하향" });
-            }
-
-            // 2. Ammonia
-            if (kit_amm.includes("높음")) {
-                const loss = kit_amm.includes("매우") ? 18 : 11;
-                cal_prot = Math.max(35, cal_prot - loss);
-                cal_overall = Math.max(45, cal_overall - 6);
-                tuning_log.push({ marker: "② 분변 암모니아/질소 (High)", result: kit_amm, effect: "소장 단백 소화 흡수 용량 초과 및 미소화 유실 과다", adj: `단백질 흡수율 ${currentPriorBioavailability.prior_protein_absorb_pct}% ➔ ${cal_prot}%로 대폭 하향` });
-                clinical_actions.push("소장 단백질 소화율이 사전 추정치보다 낮습니다. Cardiac/고단백 사료 비율을 낮추고 초고소화성 가수분해 단백질 또는 백색육 화식 배합으로 전환하십시오.");
-            } else if (kit_amm.includes("주의")) {
-                cal_prot = Math.max(40, cal_prot - 4);
-                tuning_log.push({ marker: "② 분변 암모니아/질소 (주의)", result: "경도 증가", effect: "소장 단백질 소화 한계 근접", adj: "단백질 흡수율 -4% 보정" });
-            }
-
-            // 3. Fecal Fat
-            if (kit_fat.includes("2+") || kit_fat.includes("3+")) {
-                const loss = kit_fat.includes("3+") ? 28 : 18;
-                cal_fat = Math.max(30, cal_fat - loss);
-                cal_overall = Math.max(45, cal_overall - 10);
-                tuning_log.push({ marker: "③ 분변 중성지방 (지방변)", result: kit_fat, effect: "지방 유실(Steatorrhea) 확인: 췌장효소/담즙산 결핍으로 지질 미셀화 장애", adj: `지방 흡수율 -${loss}% 하향, 칼로리 이용률 급감 반영` });
-                clinical_actions.push("지방 흡수 부전이 확인되었습니다. 즉시 극저지방(Low-Fat < 10% DM)으로 처방하고 췌장 소화효소제 보충을 시작하십시오.");
-            } else if (kit_fat.includes("1+")) {
-                cal_fat = Math.max(40, cal_fat - 7);
-                cal_overall = Math.max(45, cal_overall - 3);
-                tuning_log.push({ marker: "③ 분변 중성지방 (1+)", result: "약양성", effect: "경미한 지방 흡수 지연", adj: "지방 흡수율 -7% 보정" });
-            }
-
-            // 4. Occult Blood
-            if (kit_blood.includes("+")) {
-                const loss = kit_blood.includes("++") ? 25 : 15;
-                barrier = Math.max(10, barrier - loss);
-                cal_overall = Math.max(40, cal_overall - 8);
-                tuning_log.push({ marker: "④ 분변 잠혈/상피자극", result: kit_blood, effect: "장벽 융모 상피 손상 및 미세출혈로 장관 투과성(Permeability) 붕괴", adj: `장벽 온전성 ${barrier}점으로 하향, 생체이용률 페널티` });
-                clinical_actions.push("장점막 염증 및 장벽 손상이 존재합니다. 장벽이 안정화될 때까지 저알러지 아날러제닉 사료 및 장점막 보호제(글루타민, 프로바이오틱스)를 우선 처방하십시오.");
-            }
-
-            // 5. Phosphate Pair
-            let phos_risk = "정상 배출 (안정)";
-            if (kit_phos.includes("낮음")) {
-                if (lab_p && lab_p > 5.5) {
-                    phos_risk = "🔴 최고 위험 (장내 결합 실패 & 체내 축적 가속)";
-                    clinical_actions.push("🚨 [인 통제 비상] 혈청 인이 높은 상태에서 분변 인 배출이 저하되어 있습니다. 장이 식이 내 인을 흡수하고 있으므로 장내 인 결합제(Phosphate Binder) 용량을 증량하고 신장 처방식 비율을 극대화하십시오.");
-                    tuning_log.push({ marker: "⑤ 분변 인 (Low) + 혈청 인 (High)", result: `Fecal P Low, Blood P ${lab_p} mg/dL`, effect: "식이 내 인이 장에서 불용화 결합되지 않고 체내로 흡수되어 고인혈증 악화", adj: "인 체내 축적 위험도 최고 등급 상향" });
-                } else {
-                    phos_risk = "🟡 주의 (식이 인 흡수율 높음)";
-                    tuning_log.push({ marker: "⑤ 분변 인 (Low)", result: "Fecal P Low", effect: "장내 인 배출량 부족", adj: "인 결합 상태 모니터링 필요" });
-                }
-            } else if (kit_phos.includes("높음")) {
-                if (lab_p && lab_p <= 5.5) {
-                    phos_risk = "🟢 치료 성공 (장내 인 불용화 및 대변 배출 원활)";
-                    tuning_log.push({ marker: "⑤ 분변 인 (High) + 혈청 인 (정상)", result: "Fecal P High, Blood P 안정", effect: "사료 내 인이 장에서 성공적으로 불용화 결합되어 대변으로 배출됨 (치료 목표 달성)", adj: "현재 신장 식이 및 인 결합 요법 유지" });
-                } else {
-                    phos_risk = "🟠 인 배설 진행 중 (혈중 인 모니터링)";
-                }
-            }
-
-            // Recalculate Final Calibrated DER and Food grams
-            const recalc_der = Math.round((currentBaseDerKcal / (cal_overall / 100.0)) * 10) / 10;
-            const recalc_total_g = Math.round(currentBaseTotalG * (currentPriorBioavailability.prior_overall_absorb_pct / cal_overall) * 10) / 10;
-
-            if (clinical_actions.length === 0) {
-                clinical_actions.push("분변 키트 5대 마커가 모두 안정 범위로, 현재 믹스피딩 처방을 안전하게 유지할 수 있습니다.");
-            }
-
-            // Render Calibration Report Card
-            const reportContainer = document.getElementById('calibration-report-container');
-            reportContainer.classList.remove('hidden');
-
-            document.getElementById('cal-prot-prior').innerText = `${currentPriorBioavailability.prior_protein_absorb_pct}%`;
-            document.getElementById('cal-prot-after').innerText = `${cal_prot}%`;
-            document.getElementById('cal-fat-prior').innerText = `${currentPriorBioavailability.prior_fat_absorb_pct}%`;
-            document.getElementById('cal-fat-after').innerText = `${cal_fat}%`;
-            document.getElementById('cal-overall-prior').innerText = `${currentPriorBioavailability.prior_overall_absorb_pct}%`;
-            document.getElementById('cal-overall-after').innerText = `${cal_overall}%`;
-
-            document.getElementById('cal-der-after').innerText = recalc_der;
-            document.getElementById('cal-total-g-after').innerText = recalc_total_g;
-
-            const riskBadge = document.getElementById('cal-phos-risk-badge');
-            riskBadge.innerText = phos_risk;
-            if (phos_risk.includes("최고 위험")) riskBadge.className = "px-3 py-1 rounded-full text-xs font-black bg-red-100 text-red-800 border border-red-200 animate-pulse";
-            else if (phos_risk.includes("치료 성공")) riskBadge.className = "px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-200";
-            else riskBadge.className = "px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-200";
-
-            // Tuning Log List
-            const logList = document.getElementById('cal-tuning-log-list');
-            logList.innerHTML = '';
-            tuning_log.forEach(t => {
-                const d = document.createElement('div');
-                d.className = "p-2 rounded-lg bg-white border border-slate-200";
-                d.innerHTML = `<strong>${t.marker} [${t.result}]</strong>: ${t.effect} ➔ <span class="text-blue-700 font-bold">${t.adj}</span>`;
-                logList.appendChild(d);
-            });
-
-            // Clinical Actions List
-            const actList = document.getElementById('cal-clinical-actions-list');
-            actList.innerHTML = '';
-            clinical_actions.forEach(a => {
-                const d = document.createElement('div');
-                d.innerHTML = `💡 ${a}`;
-                actList.appendChild(d);
-            });
-
-            // Smooth scroll to report
-            reportContainer.scrollIntoView({ behavior: 'smooth' });
-        }
-
         function submitSymptomLog() {
             const wt = parseFloat(document.getElementById('log-weight').value) || 5.0;
             const fs = parseFloat(document.getElementById('log-fecal').value) || 3.5;
@@ -2577,66 +2268,12 @@
             }
         }
 
-        function evaluateLabTest() {
-            const cr = parseFloat(document.getElementById('lab-cr').value);
-            const sdma = parseFloat(document.getElementById('lab-sdma').value);
-            const p = parseFloat(document.getElementById('lab-p').value);
-            const alb = parseFloat(document.getElementById('lab-alb').value);
-            const cpl = parseFloat(document.getElementById('lab-cpl').value);
-            const alt = parseFloat(document.getElementById('lab-alt').value);
-            const k = parseFloat(document.getElementById('lab-k').value);
-
-            const feedbacks = [];
-            let risk = "정상/양호";
-
-            if ((cr && cr > 2.0) || (sdma && sdma > 18.0)) {
-                risk = "주의/모니터링";
-                feedbacks.push("🔴 [신장 수치 상승] Creatinine/SDMA 상승으로 신기능 저하(IRIS Stage 2~3 의심). 인(P)과 단백질을 더욱 엄격히 제한하고 습식 급여로 음수량을 늘리세요.");
-            }
-            if (p && p > 5.5) {
-                feedbacks.push("🔴 [고인혈증 경고] 혈청 인 수치가 높습니다. 인 흡착제 병용 및 초저인 처방식 전환이 시급합니다.");
-            }
-            if (alb && alb < 2.5) {
-                risk = "위험/조치 필요";
-                feedbacks.push("🚨 [저알부민혈증] 알부민 저하(<2.5g/dL)로 PLE/간부전/신소실증 의심. 생물가가 높은 초고소화성 단백질 공급 및 극저지방식이 필수적입니다.");
-            }
-            if (cpl && cpl > 400.0) {
-                risk = "위험/조치 필요";
-                feedbacks.push("🚨 [췌장염 수치 급상승] 췌장염 활성화 의심. 지방 함량이 10% 미만인 극저지방(Ultra Low Fat) 처방식 단독 급여를 권장합니다.");
-            }
-            if (alt && alt > 250.0) {
-                feedbacks.push("🟠 [간세포 손상] ALT 수치 상승. 구리(Cu) 함량이 낮은 단백질원 및 항산화제/타우린 보충을 권장합니다.");
-            }
-            if (k && k < 3.5) {
-                feedbacks.push("🟡 [저칼륨혈증] 이뇨제 또는 신부전성 칼륨 소실 의심. 칼륨 보충 사료 또는 보조제 투여를 고려하세요.");
-            }
-
-            if (feedbacks.length === 0) {
-                feedbacks.push("✅ 혈액 검사 주요 수치가 목표 안전 범위 내에서 안정적으로 유지되고 있습니다.");
-            }
-
-            const container = document.getElementById('lab-feedback-container');
-            container.classList.remove('hidden');
-
-            const bg = risk.includes("위험") ? "bg-red-50 border-red-200 text-red-900" : (risk.includes("주의") ? "bg-amber-50 border-amber-200 text-amber-900" : "bg-emerald-50 border-emerald-200 text-emerald-900");
-
-            container.className = `mt-4 p-4 rounded-2xl border text-xs space-y-2 ${bg}`;
-            container.innerHTML = `
-                <div class="flex items-center justify-between font-bold">
-                    <span><i class="fa-solid fa-notes-medical mr-1.5"></i>혈액검사 임상 영양 분석 리포트</span>
-                    <span class="px-2.5 py-0.5 rounded-full bg-white/80 border text-[11px]">${risk}</span>
-                </div>
-                <div class="space-y-1.5 pt-2 border-t border-black/5">
-                    ${feedbacks.map(f => `<div>${f}</div>`).join('')}
-                </div>
-            `;
-        }
-
         // =========================================================================
-        // 장내환경 9대 마커 다차원 가중치 결합 & 원인 분해 (Differential Attribution) CDSS 엔진
+        // 장내환경 9대 마커 다차원 가중치 결합 + 제5축 혈액검사 가중치(ΔW_Lab) & 원인 분해 CDSS 엔진
         // 문헌 및 데이터 근거:
         // 1. 장내환경 변수에 따른 가중치 상관관계.xlsx (변수기준, 마커기준, 정상범위)
         // 2. 믹스피딩 가중치의 근거.docx (다차원 감쇠 결합 수식 α=0.40, 카테고리 민감도 C_k)
+        // 3. 혈액생화학 검사(BUN, Cr, SDMA, P, Alb, cPL, ALT, K) 실시간 중증도 가중치(ΔW_Lab)
         // =========================================================================
         const CDSS_MARKERS = ["ph", "ammonia", "indole", "lactate", "blood", "protein", "carbo", "fat", "absorption"];
 
@@ -2652,17 +2289,17 @@
             absorption: { name: "⑨ 추정 흡수율", unit: "%", base: 85.0, min: 80.0, max: 95.0, imp: 1.8 }
         };
 
-        // 시트2: 마커기준 (카테고리 민감도 매트릭스 C_k)
+        // 시트2: 마커기준 (카테고리 민감도 매트릭스 C_k + 혈액검사 민감도 lab)
         const CDSS_SENSITIVITY = {
-            ph:         { age: 0.8, size: 0.6, diet: 1.5, drug: 1.0, disease: 1.2 },
-            ammonia:    { age: 1.0, size: 0.8, diet: 1.4, drug: 1.1, disease: 1.6 },
-            indole:     { age: 0.9, size: 0.8, diet: 1.3, drug: 1.1, disease: 1.6 },
-            lactate:    { age: 1.1, size: 0.7, diet: 1.6, drug: 1.2, disease: 1.1 },
-            blood:      { age: 0.6, size: 0.5, diet: 0.5, drug: 1.8, disease: 2.0 },
-            protein:    { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8 },
-            carbo:      { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8 },
-            fat:        { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8 },
-            absorption: { age: 1.1, size: 0.9, diet: 1.2, drug: 1.3, disease: 1.7 }
+            ph:         { age: 0.8, size: 0.6, diet: 1.5, drug: 1.0, disease: 1.2, lab: 1.3 },
+            ammonia:    { age: 1.0, size: 0.8, diet: 1.4, drug: 1.1, disease: 1.6, lab: 1.8 },
+            indole:     { age: 0.9, size: 0.8, diet: 1.3, drug: 1.1, disease: 1.6, lab: 1.7 },
+            lactate:    { age: 1.1, size: 0.7, diet: 1.6, drug: 1.2, disease: 1.1, lab: 1.2 },
+            blood:      { age: 0.6, size: 0.5, diet: 0.5, drug: 1.8, disease: 2.0, lab: 1.6 },
+            protein:    { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.7 },
+            carbo:      { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.3 },
+            fat:        { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.9 },
+            absorption: { age: 1.1, size: 0.9, diet: 1.2, drug: 1.3, disease: 1.7, lab: 1.8 }
         };
 
         function _mkW(ph, amm, ind, lac, bld, pro, car, fat, abs) {
@@ -2705,7 +2342,7 @@
             "스테로이드 (Prednisolone 등)": _mkW(1.05, 1.15, 1.15, 0.90, 1.50, 1.15, 1.10, 1.20, 0.88),
             "관절염, 디스크약 (진통소염/신경통약)": _mkW(1.02, 1.05, 1.05, 0.95, 1.40, 1.05, 1.00, 1.00, 0.95),
             "쿠싱약 (Trilostane)": _mkW(1.00, 1.05, 1.05, 1.00, 1.05, 1.05, 1.05, 1.10, 0.95),
-            "에디슨약 (Fludrocortisone/DOCP)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
+            "에디슨약 (Fludrocortisone/DOCP)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.98),
             "갑상선기능항진증약 (Methimazole)": _mkW(1.02, 1.05, 1.05, 0.95, 1.00, 1.05, 1.05, 1.05, 0.95),
             "갑상선기능저하증약 (Levothyroxine)": _mkW(0.98, 0.95, 0.95, 1.05, 1.00, 0.95, 0.95, 0.95, 1.05),
             "항암제 (Cytotoxic agents)": _mkW(1.10, 1.35, 1.30, 0.80, 1.70, 1.30, 1.25, 1.35, 0.75),
@@ -2762,6 +2399,105 @@
             return total;
         }
 
+        // 제5축: 혈액생화학 검사(Blood Lab) 수치에 따른 9대 분변 마커 실시간 중증도 가중치(ΔW_Lab) 산출기
+        function computeLabWeightDeltas() {
+            const bun = parseFloat(document.getElementById('lab-bun')?.value) || 0;
+            const cr = parseFloat(document.getElementById('lab-cr')?.value) || 0;
+            const sdma = parseFloat(document.getElementById('lab-sdma')?.value) || 0;
+            const p = parseFloat(document.getElementById('lab-p')?.value) || 0;
+            const alb = parseFloat(document.getElementById('lab-alb')?.value) || 3.1;
+            const cpl = parseFloat(document.getElementById('lab-cpl')?.value) || 0;
+            const alt = parseFloat(document.getElementById('lab-alt')?.value) || 0;
+            const k = parseFloat(document.getElementById('lab-k')?.value) || 4.4;
+
+            // 9대 마커별 ΔW_Lab 초기화
+            // (주의: 기저 질병 축(ΔW_Disease)에 이미 중등도 평균치가 반영되어 있으므로,
+            // 혈액 수치가 해당 질환의 평균적인 통제 범위를 벗어날 때 양(+)/음(-)의 추가 중증도 가중치를 부여하고,
+            // 원인 분해(Attribution) 시에는 절대적 혈액 이상도를 반영함)
+            const d_lab = _mkW(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            const labSeverityScore = _mkW(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            const labAlerts = [];
+
+            // 1. 신장/요독소 지표 (BUN, Cr, SDMA) -> 장관 내 요소 역확산(Urea influx) -> 암모니아/인돌/pH/잠혈
+            if (bun > 28 || cr > 1.6 || sdma > 14) {
+                const uremiaIntensity = Math.min(1.0, Math.max(0, (bun - 25) / 65.0) + Math.max(0, (cr - 1.5) / 3.5) * 0.5);
+                labSeverityScore.ammonia += 0.25 * uremiaIntensity;
+                labSeverityScore.indole += 0.22 * uremiaIntensity;
+                labSeverityScore.ph += 0.05 * uremiaIntensity;
+                labSeverityScore.blood += 0.18 * uremiaIntensity;
+                // 심한 고질소혈증(BUN > 55 또는 Cr > 2.8)일 때 기대 기준치 추가 가중
+                if (bun > 55 || cr > 2.8 || sdma > 25) {
+                    const extra = Math.min(0.25, ((bun - 55) / 100.0) + ((cr - 2.8) / 10.0));
+                    d_lab.ammonia += Math.max(0.06, extra);
+                    d_lab.indole += Math.max(0.05, extra * 0.9);
+                    d_lab.blood += Math.max(0.08, extra);
+                    d_lab.ph += 0.02;
+                    labAlerts.push(`🔴 <strong>[중증 고질소혈증 가중치 작동]</strong> BUN(${bun} mg/dL)·Cr(${cr} mg/dL)·SDMA(${sdma} μg/dL) 급상승으로 혈중 요소의 장관 내 역확산(Urea influx)이 가속화되어 암모니아·인돌·잠혈 기대 가중치($\\Delta W_{\\text{Lab}}$)가 상향되었습니다.`);
+                }
+            }
+
+            // 2. 췌장 특이 리파아제 (cPL) -> 외분비 효소 결핍 및 급성 췌장 염증 -> 미소화 지방/단백질/흡수율
+            if (cpl > 200) {
+                const pancIntensity = Math.min(1.2, (cpl - 180) / 400.0);
+                labSeverityScore.fat += 0.35 * pancIntensity;
+                labSeverityScore.protein += 0.18 * pancIntensity;
+                labSeverityScore.absorption += 0.25 * pancIntensity;
+                // 활성 췌장염 급성 악화(cPL > 350 μg/L) 시 추가 가중치 부여
+                if (cpl > 350) {
+                    const extraFat = Math.min(0.30, (cpl - 350) / 800.0 + 0.08);
+                    d_lab.fat += extraFat;
+                    d_lab.protein += extraFat * 0.45;
+                    d_lab.absorption -= extraFat * 0.30;
+                    labAlerts.push(`🚨 <strong>[췌장염 급성 활성 가중치 작동]</strong> 혈중 cPL(${cpl} μg/L > 350) 급상승으로 내과적 췌장 외분비 부전이 확인되어 미소화 지방($+${extraFat.toFixed(2)}$) 및 흡수율 저하 가중치가 추가 반영되었습니다.`);
+                } else {
+                    labAlerts.push(`🟠 <strong>[혈액-분변 교차 검증: cPL 경계치(${cpl} μg/L)]</strong> 혈중 cPL이 급성 췌장 괴사 수준(<350)은 아니나 분변 미소화 지방이 높다면, 내과적 악화보다 <strong>식이 지방 과부하(신장사료 지질 함량 등) 및 효소 용량 부족</strong>이 주원인입니다.`);
+                }
+            }
+
+            // 3. 혈청 알부민 (Albumin) -> 단백소실성 장병증(PLE) 및 점막 부종 -> 미소화 단백질/잠혈/흡수율
+            if (alb > 0 && alb < 2.6) {
+                const hypoAlb = Math.min(0.30, (2.6 - alb) * 0.25);
+                d_lab.protein += hypoAlb;
+                d_lab.blood += hypoAlb * 0.8;
+                d_lab.absorption -= hypoAlb * 0.45;
+                labSeverityScore.protein += 0.30;
+                labSeverityScore.absorption += 0.30;
+                labAlerts.push(`🚨 <strong>[저알부민혈증(${alb} g/dL) 경고]</strong> 장 점막 림프관 확장 및 부종(PLE 의심)으로 단백질 유실 가중치($+${hypoAlb.toFixed(2)}$)와 흡수율 페널티가 반영되었습니다.`);
+            }
+
+            // 4. 간효소 (ALT) -> 담즙산 합성/배설 저하 -> 미소화 지방/암모니아
+            if (alt > 120) {
+                const altInt = Math.min(0.20, (alt - 120) / 600.0 + 0.04);
+                if (alt > 200) {
+                    d_lab.fat += altInt;
+                    d_lab.ammonia += altInt * 0.6;
+                }
+                labSeverityScore.fat += altInt;
+                labAlerts.push(`🟠 <strong>[간세포 손상 지표(ALT ${alt} U/L) 상승]</strong> 간-담도계 담즙산 유화능 저하 가능성을 지방 소화 가중치에 연동했습니다.`);
+            }
+
+            // 5. 혈청 인 (Phosphorus) & 칼륨 (Potassium) -> 장-신장 전해질 피드백
+            if (p > 4.6) {
+                labSeverityScore.ammonia += 0.10;
+                if (p > 5.0) {
+                    labAlerts.push(`🔴 <strong>[고인혈증(${p} mg/dL > 5.0) 타깃 경고]</strong> IRIS Stage 3 목표 상한(5.0 mg/dL)을 초과했습니다. 신장사료 비율 축소 시 혈중 인이 더 오를 수 있으므로 <strong>장내 인 흡착제(Phosphate Binder) 증량</strong>이 필수입니다.`);
+                }
+            }
+            if (k > 0 && k < 3.6) {
+                d_lab.absorption -= 0.03;
+                labAlerts.push(`🟡 <strong>[저칼륨혈증(${k} mmol/L) 주의]</strong> 장관 평활근 운동성 저하(장마비/흡수저하)를 유발할 수 있으므로 구연산칼륨 보충을 권장합니다.`);
+            } else if (k > 5.5) {
+                labAlerts.push(`🚨 <strong>[고칼륨혈증(${k} mmol/L > 5.5) 주의]</strong> 말기 신부전/핍뇨 위험이 있으므로 구연산칼륨 함유 신장 보조제 급여 시 혈청 칼륨을 엄격히 모니터링하십시오.`);
+            }
+
+            return {
+                raw: { bun, cr, sdma, p, alb, cpl, alt, k },
+                d_lab,
+                labSeverityScore,
+                labAlerts
+            };
+        }
+
         function loadGutCdssPreset(presetCode) {
             if (presetCode === 'CASE_CKD_PANC') {
                 // 문헌 대표 케이스: 11세 노령 소형견(4.2kg), CKD 3기 + 만성췌장염, 저지방 50% + 신장(k/d) 50%, 신장약 + 소화제
@@ -2787,6 +2523,16 @@
                     drugs: ["신장약 (인바인더/요독소흡착제 등)", "소화제 (소화효소/위장관조절제)"],
                     diseases: ["CKD stage 3, 4", "만성췌장염"]
                 };
+
+                // 혈액검사 수치 세팅 (CKD 3기 + 만성췌장염 통제 중이나 혈청 인 5.2 경계 초과 상태)
+                if (document.getElementById('lab-bun')) document.getElementById('lab-bun').value = 42.0;
+                if (document.getElementById('lab-cr')) document.getElementById('lab-cr').value = 2.4;
+                if (document.getElementById('lab-sdma')) document.getElementById('lab-sdma').value = 21.0;
+                if (document.getElementById('lab-p')) document.getElementById('lab-p').value = 5.2;
+                if (document.getElementById('lab-alb')) document.getElementById('lab-alb').value = 3.1;
+                if (document.getElementById('lab-cpl')) document.getElementById('lab-cpl').value = 285.0;
+                if (document.getElementById('lab-alt')) document.getElementById('lab-alt').value = 65.0;
+                if (document.getElementById('lab-k')) document.getElementById('lab-k').value = 4.4;
 
                 // 실측값 세팅 (문헌 단락 945~954 완벽 재현)
                 document.getElementById('m9-ph').value = 6.8;
@@ -2825,6 +2571,16 @@
                     drugs: ["심장약 (이뇨제/ACEi/피모벤단)", "NSAIDs"],
                     diseases: ["MMVD stage C, D", "관절염"]
                 };
+
+                // 혈액검사: 신장/췌장 수치는 비교적 양호하나 이뇨제로 인한 경도 BUN 상승 및 칼륨 저하(3.4)
+                if (document.getElementById('lab-bun')) document.getElementById('lab-bun').value = 31.0;
+                if (document.getElementById('lab-cr')) document.getElementById('lab-cr').value = 1.3;
+                if (document.getElementById('lab-sdma')) document.getElementById('lab-sdma').value = 14.0;
+                if (document.getElementById('lab-p')) document.getElementById('lab-p').value = 4.1;
+                if (document.getElementById('lab-alb')) document.getElementById('lab-alb').value = 3.3;
+                if (document.getElementById('lab-cpl')) document.getElementById('lab-cpl').value = 110.0;
+                if (document.getElementById('lab-alt')) document.getElementById('lab-alt').value = 55.0;
+                if (document.getElementById('lab-k')) document.getElementById('lab-k').value = 3.4;
 
                 document.getElementById('m9-ph').value = 7.5;
                 document.getElementById('m9-ammonia').value = 46.0;
@@ -2923,11 +2679,20 @@
             const drugWList = st.drugs.map(d => CDSS_DRUG_WEIGHTS[d]).filter(Boolean);
             const disWList = st.diseases.map(d => CDSS_DISEASE_WEIGHTS[d]).filter(Boolean);
 
-            // 상단 4대 축 컨텍스트 배지 업데이트
+            // 제5축: 혈액검사 중증도 가중치(ΔW_Lab) 산출
+            const labInfo = computeLabWeightDeltas();
+            const d_lab_map = labInfo.d_lab;
+            const labRaw = labInfo.raw;
+
+            // 상단 5대 축 컨텍스트 배지 업데이트
             document.getElementById('cdss-ctx-age-size').innerText = `${ageLabel} (${st.age_years}세) / ${sizeLabel} (${st.weight_kg}kg)`;
             document.getElementById('cdss-ctx-diet').innerText = st.diet_mix.map(d => d.label).join(" + ") || "표준 식단";
             document.getElementById('cdss-ctx-drugs').innerText = st.drugs.length > 0 ? st.drugs.map(d => d.split(" ")[0]).join(", ") : "복용 약물 없음";
             document.getElementById('cdss-ctx-diseases').innerText = st.diseases.length > 0 ? st.diseases.join(" + ") : "기저 질환 없음";
+            const ctxLabEl = document.getElementById('cdss-ctx-lab');
+            if (ctxLabEl) {
+                ctxLabEl.innerText = `BUN ${labRaw.bun} / Cr ${labRaw.cr} / P ${labRaw.p} / cPL ${labRaw.cpl} / Alb ${labRaw.alb}`;
+            }
 
             // 마커별 기대치 및 실측 비교
             let totalPenalty = 0.0;
@@ -2946,14 +2711,15 @@
                 const d_diet = dietW[m] - 1.0;
                 const d_drug = attenuateGroupDelta(drugWList, m, 0.40);
                 const d_dis = attenuateGroupDelta(disWList, m, 0.40);
+                const d_lab = d_lab_map[m] || 0.0;
 
                 let w_total = 1.0;
                 if ((m === "ammonia" || m === "indole") && d_drug < 0 && d_diet < 0) {
-                    w_total = 1.0 + d_age_size + (0.35 * d_diet) + (0.35 * d_drug) + d_dis;
+                    w_total = 1.0 + d_age_size + (0.35 * d_diet) + (0.35 * d_drug) + d_dis + d_lab;
                 } else if (m === "absorption") {
-                    w_total = 1.0 + (0.5 * d_age_size) + d_diet + d_drug + (0.55 * d_dis);
+                    w_total = 1.0 + (0.5 * d_age_size) + d_diet + d_drug + (0.55 * d_dis) + d_lab;
                 } else {
-                    w_total = 1.0 + d_age_size + d_diet + d_drug + d_dis;
+                    w_total = 1.0 + d_age_size + d_diet + d_drug + d_dis + d_lab;
                 }
 
                 if (m === "absorption") w_total = Math.max(0.55, Math.min(1.15, w_total));
@@ -2976,11 +2742,11 @@
                     expectedUpper = Math.round(info.max * w_total * 10) / 10;
                 }
 
-                // 카테고리 민감도(C_k)가 반영된 원인 기여 편차
+                // 카테고리 민감도(C_k)가 반영된 원인 기여 편차 (질병 축에 혈액검사 중증도 연동)
                 const ws_age  = (sens.age * Math.abs(raw_age)) + (sens.size * Math.abs(raw_size));
                 const ws_diet = sens.diet * Math.abs(d_diet);
                 const ws_drug = sens.drug * Math.abs(d_drug);
-                const ws_dis  = sens.disease * Math.abs(d_dis);
+                const ws_dis  = (sens.disease * Math.abs(d_dis)) + (sens.lab * (Math.abs(d_lab) + labInfo.labSeverityScore[m] * 0.35));
 
                 const measInput = document.getElementById(`m9-${m}`);
                 const meas = measInput ? parseFloat(measInput.value) : expected;
@@ -3064,13 +2830,13 @@
                     } else if (meas > info.max && meas <= expected) {
                         statusCode = "COMPENSATED";
                         statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 기대치 내 방어 중 (선방!)</span>`;
-                        interp = `정상 상한(${info.max})은 넘었으나 질환/연령 기대치(${expected}) 이하로 훌륭히 방어 중 (감점 면제)`;
+                        interp = `정상 상한(${info.max})은 넘었으나 질환/연령/혈액 기대치(${expected}) 이하로 훌륭히 방어 중 (감점 면제)`;
                     }
                 }
 
                 totalPenalty += penalty;
 
-                // 원인 분해(Attribution) 점수 누적 (카테고리 민감도 C_k 반영)
+                // 원인 분해(Attribution) 점수 누적 (카테고리 민감도 C_k + 혈액검사 교차검증 반영)
                 if (statusCode === "COMPENSATED" || statusCode === "DECOMPENSATED") {
                     const wWeight = info.imp * (statusCode === "DECOMPENSATED" ? 1.8 : 0.7);
                     let posDiet = Math.max(0.05, ws_diet);
@@ -3080,10 +2846,16 @@
                     let posOther = statusCode === "DECOMPENSATED" ? 0.25 : 0.05;
 
                     if (statusCode === "DECOMPENSATED" && ["fat", "protein", "carbo", "ph"].includes(m)) {
-                        posDiet += 0.65; // 기대치마저 초과한 미소화 영양소는 식이 부하(예: k/d 고지방 등) 기여도 가산
+                        // 혈중 cPL이 350 이하인데 지방이 초과했다면 식이 과부하 책임이 더 큼, 반대로 cPL > 400이면 내과적 질병 악화 책임도 가산
+                        if (m === "fat" && labRaw.cpl > 400) {
+                            posDis += 0.55;
+                            posDiet += 0.40;
+                        } else {
+                            posDiet += 0.65;
+                        }
                     }
                     if (m === "blood" && meas >= 10.0 && d_drug > 0.2) {
-                        posDrug += 0.65; // NSAIDs/스테로이드 복용 중 잠혈 검출 시 약물 기여도 가산
+                        posDrug += 0.65;
                     }
                     const totPos = posDiet + posDrug + posDis + posAge + posOther;
                     causeScores.diet += wWeight * (posDiet / totPos);
@@ -3095,7 +2867,7 @@
 
                 evalMap[m] = { meas, expected, expectedUpper, w_total, statusCode, penalty };
 
-                const deltaSummary = `연령/체급 ${d_age_size>=0?'+':''}${d_age_size.toFixed(2)} | 식이 ${d_diet>=0?'+':''}${d_diet.toFixed(2)} | 약물 ${d_drug>=0?'+':''}${d_drug.toFixed(2)} | 질병 ${d_dis>=0?'+':''}${d_dis.toFixed(2)}`;
+                const deltaSummary = `연령/체급 ${d_age_size>=0?'+':''}${d_age_size.toFixed(2)} | 식이 ${d_diet>=0?'+':''}${d_diet.toFixed(2)} | 약물 ${d_drug>=0?'+':''}${d_drug.toFixed(2)} | 질병 ${d_dis>=0?'+':''}${d_dis.toFixed(2)} | 혈액(Lab) ${d_lab>=0?'+':''}${d_lab.toFixed(2)}`;
                 const rowBg = statusCode === "DECOMPENSATED" ? "bg-rose-50/50" : (statusCode === "COMPENSATED" ? "bg-blue-50/30" : "");
 
                 rowsHtml.push(`
@@ -3108,13 +2880,25 @@
                         <td class="py-2.5 px-3 text-center">${statusBadge}</td>
                         <td class="py-2.5 px-3">
                             <div class="font-semibold text-slate-800">${interp}</div>
-                            <div class="text-[10px] text-slate-400 mt-0.5">가중편차(C×ΔW): ${deltaSummary}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">5대축 가중편차: ${deltaSummary}</div>
                         </td>
                     </tr>
                 `);
             });
 
             document.getElementById('cdss-markers-table-body').innerHTML = rowsHtml.join('');
+
+            // ⑨ 추정 흡수율(m9-absorption) 실측값 연동 1일 보정 급여량 자동 계산
+            const measAbsPct = Math.max(45.0, Math.min(98.0, evalMap.absorption.meas || 72.0));
+            const baseKcal = typeof currentBaseDerKcal === 'number' && currentBaseDerKcal > 50 ? currentBaseDerKcal : 231.9;
+            const baseG = typeof currentBaseTotalG === 'number' && currentBaseTotalG > 10 ? currentBaseTotalG : 95.0;
+            const priorAbsPct = (currentPriorBioavailability && currentPriorBioavailability.prior_overall_absorb_pct) ? currentPriorBioavailability.prior_overall_absorb_pct : evalMap.absorption.expected;
+            const recalcKcal = Math.round((baseKcal * (85.0 / measAbsPct)) * 10) / 10;
+            const recalcG = Math.round((baseG * (priorAbsPct / measAbsPct)) * 10) / 10;
+            const kcalEl = document.getElementById('cdss-recalc-kcal');
+            const gEl = document.getElementById('cdss-recalc-g');
+            if (kcalEl) kcalEl.innerText = recalcKcal.toFixed(1);
+            if (gEl) gEl.innerText = recalcG.toFixed(1);
 
             // Tab 2 내 9대 분변 마커 사전 추정치(Expected Baseline) 요약 그리드 동시 렌더링
             const tab2Grid = document.getElementById('tab2-gut-baseline-grid');
@@ -3178,7 +2962,7 @@
             stackBar.innerHTML = `
                 <div style="width:${pcts.diet}%" class="bg-blue-600 h-full transition-all" title="식이 문제: ${pcts.diet}%"></div>
                 <div style="width:${pcts.drug}%" class="bg-emerald-500 h-full transition-all" title="약물 요인: ${pcts.drug}%"></div>
-                <div style="width:${pcts.disease}%" class="bg-amber-500 h-full transition-all" title="질병 요인: ${pcts.disease}%"></div>
+                <div style="width:${pcts.disease}%" class="bg-amber-500 h-full transition-all" title="질병+혈액중증도 요인: ${pcts.disease}%"></div>
                 <div style="width:${pcts.age_size}%" class="bg-purple-500 h-full transition-all" title="나이/체급 요인: ${pcts.age_size}%"></div>
                 <div style="width:${pcts.other_excess}%" class="bg-rose-500 h-full transition-all" title="기타/효소한계 초과: ${pcts.other_excess}%"></div>
             `;
@@ -3194,7 +2978,7 @@
                     <div class="text-lg font-black text-emerald-900 mt-0.5">${pcts.drug}%</div>
                 </div>
                 <div class="p-2.5 rounded-xl bg-white border border-amber-200 shadow-sm">
-                    <div class="text-[11px] font-bold text-amber-700">🩺 기저 질병 요인</div>
+                    <div class="text-[11px] font-bold text-amber-700">🩺 질병 + 혈액중증도</div>
                     <div class="text-lg font-black text-amber-900 mt-0.5">${pcts.disease}%</div>
                 </div>
                 <div class="p-2.5 rounded-xl bg-white border border-purple-200 shadow-sm">
@@ -3210,7 +2994,7 @@
             // 주 원인 판별 배너
             const sortedCauses = [
                 { key: "diet", name: "식이(사료 배합 비율 또는 간식) 문제", val: pcts.diet },
-                { key: "disease", name: "기저 질환(췌장/신장/장병증) 병태생리 요인", val: pcts.disease },
+                { key: "disease", name: "기저 질환 + 혈액생화학 중증도(췌장/신장/장병증) 요인", val: pcts.disease },
                 { key: "drug", name: "복용 약물(NSAIDs/항생제/스테로이드 등) 영향", val: pcts.drug },
                 { key: "age_size", name: "노령기/체급에 따른 생리적 소화능 저하", val: pcts.age_size },
                 { key: "other_excess", name: "현재 소화효소 용량 한계 초과(비보상성 유실)", val: pcts.other_excess }
@@ -3219,39 +3003,39 @@
             document.getElementById('cdss-primary-culprit-banner').innerHTML =
                 `🎯 <strong>원인 감별 결론:</strong> 현재 장내환경 변화의 제1 주원인은 <span class="underline decoration-indigo-500 font-black text-indigo-800">${sortedCauses[0].name} (${sortedCauses[0].val}%)</span>이며, 제2 복합 요인은 <strong>${sortedCauses[1].name} (${sortedCauses[1].val}%)</strong>입니다.`;
 
-            // AI 심층 분석 코멘트 & 3대 임상 액션 생성
-            const aiComments = [];
+            // AI 심층 분석 코멘트 & 3대 임상 액션 생성 (혈액검사 ΔW_Lab 교차 검증 포함)
+            const aiComments = [...labInfo.labAlerts.map(a => `• ${a}`)];
             const dietActions = [];
             const suppActions = [];
             const vetActions = [];
 
             if (evalMap.ammonia.statusCode === "COMPENSATED" && evalMap.indole.statusCode === "COMPENSATED") {
-                aiComments.push(`• <strong>[단백질 대사 및 요독소 선방]</strong> 정상 성견 기준으로는 암모니아(${evalMap.ammonia.meas} μmol/g)와 인돌(${evalMap.indole.meas} μg/g)이 상승해 있으나, 환견의 질환·연령 가중치가 반영된 기대 기준치(${evalMap.ammonia.expected} / ${evalMap.indole.expected}) 이내로 훌륭히 통제되고 있습니다. 현재 저단백 식이 배합과 신장약(크레메진 등) 복용이 요독증을 성공적으로 방어 중입니다.`);
+                aiComments.push(`• <strong>[단백질 대사 및 요독소 선방 (혈중 BUN ${labRaw.bun} / Cr ${labRaw.cr} 연동)]</strong> 정상 성견 기준으로는 암모니아(${evalMap.ammonia.meas} μmol/g)와 인돌(${evalMap.indole.meas} μg/g)이 상승해 있으나, 환견의 질환·연령·혈액 가중치가 반영된 기대 기준치(${evalMap.ammonia.expected} / ${evalMap.indole.expected}) 이내로 훌륭히 통제되고 있습니다. 현재 저단백 식이 배합과 신장약(크레메진 등) 복용이 요독증을 성공적으로 방어 중입니다.`);
             } else if (evalMap.ammonia.statusCode === "DECOMPENSATED" || evalMap.indole.statusCode === "DECOMPENSATED") {
                 aiComments.push(`• <strong>[단백질 부패 발효 및 요독소 초과 경고]</strong> 암모니아(${evalMap.ammonia.meas}) 또는 인돌(${evalMap.indole.meas})이 환견 맞춤 기대치(${evalMap.ammonia.expected} / ${evalMap.indole.expected})마저 초과했습니다. 고단백 사료 또는 육류 간식(트릿/육포)의 미소화 단백질이 대장으로 유입되어 유해균 부패 발효를 일으키고 있습니다.`);
                 dietActions.push("• <strong>[단백질 부하 감량 & 간식 중단]</strong> 육포/트릿 등 일반 고단백 간식을 즉시 중단하고, 초고소화성 가수분해 사료 또는 저단백 처방식 비율을 +20% 상향하십시오.");
                 suppActions.push("• <strong>[최우선 추가]</strong> 장-신장 축 타깃 요독소 분해 프로바이오틱스(<strong>신장케어 레날맥스</strong> 등 <em>S. thermophilus</em> 함유 제제) 및 프리바이오틱스 증량");
-                vetActions.push("• 혈중 BUN / Creatinine / SDMA 및 인(P) 수치를 재확인하고, 경구용 구강 요독소 흡착제(크레메진/레날어드밴스) 투여량 증량을 검토하십시오.");
+                vetActions.push(`• 혈중 BUN(${labRaw.bun}) / Creatinine(${labRaw.cr}) / SDMA(${labRaw.sdma}) 및 인(${labRaw.p}) 수치를 추적하고, 경구용 구강 요독소 흡착제(크레메진/레날어드밴스) 투여량 증량을 검토하십시오.`);
             }
 
             if (evalMap.fat.statusCode === "DECOMPENSATED" || evalMap.absorption.statusCode === "DECOMPENSATED") {
-                aiComments.push(`• <strong>[지방 소화 한계 돌파 & 흡수 부전 심화]</strong> 미소화 지방(${evalMap.fat.meas}% DM)이 환자 기대치(${evalMap.fat.expected}%)마저 크게 초과하고 추정 흡수율(${evalMap.absorption.meas}%)이 기대치(${evalMap.absorption.expected}%) 아래로 떨어졌습니다. <strong>신장 처방식(k/d 등)의 높은 지질 함량이 만성 췌장염 환견의 소화 한계(현재 소화제 용량)를 넘어선 '식이+질병 복합 문제'</strong>가 핵심 원인입니다.`);
+                aiComments.push(`• <strong>[지방 소화 한계 돌파 & 흡수 부전 심화]</strong> 미소화 지방(${evalMap.fat.meas}% DM)이 환자 기대치(${evalMap.fat.expected}%)마저 크게 초과하고 추정 흡수율(${evalMap.absorption.meas}%)이 기대치(${evalMap.absorption.expected}%) 아래로 떨어졌습니다. <strong>신장 처방식(k/d 등)의 높은 지질 함량이 만성 췌장염 환견(혈중 cPL ${labRaw.cpl} μg/L)의 소화 한계를 넘어선 '식이+질병 복합 문제'</strong>가 핵심 원인입니다.`);
                 dietActions.push("• <strong>[믹스피딩 비율 70:30 재조정]</strong> 현재 50:50 혼합 비율에서 신장 사료(k/d)가 공급하는 지방량이 췌장의 소화 한계를 초과했습니다. <strong>[저지방 사료(i/d Low Fat / GI Low Fat) 70% : 신장 사료(k/d / Renal) 30%]</strong>으로 저지방 사료 비중을 즉시 상향하고, 부족한 열량은 췌장 효소 없이 흡수되는 <strong>MCT 오일(중쇄지방산)</strong>로 보충하십시오.");
                 suppActions.push("• <strong>[최우선 증량/교체]</strong> 고역가 췌장 소화효소제(<strong>췌장케어 판크레딘</strong> — 리파아제 강화) 용량을 현 1.0배 ➔ <strong>1.5배로 증량</strong>하고, 일반 어유 대신 담즙 유화가 불필요한 <strong>인지질 결합형 크릴오일(Krill Oil)</strong>로 오메가-3를 교체하십시오.");
-                vetActions.push("• <strong>[췌장·신장 추적 검사]</strong> 만성 췌장염의 급성 악화(Acute-on-Chronic) 여부를 감별하기 위해 혈중 <strong>cPL(개 췌장특이리파아제)</strong> 수치를 재측정하고, 신장 처방식 비율 축소(50%➔30%)에 따른 혈중 인(Phosphorus) 상승을 막기 위해 <strong>인 흡착제(Phosphate Binder) 용량을 20~30% 증량</strong> 처방하십시오.");
+                vetActions.push(`• <strong>[췌장·신장 혈액 연계 처치]</strong> 혈중 cPL(${labRaw.cpl} μg/L) 추적 모니터링과 함께, 신장 처방식 비율 축소(50%➔30%) 및 현재 혈청 인(${labRaw.p} mg/dL) 수치를 고려하여 <strong>인 흡착제(Phosphate Binder) 용량을 20~30% 증량</strong> 처방하십시오.`);
             }
 
             if (evalMap.blood.meas >= 10.0) {
-                aiComments.push(`• <strong>[약물/점막 요인에 의한 잠혈 검출]</strong> 분변 잠혈이 ${evalMap.blood.meas} ng/mL 검출되었습니다(기대 상한 ${evalMap.blood.expectedUpper} ng/mL). 잠혈 지표는 식이 민감도($C_{\\text{Diet}}=0.5$)보다 약물 민감도($C_{\\text{Drug}}=1.8$)와 질병 민감도($C_{\\text{Dis}}=2.0$)가 압도적으로 높아, 사료 문제가 아닌 <strong>복용 약물(NSAIDs/스테로이드) 또는 위장관 미란</strong>이 원인입니다.`);
+                aiComments.push(`• <strong>[약물/점막 요인에 의한 잠혈 검출]</strong> 분변 잠혈이 ${evalMap.blood.meas} ng/mL 검출되었습니다(기대 상한 ${evalMap.blood.expectedUpper} ng/mL). 잠혈 지표는 식이 민감도($C_{\\text{Diet}}=0.5$)보다 약물 민감도($C_{\\text{Drug}}=1.8$)와 질병 민감도($C_{\\text{Dis}}=2.0$)가 압도적으로 높아, 사료 문제가 아닌 <strong>복용 약물(NSAIDs/스테로이드) 또는 요독성/염증성 위장관 미란</strong>이 원인입니다.`);
                 suppActions.push("• <strong>[장점막 복구 보강]</strong> 상피세포 재생 및 치밀이음부(Tight Junction) 복구를 위해 <strong>L-글루타민(L-Glutamine) + 아연-카르노신 + 보스웰리아/초록입홍합(관절케어 오스테오)</strong>로 항염 대체");
                 vetActions.push("• <strong>[약물 변경 및 점막 보호 처치]</strong> NSAIDs 복용 중이라면 즉시 휴약 또는 Coxib 계열/단클론항체 주사제(Librela)로 대체를 검토하고, 위장관 점막보호제(<strong>Sucralfate</strong>) 및 위산억제제(<strong>Omeprazole</strong>)를 병용 처방하십시오.");
             }
 
             if (aiComments.length === 0) {
-                aiComments.push("• 9대 장내환경 마커가 모두 환견의 맞춤형 기대 기준치 이내에서 안정적으로 유지되고 있습니다. 현재의 믹스피딩 비율과 약물·영양제 조합이 환자의 소화능과 조화를 이루고 있습니다.");
+                aiComments.push("• 9대 장내환경 마커와 8대 혈액생화학 지표가 모두 환견의 맞춤형 기대 기준치 이내에서 안정적으로 유지되고 있습니다. 현재의 믹스피딩 비율과 약물·영양제 조합이 환자의 소화능과 조화를 이루고 있습니다.");
             }
             if (dietActions.length === 0) {
-                dietActions.push("• 현재 급여 중인 처방사료 믹스피딩 배합 비율이 환자의 장내 환경과 최적의 균형을 이루고 있으므로 현 식단을 유지하십시오.");
+                dietActions.push("• 현재 급여 중인 처방사료 믹스피딩 배합 비율이 환자의 장내 환경 및 혈액 수치와 최적의 균형을 이루고 있으므로 현 식단을 유지하십시오.");
             }
             if (suppActions.length === 0) {
                 suppActions.push("• <strong>[현 용량 유지]</strong> 암모니아·인돌·젖산이 기대치 내에서 안정적이므로 현재 급여 중인 프로바이오틱스 및 맞춤 영양제 용량을 그대로 유지하십시오.");
