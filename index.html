@@ -1058,6 +1058,55 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="food-cards-grid"></div>
+
+                <!-- 맞춤 화식(Fresh Diet) 식재료별 정량(g) 및 수의 임상 조리 방법 상세 가이드 -->
+                <div id="fresh-recipe-detail-panel" class="mt-6 pt-5 border-t border-amber-200 bg-gradient-to-br from-amber-50/70 via-orange-50/40 to-yellow-50/60 rounded-2xl p-5 border">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="p-2 bg-amber-500 text-white rounded-xl shadow-sm"><i class="fa-solid fa-kitchen-set"></i></span>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="text-sm font-black text-amber-950" id="fresh-recipe-title-banner">수의 임상 맞춤 화식 식재료별 정량(g) & 조리 방법 처방전</h3>
+                                    <span class="px-2 py-0.5 text-[10px] font-extrabold bg-amber-200 text-amber-900 rounded-full">조리 후 급여 중량(Cooked Weight) 기준</span>
+                                </div>
+                                <p class="text-[11px] text-amber-800 mt-0.5">환자의 기저 질환·알러지를 반영하여 각 식재료의 <strong>정확한 1일/1회 급여 그램(g) 수</strong>와 영양소 손실·독소를 줄이는 <strong>표준 조리법(삶기·데치기·찌기)</strong>을 표기합니다.</p>
+                            </div>
+                        </div>
+                        <div class="text-right bg-white px-3.5 py-2 rounded-xl border border-amber-200 shadow-sm">
+                            <div class="text-[10px] font-bold text-slate-500">화식 1일 총 급여량 (조리 후)</div>
+                            <div class="text-base font-black text-amber-700"><span id="fresh-total-g-badge">0</span> g/일 <span class="text-xs font-semibold text-slate-500">(<span id="fresh-total-kcal-badge">0</span> kcal)</span></div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-amber-200/80 bg-white shadow-sm">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-amber-100/70 text-amber-950 font-extrabold border-b border-amber-200">
+                                <tr>
+                                    <th class="py-2.5 px-3">영양 역할</th>
+                                    <th class="py-2.5 px-3">식재료명</th>
+                                    <th class="py-2.5 px-3">조리 방식</th>
+                                    <th class="py-2.5 px-3 text-right text-amber-800">1일 정량 (g)</th>
+                                    <th class="py-2.5 px-3 text-right">1일 2회 분할시</th>
+                                    <th class="py-2.5 px-3 text-right">1일 3회 분할시</th>
+                                    <th class="py-2.5 px-3">상세 조리 방법 및 수의 임상 주의사항</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fresh-ingredients-tbody" class="divide-y divide-amber-100"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px]">
+                        <div class="p-2.5 rounded-xl bg-white/90 border border-amber-200/70 text-slate-700">
+                            <strong class="text-rose-700"><i class="fa-solid fa-ban mr-1"></i>구이·볶음·기름 조리 절대 금지:</strong> 프라이팬에 굽거나 식용유로 볶으면 산화 지질과 최종당화산물(AGEs)이 생성되어 췌장염 및 장 점막 염증을 악화시킵니다. 반드시 <strong>삶기·찌기·데치기</strong>만 사용하세요.
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-white/90 border border-amber-200/70 text-slate-700">
+                            <strong class="text-blue-700"><i class="fa-solid fa-droplet mr-1"></i>신장·결석 환자 데치기(Leaching) 원칙:</strong> 감자·고구마·채소류는 잘게 썰어 찬물에 담근 후 끓는 물에 삶아 <strong>삶은 물을 버리면</strong> 칼륨(K)과 인(P), 옥살산을 30~50% 줄일 수 있습니다.
+                        </div>
+                        <div class="p-2.5 rounded-xl bg-white/90 border border-amber-200/70 text-slate-700">
+                            <strong class="text-emerald-700"><i class="fa-solid fa-scale-unbalanced mr-1"></i>계량 및 급여 온도 기준:</strong> 표기된 모든 `g` 수는 <strong>조리 완료 후 물기를 가볍게 제거한 상태의 중량</strong>이며, 소금·간장 등 조미료 없이 체온(37~38℃) 정도로 식혀 사료와 섞어 급여하세요.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- NEW IN TAB 2: 4대 축(나이·식이·약물·질병) 가중치 기반 장내환경 9대 분변 마커 사전 추정치 (Expected Baseline) -->
@@ -1871,8 +1920,203 @@
             const bestDry2 = dryCandidates[1] || bestDry1;
             const bestWet1 = wetCandidates[0] || { name: "처방습식", company: "수의처방식", moisture_percent: 78, nutrients: { protein_g: 65, fat_g: 25, carb_g: 80, phosphorus_g: 0.7, sodium_g: 0.7, copper_mg: 1.5, epa_dha_g: 0.8, energy_density_kcal_per_kg: 950 } };
 
+            // 4.5 Detailed Fresh Food Recipe Builder (질환·알러지 맞춤형 식재료 정량 g 및 조리법 생성기)
+            function buildDetailedFreshRecipe(sp, disList, algList, totalG, totalKcal) {
+                const dStr = disList.join(" ");
+                const hasChickenAlg = algList.some(a => a.includes("닭"));
+                const hasFishAlg = algList.some(a => a.includes("연어") || a.includes("생선"));
+                const hasDairyAlg = algList.some(a => a.includes("유제품"));
+
+                let recipeTitle = "";
+                let profileNutrients = { protein_g: 50, fat_g: 22, carb_g: 130, phosphorus_g: 0.6, sodium_g: 0.5, copper_mg: 0.9, epa_dha_g: 0.8, potassium_g: 2.0 };
+                let rawItems = [];
+
+                const leanMeatName = hasChickenAlg ? (hasFishAlg ? "돼지 안심 살코기 (무지방)" : "대구/명태 흰살생선 순살") : "닭안심(또는 닭가슴살) 살코기";
+                const leanMeatMethod = hasChickenAlg && !hasFishAlg
+                    ? "찬물에 30분 담가 염분을 뺀 후 찜기에 8~10분간 스팀으로 쪄서 가시를 완전히 발라내고 으깸 (구이·기름조리 금지)"
+                    : "껍질과 눈에 보이는 지방막을 완전히 제거한 후 끓는 물에 10분간 푹 삶아 결대로 잘게 다짐 (프라이팬 구이 금지)";
+                const leanMeatBadge = hasChickenAlg && !hasFishAlg ? "스팀 찜 (무염·발골)" : "삶기 (완전 탈지·무염)";
+
+                if (dStr.includes("신부전")) {
+                    recipeTitle = `신장·복합질환 맞춤 저인 화식 [삶은 계란흰자 + 삶은 ${hasChickenAlg ? '흰살생선/안심' : '닭안심'} + 무염 백미진밥 + 침수 삶은 감자 + 찐 단호박]`;
+                    profileNutrients = { protein_g: sp === "개" ? 42 : 60, fat_g: dStr.includes("췌장") ? 14 : 28, carb_g: 128, phosphorus_g: 0.45, sodium_g: 0.48, copper_mg: 0.85, epa_dha_g: 0.9, potassium_g: 1.8 };
+                    rawItems = [
+                        {
+                            role: "주단백질원 (초저인·고생물가)",
+                            name: "계란 흰자 (노른자 완전 제거)",
+                            badge: "삶기 (완숙 후 분리)",
+                            pct: 32,
+                            detail: "끓는 물에 12분간 완숙으로 삶은 뒤, 인(P)과 지질이 집중된 노른자는 완전히 빼고 흰자만 잘게 다져서 급여 (생계란 급여 금지)"
+                        },
+                        {
+                            role: "보조단백질원 (필수아미노산)",
+                            name: leanMeatName,
+                            badge: leanMeatBadge,
+                            pct: 16,
+                            detail: `${leanMeatMethod} — 고생물가 아미노산 보충을 위해 소량 배합하며, 삶은 육수는 인(P)이 용출되어 있으므로 버리고 건더기만 사용`
+                        },
+                        {
+                            role: "주탄수화물원 (단백절약 열량원)",
+                            name: "백미 진밥 (또는 백미죽)",
+                            badge: "무염 취사 (알파화 진밥)",
+                            pct: 28,
+                            detail: "현미·잡곡은 인(P) 함량이 높으므로 반드시 도정된 백미를 사용. 물을 평소보다 1.5~2배 많이 넣어 푹 무르게 진밥으로 취사"
+                        },
+                        {
+                            role: "보조탄수화물 (저인 에너지원)",
+                            name: "감자 (껍질 제거·탈칼륨 조리)",
+                            badge: "침수 후 삶기 (물 버림)",
+                            pct: 12,
+                            detail: "껍질을 벗기고 작게 깍둑썰기하여 찬물에 2시간 담근 후, 새 물에 15분간 푹 삶아 으깸 (칼륨·인 제거를 위해 삶은 물은 반드시 버림)"
+                        },
+                        {
+                            role: "식이섬유·항산화 (장-신장 축)",
+                            name: "단호박 & 양배추",
+                            badge: "스팀 찜 / 데치기",
+                            pct: 12,
+                            detail: "단호박은 씨와 껍질을 제거해 10분간 쪄서 으깨고, 양배추는 잘게 썰어 끓는 물에 3분 데친 후 물기를 짜서 혼합 (장내 질소 포집 프리바이오틱스 역할)"
+                        }
+                    ];
+                } else if (dStr.includes("췌장")) {
+                    recipeTitle = `췌장·소화기 케어 극저지방 화식 [삶은 ${hasChickenAlg ? '흰살생선' : '닭가슴살'} + 삶은 계란흰자 + 백미진밥 + 찐 단호박 + 데친 당근]`;
+                    profileNutrients = { protein_g: sp === "개" ? 54 : 72, fat_g: 12, carb_g: 140, phosphorus_g: 0.75, sodium_g: 0.55, copper_mg: 0.95, epa_dha_g: 0.8, potassium_g: 2.1 };
+                    rawItems = [
+                        {
+                            role: "주단백질원 (극저지방 살코기)",
+                            name: hasChickenAlg ? "대구/명태 흰살생선 순살" : "닭가슴살 (껍질·지방 완전제거)",
+                            badge: "삶기 (완전 탈지·수비드)",
+                            pct: 35,
+                            detail: "지방 함량 1~2% 미만의 부위만 선별하여 끓는 물에 10분간 삶아 기름기를 완전히 걷어내고 잘게 다짐 (구이·볶음 절대 금지)"
+                        },
+                        {
+                            role: "보조단백질원 (무지방 소화성)",
+                            name: "계란 흰자 (노른자 제외)",
+                            badge: "삶기 (완숙 흰자)",
+                            pct: 15,
+                            detail: "완숙으로 삶아 고지방 부위인 노른자는 제거하고 지방이 0%에 가까운 흰자만 으깨어 혼합 (췌장 리파아제 자극 최소화)"
+                        },
+                        {
+                            role: "주탄수화물원 (고소화성 전분)",
+                            name: "백미 진밥 (무염)",
+                            badge: "무염 취사 (진밥)",
+                            pct: 30,
+                            detail: "소장 아밀라아제 소화율을 높이기 위해 백미를 충분히 불린 뒤 물 2배로 무르게 취사하여 전분을 완전 호화(Gelatinization)시킴"
+                        },
+                        {
+                            role: "수용성 섬유소 (점막 보호)",
+                            name: "단호박 (씨·껍질 제거)",
+                            badge: "스팀 찜 (으깨기)",
+                            pct: 12,
+                            detail: "불용성 섬유소가 많은 껍질과 씨는 제거하고 노란 과육만 찜기에 12분간 쪄서 부드러운 퓨레 상태로 으깸"
+                        },
+                        {
+                            role: "항산화·비타민원",
+                            name: "당근 (세절 후 데침)",
+                            badge: "데치기 (블랜칭 후 다짐)",
+                            pct: 8,
+                            detail: "3mm 이하로 아주 잘게 다져 끓는 물에 5분간 푹 데쳐 세포벽을 허물어뜨린 뒤 부드럽게 으깨어 급여"
+                        }
+                    ];
+                } else if (dStr.includes("간")) {
+                    recipeTitle = `간부전(Hepatic) 저구리 맞춤 화식 [데친 무염두부 + 삶은 계란흰자 + ${hasDairyAlg ? '삶은 닭안심' : '저지방 코티지치즈'} + 백미밥 + 찐 단호박]`;
+                    profileNutrients = { protein_g: sp === "개" ? 45 : 64, fat_g: 24, carb_g: 132, phosphorus_g: 0.68, sodium_g: 0.45, copper_mg: 0.55, epa_dha_g: 0.8, potassium_g: 2.0 };
+                    rawItems = [
+                        {
+                            role: "주단백질원 (저구리·식물성/비육류)",
+                            name: "무염 두부 (간수 제거)",
+                            badge: "데치기 (끓는물 3분)",
+                            pct: 26,
+                            detail: "구리(Cu)와 암모니아 발생이 적은 두부를 끓는 물에 3분간 데쳐 간수를 완전히 뺀 뒤 물기를 짜고 포크로 곱게 으깸"
+                        },
+                        {
+                            role: "보조단백질원 (고BCAA·초저구리)",
+                            name: hasDairyAlg ? "삶은 계란 흰자 (노른자 제거)" : "삶은 계란 흰자 + 무염 코티지치즈",
+                            badge: "삶기 (완숙 흰자)",
+                            pct: 22,
+                            detail: "간성뇌증(HE) 유발 방향족 아미노산이 적은 계란 흰자(완숙 삶음)를 다져 넣어 혈중 알부민 합성을 지원"
+                        },
+                        {
+                            role: "주탄수화물원 (간 글리코겐 보충)",
+                            name: "백미 진밥",
+                            badge: "무염 취사 (진밥)",
+                            pct: 32,
+                            detail: "구리 함량이 높은 통곡물·현미 대신 도정 백미를 사용하여 무르게 진밥으로 취사"
+                        },
+                        {
+                            role: "수용성 식이섬유 (암모니아 포집)",
+                            name: "단호박 & 양배추",
+                            badge: "스팀 찜 / 데치기",
+                            pct: 20,
+                            detail: "단호박은 쪄서 으깨고 양배추는 데쳐서 다짐 — 장내 발효를 통해 대장 pH를 낮추어 암모니아(NH₃)를 이온화(NH₄⁺) 배출 유도"
+                        }
+                    ];
+                } else {
+                    // 심장병 / 관절염 / 당뇨 / 일반 표준 치료 화식
+                    recipeTitle = `임상 맞춤 균형 화식 [삶은 ${hasChickenAlg ? '오리/흰살생선' : '닭가슴살'} + 삶은 계란 + 백미·귀리 진밥 + 찐 단호박 + 데친 브로콜리/당근]`;
+                    profileNutrients = { protein_g: sp === "개" ? 52 : 72, fat_g: 24, carb_g: 125, phosphorus_g: 0.78, sodium_g: 0.45, copper_mg: 1.1, epa_dha_g: 0.9, potassium_g: 2.2 };
+                    rawItems = [
+                        {
+                            role: "주단백질원 (근감소 방지 고단백)",
+                            name: leanMeatName,
+                            badge: leanMeatBadge,
+                            pct: 38,
+                            detail: `${leanMeatMethod} — 소금·조미료를 일절 넣지 않고 수분과 함께 삶아 나트륨 섭취를 0.5g/1000kcal 이하로 억제`
+                        },
+                        {
+                            role: "보조단백질원 (완전단백·타우린)",
+                            name: "삶은 계란 (흰자 위주 완숙)",
+                            badge: "삶기 (12분 완숙)",
+                            pct: 12,
+                            detail: "끓는 물에 12분간 완숙으로 삶아 곱게 다져서 혼합 (고지혈증이 있는 경우 노른자는 절반 이하로 제한)"
+                        },
+                        {
+                            role: "복합탄수화물원 (혈당·에너지 안정)",
+                            name: "백미 + 도정 귀리 진밥 (7:3)",
+                            badge: "무염 혼합 취사 (진밥)",
+                            pct: 28,
+                            detail: "백미와 도정 쌀귀리를 7:3으로 섞어 1시간 불린 후 물을 넉넉히 잡아 부드러운 진밥으로 취사 (베타글루칸 공급)"
+                        },
+                        {
+                            role: "식이섬유·베타카로틴원",
+                            name: "단호박 (씨·껍질 제거)",
+                            badge: "스팀 찜 (10~12분)",
+                            pct: 12,
+                            detail: "씨와 껍질을 벗긴 후 찜기에 10~12분간 무르게 쪄서 으깸"
+                        },
+                        {
+                            role: "항산화·미량영양소원",
+                            name: "당근 & 브로콜리 꽃송이",
+                            badge: "데치기 (끓는물 3분)",
+                            pct: 10,
+                            detail: "소화가 잘 되도록 3~5mm 크기로 잘게 다져 끓는 물에 3분간 데친 뒤 물기를 제거하여 혼합"
+                        }
+                    ];
+                }
+
+                // 각 식재료별 1일 g, 2회 분할 g, 3회 분할 g 계산
+                const ingredients = rawItems.map(item => {
+                    const gDay = Math.round(totalG * (item.pct / 100.0) * 10) / 10;
+                    const gBid = Math.round((gDay / 2.0) * 10) / 10;
+                    const gTid = Math.round((gDay / 3.0) * 10) / 10;
+                    return {
+                        ...item,
+                        gDay,
+                        gBid,
+                        gTid
+                    };
+                });
+
+                return {
+                    title: recipeTitle,
+                    nutrients: profileNutrients,
+                    ingredients
+                };
+            }
+
             // 5. Build Mix Items
             const mix_items = [];
+            let activeFreshRecipe = null;
+
             if (currentFeedingMode === "DRY_WET_FRESH") {
                 const r_d = currentCustomRatios.dry || 50;
                 const r_w = currentCustomRatios.wet || 30;
@@ -1888,8 +2132,9 @@
                 mix_items.push({ name: bestWet1.name, company: bestWet1.company, type: "습식", ratio_percent: Math.round((r_w/tot)*100), daily_calories: Math.round(c_w*10)/10, daily_amount_g: g_w, water_content_ml: Math.round(g_w * (bestWet1.moisture_percent/100)*10)/10, nutrients: bestWet1.nutrients });
 
                 const c_f = adjusted_der_kcal * (r_f / tot);
-                const g_f = Math.round((c_f / 1500) * 1000 * 10) / 10;
-                mix_items.push({ name: "맞춤 화식 [삶은 계란흰자/살코기 + 백미밥/귀리 + 단호박/당근]", company: "수의 맞춤 화식", type: "화식", ratio_percent: Math.round((r_f/tot)*100), daily_calories: Math.round(c_f*10)/10, daily_amount_g: g_f, water_content_ml: Math.round(g_f * 0.70 * 10)/10, nutrients: { protein_g: 50, fat_g: 22, carb_g: 130, phosphorus_g: 0.6, sodium_g: 0.5, copper_mg: 0.9, epa_dha_g: 0.8, potassium_g: 2.0 } });
+                const g_f = Math.round((c_f / 1450) * 1000 * 10) / 10;
+                activeFreshRecipe = buildDetailedFreshRecipe(species, diseases, allergies, g_f, Math.round(c_f*10)/10);
+                mix_items.push({ name: activeFreshRecipe.title, company: "수의 맞춤 화식 (조리후 중량)", type: "화식", ratio_percent: Math.round((r_f/tot)*100), daily_calories: Math.round(c_f*10)/10, daily_amount_g: g_f, water_content_ml: Math.round(g_f * 0.70 * 10)/10, nutrients: activeFreshRecipe.nutrients, freshIngredients: activeFreshRecipe.ingredients });
             } else if (currentFeedingMode === "DRY_WET") {
                 const r_d = currentCustomRatios.dry || 60;
                 const r_w = currentCustomRatios.wet || 40;
@@ -1915,8 +2160,9 @@
                 const g_d2 = Math.round((c_d2 / (bestDry2.nutrients.energy_density_kcal_per_kg || 3800)) * 1000 * 10) / 10;
                 mix_items.push({ name: bestDry2.name, company: bestDry2.company, type: "건식2", ratio_percent: Math.round((r_d2/tot)*100), daily_calories: Math.round(c_d2*10)/10, daily_amount_g: g_d2, water_content_ml: Math.round(g_d2 * 0.10 * 10)/10, nutrients: bestDry2.nutrients });
             } else {
-                const g_f = Math.round((adjusted_der_kcal / 1500) * 1000 * 10) / 10;
-                mix_items.push({ name: "맞춤 화식 [삶은 계란흰자/살코기 + 백미밥/귀리 + 단호박/당근]", company: "수의 맞춤 화식", type: "화식", ratio_percent: 100, daily_calories: adjusted_der_kcal, daily_amount_g: g_f, water_content_ml: Math.round(g_f * 0.70 * 10)/10, nutrients: { protein_g: 50, fat_g: 22, carb_g: 130, phosphorus_g: 0.6, sodium_g: 0.5, copper_mg: 0.9, epa_dha_g: 0.8, potassium_g: 2.0 } });
+                const g_f = Math.round((adjusted_der_kcal / 1450) * 1000 * 10) / 10;
+                activeFreshRecipe = buildDetailedFreshRecipe(species, diseases, allergies, g_f, adjusted_der_kcal);
+                mix_items.push({ name: activeFreshRecipe.title, company: "수의 맞춤 화식 (조리후 중량)", type: "화식", ratio_percent: 100, daily_calories: adjusted_der_kcal, daily_amount_g: g_f, water_content_ml: Math.round(g_f * 0.70 * 10)/10, nutrients: activeFreshRecipe.nutrients, freshIngredients: activeFreshRecipe.ingredients });
             }
 
             const total_daily_g = Math.round(mix_items.reduce((acc, it) => acc + it.daily_amount_g, 0) * 10) / 10;
@@ -1987,6 +2233,28 @@
                 if (it.type.includes("습식")) { badgeColor = "bg-sky-100 text-sky-800 border-sky-200"; icon = "fa-can-food"; }
                 else if (it.type.includes("화식")) { badgeColor = "bg-amber-100 text-amber-800 border-amber-200"; icon = "fa-carrot"; }
 
+                // 화식 카드일 경우 식재료별 정량(g) 및 조리방식 요약 리스트를 카드 내부에 직접 표시
+                let freshBreakdownHtml = '';
+                if (it.freshIngredients && it.freshIngredients.length > 0) {
+                    freshBreakdownHtml = `
+                        <div class="mb-3 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 space-y-1.5">
+                            <div class="text-[11px] font-extrabold text-amber-900 flex items-center justify-between border-b border-amber-200/60 pb-1">
+                                <span><i class="fa-solid fa-utensils mr-1"></i>식재료별 1일 정량 & 조리법</span>
+                                <span class="text-[10px] text-amber-700">조리 후 중량</span>
+                            </div>
+                            ${it.freshIngredients.map(ing => `
+                                <div class="flex items-center justify-between text-[11px] leading-tight">
+                                    <div class="truncate pr-1">
+                                        <span class="px-1.5 py-0.2 bg-amber-200/80 text-amber-950 font-bold rounded text-[10px] mr-1">${ing.badge.split(' ')[0]}</span>
+                                        <span class="font-semibold text-slate-800">${ing.name}</span>
+                                    </div>
+                                    <span class="font-black text-amber-900 whitespace-nowrap">${ing.gDay} g <span class="text-[10px] font-normal text-slate-500">(${ing.pct}%)</span></span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
                 const card = document.createElement('div');
                 card.className = "p-5 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between";
                 card.innerHTML = `
@@ -1997,7 +2265,8 @@
                             </span>
                             <span class="text-xs text-slate-400 font-medium">${it.company}</span>
                         </div>
-                        <h4 class="text-sm font-bold text-slate-900 line-clamp-2 mb-3">${it.name}</h4>
+                        <h4 class="text-sm font-bold text-slate-900 mb-2.5">${it.name}</h4>
+                        ${freshBreakdownHtml}
                     </div>
 
                     <div class="space-y-2 pt-3 border-t border-slate-100 text-xs">
@@ -2023,6 +2292,37 @@
                 `;
                 cardsGrid.appendChild(card);
             });
+
+            // 맞춤 화식 상세 식재료 정량(g) & 조리 방법 테이블 렌더링 (#fresh-recipe-detail-panel)
+            const freshPanel = document.getElementById('fresh-recipe-detail-panel');
+            if (freshPanel) {
+                if (activeFreshRecipe) {
+                    freshPanel.classList.remove('hidden');
+                    const freshItem = mix_items.find(x => x.type === "화식");
+                    document.getElementById('fresh-recipe-title-banner').innerText = `🍲 ${activeFreshRecipe.title}`;
+                    document.getElementById('fresh-total-g-badge').innerText = freshItem ? freshItem.daily_amount_g : 0;
+                    document.getElementById('fresh-total-kcal-badge').innerText = freshItem ? freshItem.daily_calories : 0;
+
+                    const fTbody = document.getElementById('fresh-ingredients-tbody');
+                    fTbody.innerHTML = activeFreshRecipe.ingredients.map(ing => `
+                        <tr class="hover:bg-amber-50/40 transition">
+                            <td class="py-2.5 px-3 font-bold text-slate-600">${ing.role} <span class="text-[10px] text-amber-700 font-extrabold">(${ing.pct}%)</span></td>
+                            <td class="py-2.5 px-3 font-black text-slate-900">${ing.name}</td>
+                            <td class="py-2.5 px-3">
+                                <span class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 font-extrabold border border-amber-300 text-[11px]">
+                                    <i class="fa-solid fa-fire-burner mr-1 text-amber-600"></i>${ing.badge}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-3 text-right font-black text-amber-800 text-sm">${ing.gDay} g/일</td>
+                            <td class="py-2.5 px-3 text-right font-bold text-slate-700">${ing.gBid} g/회</td>
+                            <td class="py-2.5 px-3 text-right font-bold text-slate-700">${ing.gTid} g/회</td>
+                            <td class="py-2.5 px-3 text-slate-700 leading-relaxed">${ing.detail}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    freshPanel.classList.add('hidden');
+                }
+            }
 
             // Recommend & Render Supplements from 벳앤펫 DB
             const suppGrid = document.getElementById('supplement-cards-grid');
