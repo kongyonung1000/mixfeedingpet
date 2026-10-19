@@ -485,7 +485,10 @@
                     <span class="text-white/40">|</span>
                     <span><i class="fa-solid fa-pills mr-1 text-emerald-300"></i> 약물 15종 · 영양제 11종</span>
                     <span class="text-white/40">|</span>
-                    <span><i class="fa-solid fa-vial-virus mr-1 text-amber-300"></i> 장내환경 9대 마커 가중치 CDSS</span>
+                    <button type="button" onclick="switchTab('monitoring-tab')" class="text-amber-300 hover:text-amber-200 font-extrabold underline decoration-amber-400 flex items-center space-x-1">
+                        <i class="fa-solid fa-microscope"></i>
+                        <span>장내환경 9대 마커 가중치 CDSS 바로가기</span>
+                    </button>
                 </div>
                 <div id="header-user-badge"></div>
             </div>
@@ -495,22 +498,23 @@
     <!-- Navigation Tabs -->
     <nav class="bg-white border-b border-slate-200 sticky top-[68px] z-40 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex space-x-8">
+            <div class="flex flex-wrap space-x-4 md:space-x-8">
                 <button onclick="switchTab('profile-tab')" id="btn-profile-tab" class="tab-btn active py-4 px-2 text-sm font-semibold flex items-center space-x-2 border-b-2 border-transparent transition">
                     <i class="fa-solid fa-id-card-clip"></i>
-                    <span>1. 환자 신상 · 약물 · 복합 질환</span>
+                    <span>1. 환자 신상 · 약물(15종) · 복합 질환</span>
                 </button>
                 <button onclick="switchTab('feeding-tab')" id="btn-feeding-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
                     <i class="fa-solid fa-bowl-food"></i>
-                    <span>2. 최적 믹스피딩 & 맞춤 영양제 조율</span>
+                    <span>2. 최적 믹스피딩 & 장내환경 추정</span>
                 </button>
                 <button onclick="switchTab('analytics-tab')" id="btn-analytics-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>3. 영양소 & 수분 분석 차트</span>
                 </button>
                 <button onclick="switchTab('monitoring-tab')" id="btn-monitoring-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
-                    <i class="fa-solid fa-vial-virus"></i>
-                    <span>4. 장내환경 9대 마커 가중치 CDSS & 모니터링</span>
+                    <i class="fa-solid fa-microscope text-indigo-600"></i>
+                    <span>4. 장내환경 9대 마커 가중치 CDSS & 원인분해</span>
+                    <span class="px-1.5 py-0.5 text-[10px] font-black bg-rose-500 text-white rounded-full animate-pulse">NEW</span>
                 </button>
             </div>
         </div>
@@ -1054,6 +1058,33 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="food-cards-grid"></div>
+            </div>
+
+            <!-- NEW IN TAB 2: 4대 축(나이·식이·약물·질병) 가중치 기반 장내환경 9대 분변 마커 사전 추정치 (Expected Baseline) -->
+            <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 text-white rounded-2xl p-6 shadow-lg border-2 border-indigo-500/40 space-y-4">
+                <div class="flex flex-wrap items-center justify-between border-b border-white/15 pb-3.5 gap-3">
+                    <div class="flex items-center space-x-3">
+                        <span class="p-2.5 bg-indigo-500 text-white rounded-xl shadow-md">
+                            <i class="fa-solid fa-microscope text-lg"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h2 class="text-base font-black text-white">장내환경 9대 분변 마커 환자 맞춤형 사전 추정치 (Expected Baseline)</h2>
+                                <span class="px-2 py-0.5 text-[10px] font-black bg-amber-400 text-slate-950 rounded-full">신규 가중치 수식 적용</span>
+                            </div>
+                            <p class="text-xs text-indigo-200 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치($\alpha=0.40$ 감쇠 결합)로 추정한 이 환견의 분변 9대 마커 예상 기준선입니다.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="switchTab('monitoring-tab')" class="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black rounded-xl text-xs shadow-lg flex items-center space-x-2 transition transform active:scale-95">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                        <span>실측치 입력 & 식이/약물/질병 원인분해 진단기 열기 (Tab 4)</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div id="tab2-gut-baseline-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-2.5 text-xs">
+                    <!-- Dynamically populated by runGutEnvironmentCDSS() -->
+                </div>
             </div>
 
             <!-- Therapeutic Supplement Pairing Section (영양제 임상 조율 섹션) -->
@@ -2378,6 +2409,10 @@
                 }
             });
 
+            if (typeof syncGutCdssFromCurrentTabs === 'function') {
+                syncGutCdssFromCurrentTabs(true);
+            }
+
             if (shouldSwitchTab) {
                 switchTab('feeding-tab');
             }
@@ -3080,6 +3115,29 @@
             });
 
             document.getElementById('cdss-markers-table-body').innerHTML = rowsHtml.join('');
+
+            // Tab 2 내 9대 분변 마커 사전 추정치(Expected Baseline) 요약 그리드 동시 렌더링
+            const tab2Grid = document.getElementById('tab2-gut-baseline-grid');
+            if (tab2Grid) {
+                tab2Grid.innerHTML = CDSS_MARKERS.map(m => {
+                    const info = CDSS_MARKER_INFO[m];
+                    const ev = evalMap[m];
+                    const expStr = m === 'blood' ? `< ${ev.expectedUpper}` : `${ev.expected}`;
+                    const wColor = ev.w_total > 1.15 ? 'text-amber-300' : (ev.w_total < 0.90 ? 'text-sky-300' : 'text-emerald-300');
+                    return `
+                        <div class="bg-white/10 backdrop-blur-sm p-2.5 rounded-xl border border-white/15 flex flex-col justify-between">
+                            <div>
+                                <div class="text-[11px] font-extrabold text-indigo-200 truncate">${info.name}</div>
+                                <div class="text-[10px] text-slate-400">정상: ${m==='blood'?'<10':`${info.min}~${info.max}`}</div>
+                            </div>
+                            <div class="mt-2 pt-1.5 border-t border-white/10">
+                                <div class="text-sm font-black text-white">${expStr} <span class="text-[10px] font-normal text-slate-300">${info.unit !== '-' ? info.unit : ''}</span></div>
+                                <div class="text-[10px] font-bold ${wColor}">가중치 x${ev.w_total.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
 
             // 종합 점수 및 등급 계산
             const score = Math.max(0.0, Math.round((100.0 - Math.min(75.0, totalPenalty)) * 10) / 10);
