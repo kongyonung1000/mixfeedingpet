@@ -359,6 +359,10 @@
                 if (e) e.preventDefault();
                 localStorage.removeItem(SESSION_KEY);
                 sessionStorage.removeItem(SESSION_KEY);
+                localStorage.removeItem("vet_auth_verified");
+                localStorage.removeItem("vet_mix_auth");
+                sessionStorage.removeItem("vet_auth_verified");
+                sessionStorage.removeItem("vet_mix_auth");
                 location.reload();
             };
 
@@ -437,15 +441,23 @@
                 }
             };
 
-            // 세션 자동 확인
+            // 세션 자동 확인 (세션 스토리지 기반 엄격 검증)
             function checkActiveSession() {
                 try {
-                    const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                    // 구버전 잔여 키 정리
+                    localStorage.removeItem("vet_auth_verified");
+                    localStorage.removeItem("vet_mix_auth");
+                    
+                    const raw = sessionStorage.getItem(SESSION_KEY);
                     if (raw) {
                         const user = JSON.parse(raw);
                         const shield = document.getElementById("private-gate-shield");
-                        if (shield) shield.style.display = "none";
+                        if (shield) shield.style.setProperty("display", "none", "important");
                         updateHeaderProfile(user);
+                    } else {
+                        // 세션이 없으면 무조건 로그인 창 표시
+                        const shield = document.getElementById("private-gate-shield");
+                        if (shield) shield.style.setProperty("display", "flex", "important");
                     }
                 } catch(e) {}
             }
