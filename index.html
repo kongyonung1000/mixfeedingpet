@@ -479,17 +479,16 @@
                     <p class="text-xs text-blue-100 font-medium">Veterinary Clinical Multi-Morbidity Diet Optimization & Bioavailability Error Tuner</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-3 text-xs">
-                <div class="hidden md:flex items-center space-x-3 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-white/20">
-                    <span><i class="fa-solid fa-database mr-1 text-blue-300"></i> 사료 118종</span>
-                    <span class="text-white/40">|</span>
-                    <span><i class="fa-solid fa-pills mr-1 text-emerald-300"></i> 약물 15종 · 영양제 11종</span>
-                    <span class="text-white/40">|</span>
-                    <button type="button" onclick="switchTab('monitoring-tab')" class="text-amber-300 hover:text-amber-200 font-extrabold underline decoration-amber-400 flex items-center space-x-1">
-                        <i class="fa-solid fa-microscope"></i>
-                        <span>장내환경 9대 마커 가중치 CDSS 바로가기</span>
-                    </button>
-                </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <button type="button" onclick="openQuickSaveRecordPrompt()" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black shadow-md flex items-center space-x-1.5 transition transform active:scale-95">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>현재 환자 기록 통합저장 (1~4탭)</span>
+                </button>
+                <button type="button" onclick="switchTab('records-tab')" class="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-black shadow-md flex items-center space-x-1.5 transition transform active:scale-95">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>환자 기록 보관함 · 전후비교</span>
+                    <span id="header-records-count" class="px-1.5 py-0.2 rounded-full bg-slate-900 text-amber-300 text-[10px]">0</span>
+                </button>
                 <div id="header-user-badge"></div>
             </div>
         </div>
@@ -498,14 +497,14 @@
     <!-- Navigation Tabs -->
     <nav class="bg-white border-b border-slate-200 sticky top-[68px] z-40 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-wrap space-x-4 md:space-x-8">
+            <div class="flex flex-wrap space-x-3 md:space-x-6">
                 <button onclick="switchTab('profile-tab')" id="btn-profile-tab" class="tab-btn active py-4 px-2 text-sm font-semibold flex items-center space-x-2 border-b-2 border-transparent transition">
                     <i class="fa-solid fa-id-card-clip"></i>
-                    <span>1. 환자 신상 · 약물(15종) · 복합 질환</span>
+                    <span>1. 환자 신상 · 약물 · 복합 질환</span>
                 </button>
                 <button onclick="switchTab('feeding-tab')" id="btn-feeding-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
                     <i class="fa-solid fa-bowl-food"></i>
-                    <span>2. 최적 믹스피딩 & 장내환경 추정</span>
+                    <span>2. 최적 믹스피딩 & 화식조리법</span>
                 </button>
                 <button onclick="switchTab('analytics-tab')" id="btn-analytics-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
                     <i class="fa-solid fa-chart-pie"></i>
@@ -513,8 +512,12 @@
                 </button>
                 <button onclick="switchTab('monitoring-tab')" id="btn-monitoring-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
                     <i class="fa-solid fa-microscope text-indigo-600"></i>
-                    <span>4. 장내환경 9대 마커 가중치 CDSS & 원인분해</span>
-                    <span class="px-1.5 py-0.5 text-[10px] font-black bg-rose-500 text-white rounded-full animate-pulse">NEW</span>
+                    <span>4. 장내환경 9대 마커 + 혈액 CDSS</span>
+                </button>
+                <button onclick="switchTab('records-tab')" id="btn-records-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                    <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i>
+                    <span>5. 환자별 통합 기록 & 회차 비교</span>
+                    <span id="nav-records-count" class="px-1.5 py-0.5 text-[10px] font-black bg-emerald-600 text-white rounded-full">0건</span>
                 </button>
             </div>
         </div>
@@ -1619,6 +1622,135 @@
 
                 <div id="symptom-alert-box" class="mt-4 p-4 rounded-xl text-xs hidden"></div>
             </div>
+
+            <!-- Tab 4 하단: 원클릭 현재 환자 통합 기록 저장 & 비교 바로가기 배너 -->
+            <div class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white rounded-2xl p-5 shadow-md flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-emerald-500/20 border border-emerald-400/40 rounded-xl text-emerald-300 text-xl">
+                        <i class="fa-solid fa-file-medical"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black">이 환자의 현재 진료·처방·검사 기록(1~4번 탭 전체)을 차트에 남기시겠습니까?</h3>
+                        <p class="text-xs text-emerald-200 mt-0.5">저장해 두시면 다음 재진 시 이전 처방(사료비율·영양제·혈액수치·9대 분변마커)과 1:1 전·후 비교가 가능합니다.</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="openQuickSaveRecordPrompt()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs shadow-lg flex items-center space-x-2 transition">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>현재 환자 기록 통합 저장하기</span>
+                    </button>
+                    <button type="button" onclick="switchTab('records-tab')" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold rounded-xl text-xs flex items-center space-x-1.5 transition">
+                        <i class="fa-solid fa-code-compare"></i>
+                        <span>저장된 기록 & 회차 비교 열기 (Tab 5)</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: 환자별 통합 기록 보관함 & 회차별 전·후 비교 (Longitudinal EMR & Visit Comparison) -->
+        <section id="records-tab" class="tab-content space-y-6 hidden">
+            <!-- 1. 상단 컨트롤 & 현재 화면 상태 즉시 저장 바 -->
+            <div class="bg-gradient-to-br from-slate-900 via-emerald-950 to-teal-950 text-white rounded-2xl p-6 shadow-lg border border-emerald-500/30">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4 mb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="p-3 bg-emerald-500 text-slate-950 rounded-2xl shadow-md font-black">
+                            <i class="fa-solid fa-folder-tree text-xl"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h2 class="text-lg font-black tracking-tight">환자별 통합 처방 기록(EMR) 보관함 & 회차별 전·후 비교 시스템</h2>
+                                <span class="px-2.5 py-0.5 text-[10px] font-black bg-emerald-400 text-slate-950 rounded-full">Tab 1~4 전체 스냅샷 보존</span>
+                            </div>
+                            <p class="text-xs text-emerald-200 mt-0.5">환자의 <strong>[1] 신상·질병·약물 ➔ [2] 믹스피딩·화식(g)·영양제 ➔ [3] 영양성분 ➔ [4] 9대 분변마커·8대 혈액검사·장내환경 점수</strong>를 회차별로 저장하고 다음 내원 시 1:1로 비교합니다.</p>
+                        </div>
+                    </div>
+                    <!-- 파일 백업 내보내기 / 불러오기 / 샘플 생성 -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <button type="button" onclick="seedDemoComparisonRecords()" class="px-3 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 font-bold transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>1차 초진 vs 2차 재진 비교 샘플 자동생성</span>
+                        </button>
+                        <button type="button" onclick="exportAllRecordsToJson()" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-download"></i>
+                            <span>차트 파일 백업(JSON)</span>
+                        </button>
+                        <label class="cursor-pointer px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold transition flex items-center space-x-1.5">
+                            <i class="fa-solid fa-upload"></i>
+                            <span>백업 파일 불러오기</span>
+                            <input type="file" id="import-records-file" accept=".json" onchange="importRecordsFromJson(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 현재 탭(1~4) 상태 즉시 저장 입력창 -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/15 items-end">
+                    <div>
+                        <label class="block text-[11px] font-bold text-emerald-300 mb-1">진료 회차 구분</label>
+                        <select id="save-visit-stage" class="w-full px-3 py-2 text-xs rounded-xl bg-slate-900 border border-white/20 text-white font-bold outline-none">
+                            <option value="1차 초진 (Baseline)">1차 초진 (Baseline 처방)</option>
+                            <option value="2차 재진 (2~4주 후 추적)" selected>2차 재진 (2~4주 후 피드백 조정)</option>
+                            <option value="3차 재진 (장기 모니터링)">3차 재진 (장기 모니터링)</option>
+                            <option value="식이/약물 긴급 변경">식이/약물 긴급 변경</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-bold text-emerald-300 mb-1">수의사 진료 메모 / 처방 변경 요약</label>
+                        <input type="text" id="save-visit-memo" placeholder="예: 초진 50:50 급여 후 지방변 발생하여 저지방 70 : 신장 30으로 변경 및 판크레딘 1.5배 증량" class="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-900 border border-white/20 text-white placeholder-slate-400 outline-none">
+                    </div>
+                    <div>
+                        <button type="button" onclick="saveCurrentPatientSnapshot()" class="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition transform active:scale-95">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>현재 환자 상태(1~4탭) 차트에 저장</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 저장된 환자별 차트 리스트 & 필터 -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-emerald-600 rounded-full"></span>
+                        <h3 class="text-base font-extrabold text-slate-800">저장된 환자 진료·처방 이력 목록</h3>
+                        <span class="text-xs text-slate-500">과거 기록을 현재 화면(Tab 1~4)으로 그대로 복원하거나, 두 시점(이전 A vs 이후 B)을 선택해 비교할 수 있습니다.</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="font-bold text-slate-600"><i class="fa-solid fa-filter mr-1"></i>환자 이름 필터:</span>
+                        <select id="record-patient-filter" onchange="renderPatientRecordsList()" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-slate-50 font-bold text-slate-800 outline-none">
+                            <option value="ALL">전체 환자 보기</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="patient-records-list-container" class="space-y-3"></div>
+            </div>
+
+            <!-- 3. 이전 기록(Visit A) vs 이후 기록(Visit B) 1:1 전·후 정밀 비교 대시보드 -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-2 border-indigo-200 space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="p-2.5 bg-indigo-600 text-white rounded-xl shadow-sm"><i class="fa-solid fa-scale-unbalanced-flip text-lg"></i></span>
+                        <div>
+                            <h3 class="text-base font-black text-slate-900">환자 회차별 처방 & 장내환경·혈액검사 1:1 전·후 비교 (Before vs After)</h3>
+                            <p class="text-xs text-slate-500">이전 내원 기록(A)과 재진 기록(B, 또는 현재 화면 시뮬레이션 상태)을 대조하여 식이·약물·영양제 조정 후의 임상 호전도를 평가합니다.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-xs bg-indigo-50 p-2.5 rounded-xl border border-indigo-200">
+                        <div>
+                            <span class="font-black text-indigo-800 mr-1">[기준 A: 이전 처방]</span>
+                            <select id="compare-select-a" onchange="renderVisitComparison()" class="px-2.5 py-1.5 rounded-lg border border-indigo-300 bg-white font-bold text-slate-800 outline-none"></select>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-indigo-500 font-black mx-1"></i>
+                        <div>
+                            <span class="font-black text-emerald-800 mr-1">[비교 B: 재진/현재]</span>
+                            <select id="compare-select-b" onchange="renderVisitComparison()" class="px-2.5 py-1.5 rounded-lg border border-emerald-400 bg-white font-bold text-slate-800 outline-none"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 비교 리포트 출력 컨테이너 -->
+                <div id="visit-comparison-report-body" class="space-y-6"></div>
+            </div>
         </section>
 
     </main>
@@ -2535,6 +2667,40 @@
                 }
             });
 
+            window._latestRecommendationSnapshot = {
+                feedingMode: currentFeedingMode,
+                customRatios: { ...currentCustomRatios },
+                energy: { rer, ideal_weight_kg, der_kcal, der_factor, der_factor_reason, overall_rate: Math.round(overall_rate * 100), adjusted_der_kcal, total_daily_g },
+                water: { daily_water_target, total_water_from_diet, extra_water_needed },
+                nutrients: {
+                    protein_g: Math.round(b_p * 10) / 10,
+                    fat_g: Math.round(b_f * 10) / 10,
+                    carb_g: Math.round(b_c * 10) / 10,
+                    phosphorus_g: Math.round(b_phos * 100) / 100,
+                    sodium_g: Math.round(b_na * 100) / 100,
+                    copper_mg: Math.round(b_cu * 100) / 100,
+                    epa_dha_g: Math.round(b_epa * 100) / 100,
+                    potassium_g: Math.round(b_k * 100) / 100,
+                    p_pct, f_pct, c_pct
+                },
+                mix_items: mix_items.map(it => ({
+                    name: it.name,
+                    company: it.company,
+                    type: it.type,
+                    ratio_percent: it.ratio_percent,
+                    daily_calories: it.daily_calories,
+                    daily_amount_g: it.daily_amount_g,
+                    water_content_ml: it.water_content_ml,
+                    freshIngredients: it.freshIngredients || null
+                })),
+                supplements: matchedSupps.map(s => ({
+                    name: s.name,
+                    target: s.target,
+                    dosage: dosageStr,
+                    key_ing: s.key_ing
+                }))
+            };
+
             if (typeof syncGutCdssFromCurrentTabs === 'function') {
                 syncGutCdssFromCurrentTabs(true);
             }
@@ -3350,6 +3516,20 @@
             document.getElementById('cdss-diet-actions-list').innerHTML = dietActions.map(c => `<div>${c}</div>`).join('');
             document.getElementById('cdss-supp-actions-list').innerHTML = suppActions.map(c => `<div>${c}</div>`).join('');
             document.getElementById('cdss-vet-actions-list').innerHTML = vetActions.map(c => `<div>${c}</div>`).join('');
+
+            // CDSS 최신 평가 결과 스냅샷 보관 (통합 차트 기록용)
+            window._latestCdssSnapshot = {
+                score,
+                grade,
+                gradeName,
+                abnormalTags: uniqueTags,
+                attributionPcts: { ...pcts },
+                primaryCulprit: sortedCauses[0],
+                recalcKcal,
+                recalcG,
+                labRaw: { ...labRaw },
+                markers: JSON.parse(JSON.stringify(evalMap))
+            };
         }
 
         function applyCdssRecommendedMixRatio() {
@@ -3366,10 +3546,588 @@
             runRecommendation(true);
         }
 
+        // =========================================================================
+        // TAB 5: 환자별 통합 처방 기록(EMR) 보관함 & 회차별 전·후 비교 시스템
+        // (Tab 1 신상/질환/약물 + Tab 2 믹스피딩/화식/영양제 + Tab 3 영양소 + Tab 4 9대 마커/8대 혈액검사)
+        // =========================================================================
+        const EMR_STORAGE_KEY = "vet_emr_patient_records_v1";
+
+        function getSavedPatientRecords() {
+            try {
+                const raw = localStorage.getItem(EMR_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function setSavedPatientRecords(records) {
+            localStorage.setItem(EMR_STORAGE_KEY, JSON.stringify(records));
+            updateRecordCountBadges(records.length);
+        }
+
+        function updateRecordCountBadges(count) {
+            const hBadge = document.getElementById('header-records-count');
+            const nBadge = document.getElementById('nav-records-count');
+            if (hBadge) hBadge.innerText = count;
+            if (nBadge) nBadge.innerText = `${count}건`;
+        }
+
+        function captureCurrentFullSnapshot(visitStage, memo) {
+            // 최신 계산 보장
+            runRecommendation(false);
+            runGutEnvironmentCDSS();
+
+            const mcsEl = document.querySelector('input[name="mcs"]:checked');
+            const allergies = [];
+            document.querySelectorAll('input[name="allergy"]:checked').forEach(el => allergies.push(el.value));
+            const diseases = [];
+            document.querySelectorAll('input[name="disease"]:checked').forEach(el => diseases.push(el.value));
+            const drugs = [];
+            document.querySelectorAll('input[name="cdss-drug"]:checked').forEach(el => drugs.push(el.value));
+
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+            const patientName = (document.getElementById('patient-name')?.value || '밍키').trim();
+
+            return {
+                id: 'REC_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                savedAt: timestamp,
+                visitStage: visitStage || "정기 진료",
+                memo: memo || "믹스피딩 및 장내환경·혈액검사 통합 기록",
+                // 1. Tab 1: 환자 신상 · 초음파 · 질환 · 약물 전체
+                tab1_profile: {
+                    name: patientName,
+                    species: document.getElementById('patient-species')?.value || '개',
+                    weight_kg: parseFloat(document.getElementById('patient-weight')?.value) || 5.0,
+                    age_years: parseFloat(document.getElementById('patient-age')?.value) || 11.0,
+                    gender: document.getElementById('patient-gender')?.value || '중성화 완료 수컷',
+                    breed: document.getElementById('patient-breed')?.value || '말티즈',
+                    bcs: parseInt(document.getElementById('patient-bcs')?.value) || 5,
+                    mcs: mcsEl ? mcsEl.value : "정상 (Normal)",
+                    eating_habit: document.getElementById('patient-eating-habit')?.value || '보통',
+                    fecal_score: parseFloat(document.getElementById('patient-fecal')?.value) || 3.5,
+                    us_thickness: parseFloat(document.getElementById('us-thickness')?.value) || 2.5,
+                    us_layering: document.getElementById('us-layering')?.value || '정상 유지',
+                    us_hyperechoic: document.getElementById('us-hyperechoic')?.value || 'false',
+                    allergies,
+                    diseases,
+                    heart_stage: document.getElementById('cdss-heart-stage')?.value || 'MMVD stage C, D',
+                    ckd_stage: document.getElementById('cdss-ckd-stage')?.value || 'CKD stage 3, 4',
+                    gb_type: document.getElementById('cdss-gb-type')?.value || '없음',
+                    extra_dis: document.getElementById('cdss-extra-dis')?.value || '없음',
+                    drugs,
+                    treat_given: !!document.getElementById('cdss-treat-given')?.checked
+                },
+                // 2. Tab 2 & Tab 3: 최적 믹스피딩, 화식 레시피, 영양제, 영양소 분석
+                tab2_3_feeding: window._latestRecommendationSnapshot ? JSON.parse(JSON.stringify(window._latestRecommendationSnapshot)) : {},
+                // 3. Tab 4: 9대 분변 마커 + 8대 혈액검사 + 장내환경 CDSS 판정
+                tab4_cdss: window._latestCdssSnapshot ? JSON.parse(JSON.stringify(window._latestCdssSnapshot)) : {}
+            };
+        }
+
+        function openQuickSaveRecordPrompt() {
+            const pName = (document.getElementById('patient-name')?.value || '밍키').trim();
+            const defaultMemo = `${pName} 환자 처방 및 장내환경 9대 마커·혈액검사 기록`;
+            const memo = prompt(`💾 [${pName}] 환자의 현재 1번~4번 탭 전체 기록을 차트에 저장합니다.\n진료 회차나 처방 메모를 입력해 주세요:`, defaultMemo);
+            if (memo === null) return; // 취소 시 중단
+
+            const records = getSavedPatientRecords();
+            const samePatientCount = records.filter(r => r.tab1_profile.name === pName).length;
+            const stageLabel = `${samePatientCount + 1}차 진료 기록`;
+
+            const snap = captureCurrentFullSnapshot(stageLabel, memo.trim() || defaultMemo);
+            records.unshift(snap);
+            setSavedPatientRecords(records);
+            renderPatientRecordsList();
+            switchTab('records-tab');
+        }
+
+        function saveCurrentPatientSnapshot() {
+            const stage = document.getElementById('save-visit-stage')?.value || "정기 진료";
+            const memoInput = document.getElementById('save-visit-memo');
+            const pName = (document.getElementById('patient-name')?.value || '밍키').trim();
+            const memo = (memoInput?.value || `${pName} - ${stage} 통합 처방 기록`).trim();
+
+            const snap = captureCurrentFullSnapshot(stage, memo);
+            const records = getSavedPatientRecords();
+            records.unshift(snap);
+            setSavedPatientRecords(records);
+            if (memoInput) memoInput.value = '';
+            renderPatientRecordsList();
+            alert(`✅ [${pName}] 환자의 1번~4번 탭 통합 기록이 성공적으로 저장되었습니다!`);
+        }
+
+        function restoreSnapshotToTabs(recordId) {
+            const records = getSavedPatientRecords();
+            const rec = records.find(r => r.id === recordId);
+            if (!rec) return;
+
+            const p = rec.tab1_profile;
+            if (document.getElementById('patient-name')) document.getElementById('patient-name').value = p.name;
+            if (document.getElementById('patient-species')) {
+                document.getElementById('patient-species').value = p.species;
+                onSpeciesChange();
+            }
+            if (document.getElementById('patient-weight')) document.getElementById('patient-weight').value = p.weight_kg;
+            if (document.getElementById('patient-age')) document.getElementById('patient-age').value = p.age_years;
+            if (document.getElementById('patient-gender')) document.getElementById('patient-gender').value = p.gender;
+            if (document.getElementById('patient-breed')) document.getElementById('patient-breed').value = p.breed;
+            if (document.getElementById('patient-bcs')) {
+                document.getElementById('patient-bcs').value = p.bcs;
+                if (document.getElementById('bcs-val')) document.getElementById('bcs-val').innerText = p.bcs;
+            }
+            if (document.getElementById('patient-eating-habit')) document.getElementById('patient-eating-habit').value = p.eating_habit;
+            if (document.getElementById('patient-fecal')) document.getElementById('patient-fecal').value = p.fecal_score;
+
+            document.querySelectorAll('input[name="mcs"]').forEach(el => { el.checked = (el.value === p.mcs); });
+            if (document.getElementById('us-thickness')) document.getElementById('us-thickness').value = p.us_thickness;
+            if (document.getElementById('us-layering')) document.getElementById('us-layering').value = p.us_layering;
+            if (document.getElementById('us-hyperechoic')) document.getElementById('us-hyperechoic').value = p.us_hyperechoic;
+
+            document.querySelectorAll('input[name="allergy"]').forEach(el => { el.checked = (p.allergies || []).includes(el.value); });
+            document.querySelectorAll('input[name="disease"]').forEach(el => { el.checked = (p.diseases || []).includes(el.value); });
+
+            if (document.getElementById('cdss-heart-stage')) document.getElementById('cdss-heart-stage').value = p.heart_stage || 'MMVD stage C, D';
+            if (document.getElementById('cdss-ckd-stage')) document.getElementById('cdss-ckd-stage').value = p.ckd_stage || 'CKD stage 3, 4';
+            if (document.getElementById('cdss-gb-type')) document.getElementById('cdss-gb-type').value = p.gb_type || '없음';
+            if (document.getElementById('cdss-extra-dis')) document.getElementById('cdss-extra-dis').value = p.extra_dis || '없음';
+
+            document.querySelectorAll('input[name="cdss-drug"]').forEach(el => { el.checked = (p.drugs || []).includes(el.value); });
+            if (document.getElementById('cdss-treat-given')) document.getElementById('cdss-treat-given').value = p.treat_given;
+            if (document.getElementById('cdss-treat-given')) document.getElementById('cdss-treat-given').checked = !!p.treat_given;
+
+            // Tab 2 급여 모드 및 슬라이더 복원
+            const f = rec.tab2_3_feeding || {};
+            if (f.feedingMode) {
+                currentFeedingMode = f.feedingMode;
+                ["DRY_WET_FRESH", "DRY_WET", "DRY_DRY", "FRESH_ONLY"].forEach(m => {
+                    const btn = document.getElementById(`mode-btn-${m}`);
+                    if (btn) {
+                        btn.className = m === currentFeedingMode ? "px-3.5 py-1.5 text-xs font-bold rounded-xl border border-blue-600 bg-blue-50 text-blue-700 transition" : "px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition";
+                    }
+                });
+            }
+            if (f.customRatios) {
+                currentCustomRatios = { ...f.customRatios };
+            }
+            renderRatioSliders();
+
+            // Tab 4 혈액검사 및 9대 마커 실측치 복원
+            const c = rec.tab4_cdss || {};
+            if (c.labRaw) {
+                const lr = c.labRaw;
+                if (document.getElementById('lab-bun')) document.getElementById('lab-bun').value = lr.bun;
+                if (document.getElementById('lab-cr')) document.getElementById('lab-cr').value = lr.cr;
+                if (document.getElementById('lab-sdma')) document.getElementById('lab-sdma').value = lr.sdma;
+                if (document.getElementById('lab-p')) document.getElementById('lab-p').value = lr.p;
+                if (document.getElementById('lab-alb')) document.getElementById('lab-alb').value = lr.alb;
+                if (document.getElementById('lab-cpl')) document.getElementById('lab-cpl').value = lr.cpl;
+                if (document.getElementById('lab-alt')) document.getElementById('lab-alt').value = lr.alt;
+                if (document.getElementById('lab-k')) document.getElementById('lab-k').value = lr.k;
+            }
+            if (c.markers) {
+                CDSS_MARKERS.forEach(m => {
+                    if (c.markers[m] && document.getElementById(`m9-${m}`)) {
+                        document.getElementById(`m9-${m}`).value = c.markers[m].meas;
+                    }
+                });
+            }
+
+            runRecommendation(false);
+            runGutEnvironmentCDSS();
+            switchTab('feeding-tab');
+        }
+
+        function deletePatientRecord(recordId) {
+            if (!confirm("선택한 진료 기록을 삭제하시겠습니까?")) return;
+            const records = getSavedPatientRecords().filter(r => r.id !== recordId);
+            setSavedPatientRecords(records);
+            renderPatientRecordsList();
+        }
+
+        function selectRecordForCompare(slot, recordId) {
+            const sel = document.getElementById(slot === 'A' ? 'compare-select-a' : 'compare-select-b');
+            if (sel) {
+                sel.value = recordId;
+                renderVisitComparison();
+                document.getElementById('visit-comparison-report-body')?.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function renderPatientRecordsList() {
+            const records = getSavedPatientRecords();
+            updateRecordCountBadges(records.length);
+
+            // 환자 이름 필터 드롭다운 갱신
+            const filterSel = document.getElementById('record-patient-filter');
+            const currentFilter = filterSel ? filterSel.value : 'ALL';
+            const uniqueNames = [...new Set(records.map(r => r.tab1_profile?.name || '밍키'))];
+            if (filterSel) {
+                filterSel.innerHTML = `<option value="ALL">전체 환자 보기 (${records.length}건)</option>` +
+                    uniqueNames.map(n => `<option value="${n}" ${n === currentFilter ? 'selected' : ''}>🐶 ${n} (${records.filter(r => r.tab1_profile?.name === n).length}건)</option>`).join('');
+            }
+
+            const filtered = currentFilter === 'ALL' ? records : records.filter(r => r.tab1_profile?.name === currentFilter);
+            const listContainer = document.getElementById('patient-records-list-container');
+            if (!listContainer) return;
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="p-8 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-300 text-slate-500 text-xs space-y-2">
+                        <div class="text-2xl text-slate-400"><i class="fa-solid fa-folder-open"></i></div>
+                        <div class="font-bold text-slate-700">저장된 환자 진료 기록이 없습니다.</div>
+                        <div>상단의 <strong>[현재 환자 상태 차트에 저장]</strong> 또는 <strong>[1차 초진 vs 2차 재진 비교 샘플 자동생성]</strong> 버튼을 눌러보세요!</div>
+                    </div>
+                `;
+            } else {
+                listContainer.innerHTML = filtered.map((r, idx) => {
+                    const p = r.tab1_profile || {};
+                    const f = r.tab2_3_feeding || {};
+                    const c = r.tab4_cdss || {};
+                    const mixSummary = (f.mix_items || []).map(it => `${it.name.split('[')[0].trim()} (${it.ratio_percent}%, ${it.daily_amount_g}g)`).join(' + ');
+                    const suppSummary = (f.supplements || []).map(s => s.name).join(', ') || '없음';
+                    const scoreBadgeColor = (c.score || 0) >= 80 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ((c.score || 0) >= 65 ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-rose-100 text-rose-800 border-rose-300');
+
+                    return `
+                        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:shadow-md transition flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div class="space-y-1.5 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-[11px] font-black">${p.name} (${p.species} · ${p.age_years}세 · ${p.weight_kg}kg)</span>
+                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-extrabold">${r.visitStage}</span>
+                                    <span class="px-2.5 py-0.5 rounded-full border text-[11px] font-black ${scoreBadgeColor}">장내환경 ${c.score !== undefined ? c.score.toFixed(1) : '-'}점 (Grade ${c.grade || '-'})</span>
+                                    <span class="text-[11px] text-slate-400 font-medium"><i class="fa-regular fa-clock mr-1"></i>${r.savedAt}</span>
+                                </div>
+                                <div class="text-xs font-extrabold text-slate-800">📝 진료 메모: <span class="text-indigo-900">${r.memo}</span></div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px] text-slate-600 pt-1">
+                                    <div class="truncate"><strong class="text-slate-800">[질환/약물]</strong> ${(p.diseases || []).join(', ') || '없음'} / 약물 ${(p.drugs || []).length}종</div>
+                                    <div class="truncate"><strong class="text-blue-700">[믹스피딩 처방]</strong> ${mixSummary || '-'}</div>
+                                    <div class="truncate"><strong class="text-amber-800">[맞춤 영양제]</strong> ${suppSummary}</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-1.5 text-xs shrink-0">
+                                <button type="button" onclick="restoreSnapshotToTabs('${r.id}')" class="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm transition flex items-center space-x-1">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>화면(Tab 1~4)으로 불러오기</span>
+                                </button>
+                                <button type="button" onclick="selectRecordForCompare('A', '${r.id}')" class="px-2.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 font-bold transition">
+                                    기준 A 선택
+                                </button>
+                                <button type="button" onclick="selectRecordForCompare('B', '${r.id}')" class="px-2.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition">
+                                    비교 B 선택
+                                </button>
+                                <button type="button" onclick="deletePatientRecord('${r.id}')" class="px-2.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 비교 드롭다운(A, B) 갱신
+            const selA = document.getElementById('compare-select-a');
+            const selB = document.getElementById('compare-select-b');
+            if (selA && selB) {
+                const prevA = selA.value;
+                const prevB = selB.value;
+                const optionsHtml = records.map(r => `<option value="${r.id}">${r.tab1_profile?.name} — ${r.visitStage} (${r.savedAt})</option>`).join('');
+                selA.innerHTML = optionsHtml || `<option value="CURRENT">현재 화면 상태 (Live)</option>`;
+                selB.innerHTML = `<option value="CURRENT">⚡ 현재 화면 시뮬레이션 상태 (Live)</option>` + optionsHtml;
+
+                if (records.length >= 2) {
+                    // 기본값: A는 이전(1차 초진, index 1), B는 최근(2차 재진, index 0)
+                    selA.value = records.some(r => r.id === prevA) ? prevA : records[1].id;
+                    selB.value = (prevB === "CURRENT" || records.some(r => r.id === prevB)) ? prevB : records[0].id;
+                } else if (records.length === 1) {
+                    selA.value = records[0].id;
+                    selB.value = "CURRENT";
+                }
+                renderVisitComparison();
+            }
+        }
+
+        function renderVisitComparison() {
+            const container = document.getElementById('visit-comparison-report-body');
+            if (!container) return;
+
+            const records = getSavedPatientRecords();
+            const selAVal = document.getElementById('compare-select-a')?.value;
+            const selBVal = document.getElementById('compare-select-b')?.value;
+
+            const recA = selAVal === 'CURRENT' ? captureCurrentFullSnapshot('현재 화면 상태', '현재 탭 입력 상태') : (records.find(r => r.id === selAVal) || records[records.length - 1]);
+            const recB = selBVal === 'CURRENT' ? captureCurrentFullSnapshot('현재 화면 상태 (Live)', '현재 탭 시뮬레이션 상태') : (records.find(r => r.id === selBVal) || records[0]);
+
+            if (!recA || !recB) {
+                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">비교할 두 진료 기록이 준비되지 않았습니다.</div>`;
+                return;
+            }
+
+            const pA = recA.tab1_profile || {}, pB = recB.tab1_profile || {};
+            const fA = recA.tab2_3_feeding || {}, fB = recB.tab2_3_feeding || {};
+            const cA = recA.tab4_cdss || {}, cB = recB.tab4_cdss || {};
+
+            const scoreA = cA.score !== undefined ? cA.score : 68.5;
+            const scoreB = cB.score !== undefined ? cB.score : 85.0;
+            const scoreDiff = Math.round((scoreB - scoreA) * 10) / 10;
+            const scoreDiffBadge = scoreDiff > 0
+                ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black">▲ +${scoreDiff}점 호전!</span>`
+                : (scoreDiff < 0 ? `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">▼ ${scoreDiff}점 하락</span>` : `<span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">변화 없음</span>`);
+
+            const mixStrA = (fA.mix_items || []).map(i => `<div class="font-bold text-slate-800">• ${i.name.split('[')[0]}: <span class="text-indigo-700">${i.ratio_percent}% (${i.daily_amount_g}g / ${i.daily_calories}kcal)</span></div>`).join('');
+            const mixStrB = (fB.mix_items || []).map(i => `<div class="font-bold text-slate-800">• ${i.name.split('[')[0]}: <span class="text-emerald-700">${i.ratio_percent}% (${i.daily_amount_g}g / ${i.daily_calories}kcal)</span></div>`).join('');
+
+            const suppStrA = (fA.supplements || []).map(s => `<span class="px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 font-bold text-[11px] mr-1">${s.name}</span>`).join('') || '없음';
+            const suppStrB = (fB.supplements || []).map(s => `<span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-900 font-bold text-[11px] mr-1">${s.name}</span>`).join('') || '없음';
+
+            // 혈액검사 8대 항목 비교 행
+            const labMeta = [
+                { k: 'bun', name: 'BUN (mg/dL)', ref: '7~27', lowerBetter: true },
+                { k: 'cr', name: 'Creatinine (mg/dL)', ref: '0.5~1.6', lowerBetter: true },
+                { k: 'sdma', name: 'SDMA (μg/dL)', ref: '0~14', lowerBetter: true },
+                { k: 'p', name: '혈청 인 P (mg/dL)', ref: '2.7~5.0', lowerBetter: true },
+                { k: 'alb', name: 'Albumin (g/dL)', ref: '2.6~4.0', lowerBetter: false },
+                { k: 'cpl', name: 'cPL 췌장염 (μg/L)', ref: '< 200', lowerBetter: true },
+                { k: 'alt', name: 'ALT 간수치 (U/L)', ref: '10~100', lowerBetter: true },
+                { k: 'k', name: '칼륨 K (mmol/L)', ref: '3.8~5.2', lowerBetter: null }
+            ];
+
+            const labRowsHtml = labMeta.map(lm => {
+                const vA = cA.labRaw?.[lm.k] ?? '-';
+                const vB = cB.labRaw?.[lm.k] ?? '-';
+                const d = (typeof vA === 'number' && typeof vB === 'number') ? Math.round((vB - vA) * 100) / 100 : 0;
+                let badge = `<span class="text-slate-400">유지 (0)</span>`;
+                if (d !== 0) {
+                    const isGood = lm.lowerBetter === true ? d < 0 : (lm.lowerBetter === false ? d > 0 : Math.abs(vB - 4.5) < Math.abs(vA - 4.5));
+                    const color = isGood ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-rose-700 bg-rose-50 border-rose-200';
+                    badge = `<span class="px-2 py-0.5 rounded-full border font-black ${color}">${d > 0 ? '+' : ''}${d} (${isGood ? '개선' : '주의'})</span>`;
+                }
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2 px-3 font-bold text-slate-800">${lm.name} <span class="text-[10px] text-slate-400 font-normal">(${lm.ref})</span></td>
+                        <td class="py-2 px-3 text-right font-semibold text-slate-600">${vA}</td>
+                        <td class="py-2 px-3 text-right font-black text-slate-900">${vB}</td>
+                        <td class="py-2 px-3 text-center">${badge}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // 9대 분변 마커 비교 행
+            const markerRowsHtml = CDSS_MARKERS.map(m => {
+                const info = CDSS_MARKER_INFO[m];
+                const mA = cA.markers?.[m] || { meas: info.base, expected: info.base };
+                const mB = cB.markers?.[m] || { meas: info.base, expected: info.base };
+                const diff = Math.round((mB.meas - mA.meas) * 100) / 100;
+
+                // 흡수율과 젖산은 높을수록 개선, 나머지(암모니아, 인돌, 잠혈, 미소화영양소)는 낮을수록 개선
+                let isImproved = false;
+                if (m === 'absorption' || m === 'lactate') isImproved = diff > 0;
+                else if (m === 'ph') isImproved = Math.abs(mB.meas - 6.5) <= Math.abs(mA.meas - 6.5);
+                else isImproved = diff < 0;
+
+                let diffBadge = `<span class="text-slate-400">유지 (0)</span>`;
+                if (diff !== 0) {
+                    const clr = isImproved ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-rose-100 text-rose-800 border-rose-300';
+                    diffBadge = `<span class="px-2 py-0.5 rounded-full border font-black ${clr}">${diff > 0 ? '+' : ''}${diff} ${info.unit !== '-' ? info.unit : ''} (${isImproved ? '✅ 개선' : '⚠️ 상승'})</span>`;
+                }
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2 px-3 font-extrabold text-slate-800">${info.name}</td>
+                        <td class="py-2 px-3 text-right font-semibold text-indigo-800">${mA.meas} <span class="text-[10px] text-slate-400">(기대 ${mA.expected})</span></td>
+                        <td class="py-2 px-3 text-right font-black text-emerald-900">${mB.meas} <span class="text-[10px] text-slate-400">(기대 ${mB.expected})</span></td>
+                        <td class="py-2 px-3 text-center">${diffBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <!-- 1. 두 시점의 처방 요약 카드 대조 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-200 space-y-2 text-xs">
+                        <div class="flex items-center justify-between border-b border-indigo-200/70 pb-2">
+                            <span class="font-black text-indigo-950 text-sm"><i class="fa-solid fa-clock-rotate-left mr-1.5 text-indigo-600"></i>[기준 A] ${recA.visitStage}</span>
+                            <span class="text-[11px] text-slate-500">${recA.savedAt}</span>
+                        </div>
+                        <div class="text-slate-700 font-semibold">메모: ${recA.memo}</div>
+                        <div class="grid grid-cols-3 gap-2 bg-white p-2.5 rounded-xl border border-indigo-100 text-center">
+                            <div><div class="text-[10px] text-slate-400">체중 / BCS</div><div class="font-black text-slate-800">${pA.weight_kg}kg / BCS ${pA.bcs}</div></div>
+                            <div><div class="text-[10px] text-slate-400">분변 스코어</div><div class="font-black text-slate-800">Score ${pA.fecal_score}</div></div>
+                            <div><div class="text-[10px] text-slate-400">장내환경 점수</div><div class="font-black text-indigo-700">${scoreA.toFixed(1)}점 (G${cA.grade || 3})</div></div>
+                        </div>
+                        <div class="space-y-1 pt-1">
+                            <div class="text-[11px] font-bold text-indigo-900">급여 사료 배합 (총 ${fA.energy?.total_daily_g || '-'}g / ${fA.energy?.adjusted_der_kcal || '-'}kcal):</div>
+                            ${mixStrA}
+                        </div>
+                        <div class="pt-1"><span class="text-[11px] font-bold text-slate-600">처방 영양제:</span> ${suppStrA}</div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-300 space-y-2 text-xs">
+                        <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+                            <span class="font-black text-emerald-950 text-sm"><i class="fa-solid fa-circle-check mr-1.5 text-emerald-600"></i>[비교 B] ${recB.visitStage}</span>
+                            <div class="flex items-center space-x-2">
+                                ${scoreDiffBadge}
+                                <span class="text-[11px] text-slate-500">${recB.savedAt}</span>
+                            </div>
+                        </div>
+                        <div class="text-slate-700 font-semibold">메모: ${recB.memo}</div>
+                        <div class="grid grid-cols-3 gap-2 bg-white p-2.5 rounded-xl border border-emerald-100 text-center">
+                            <div><div class="text-[10px] text-slate-400">체중 / BCS</div><div class="font-black text-slate-800">${pB.weight_kg}kg / BCS ${pB.bcs}</div></div>
+                            <div><div class="text-[10px] text-slate-400">분변 스코어</div><div class="font-black text-emerald-700">Score ${pB.fecal_score}</div></div>
+                            <div><div class="text-[10px] text-slate-400">장내환경 점수</div><div class="font-black text-emerald-700">${scoreB.toFixed(1)}점 (G${cB.grade || 1})</div></div>
+                        </div>
+                        <div class="space-y-1 pt-1">
+                            <div class="text-[11px] font-bold text-emerald-900">조정된 사료 배합 (총 ${fB.energy?.total_daily_g || '-'}g / ${fB.energy?.adjusted_der_kcal || '-'}kcal):</div>
+                            ${mixStrB}
+                        </div>
+                        <div class="pt-1"><span class="text-[11px] font-bold text-slate-600">처방 영양제:</span> ${suppStrB}</div>
+                    </div>
+                </div>
+
+                <!-- 2. 9대 분변 마커 & 8대 혈액검사 전·후 수치 1:1 비교 테이블 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-100 px-4 py-2.5 font-extrabold text-xs text-slate-800 border-b border-slate-200 flex justify-between">
+                            <span><i class="fa-solid fa-vial text-indigo-600 mr-1.5"></i>9대 장내환경 분변 마커 전·후 비교</span>
+                            <span class="text-[11px] text-indigo-700">실측치 (괄호는 환자 기대치)</span>
+                        </div>
+                        <table class="w-full text-xs">
+                            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                <tr>
+                                    <th class="py-2 px-3 text-left">분변 마커</th>
+                                    <th class="py-2 px-3 text-right text-indigo-700">[A] 이전 실측</th>
+                                    <th class="py-2 px-3 text-right text-emerald-700">[B] 재진 실측</th>
+                                    <th class="py-2 px-3 text-center">변화량 및 판정</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">${markerRowsHtml}</tbody>
+                        </table>
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-100 px-4 py-2.5 font-extrabold text-xs text-slate-800 border-b border-slate-200 flex justify-between">
+                            <span><i class="fa-solid fa-droplet text-rose-600 mr-1.5"></i>8대 혈액생화학 검사(Blood Lab) 전·후 비교</span>
+                            <span class="text-[11px] text-rose-700">장-신장·췌장 축 추적</span>
+                        </div>
+                        <table class="w-full text-xs">
+                            <thead class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                <tr>
+                                    <th class="py-2 px-3 text-left">혈액검사 항목 (정상범위)</th>
+                                    <th class="py-2 px-3 text-right text-indigo-700">[A] 이전 수치</th>
+                                    <th class="py-2 px-3 text-right text-emerald-700">[B] 재진 수치</th>
+                                    <th class="py-2 px-3 text-center">증감 및 임상 경과</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 bg-white">${labRowsHtml}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function seedDemoComparisonRecords(silent = false) {
+            // 1차 초진 상태 (저지방 50 : 신장 50, 미소화 지방 9.5% 초과 & 흡수율 68% 저하 상태) 생성
+            loadGutCdssPreset('CASE_CKD_PANC');
+            currentFeedingMode = "DRY_DRY";
+            currentCustomRatios = { dry1: 50, dry2: 50 };
+            document.getElementById('patient-fecal').value = "4.0";
+            runRecommendation(false);
+            runGutEnvironmentCDSS();
+            const visit1 = captureCurrentFullSnapshot(
+                "1차 초진 (50:50 처방 시)",
+                "초진: 저지방(i/d Low Fat) 50% + 신장(k/d) 50% 급여 중이나 k/d 지질 부하로 미소화 지방(9.5%) 상승 및 흡수율(68%) 저하 확인"
+            );
+            visit1.id = "REC_DEMO_VISIT_1";
+            visit1.savedAt = "2026-09-22 10:30";
+
+            // 2차 재진 상태 (저지방 70 : 신장 30 재조정 + 판크레딘 1.5배 증량 + 인 흡착제 증량 4주 후 호전 상태) 생성
+            currentFeedingMode = "DRY_DRY";
+            currentCustomRatios = { dry1: 70, dry2: 30 };
+            document.getElementById('patient-weight').value = 4.35;
+            document.getElementById('patient-fecal').value = "3.5";
+            if (document.getElementById('lab-bun')) document.getElementById('lab-bun').value = 36.0;
+            if (document.getElementById('lab-cr')) document.getElementById('lab-cr').value = 2.1;
+            if (document.getElementById('lab-sdma')) document.getElementById('lab-sdma').value = 19.0;
+            if (document.getElementById('lab-p')) document.getElementById('lab-p').value = 4.5;
+            if (document.getElementById('lab-cpl')) document.getElementById('lab-cpl').value = 175.0;
+
+            document.getElementById('m9-ph').value = 6.6;
+            document.getElementById('m9-ammonia').value = 28.0;
+            document.getElementById('m9-indole').value = 19.5;
+            document.getElementById('m9-lactate').value = 7.8;
+            document.getElementById('m9-blood').value = 3.0;
+            document.getElementById('m9-protein').value = 5.4;
+            document.getElementById('m9-carbo').value = 6.8;
+            document.getElementById('m9-fat').value = 4.8;
+            document.getElementById('m9-absorption').value = 78.5;
+
+            syncGutCdssFromCurrentTabs(true);
+            runRecommendation(false);
+            runGutEnvironmentCDSS();
+            const visit2 = captureCurrentFullSnapshot(
+                "2차 재진 (70:30 조정 4주 후)",
+                "재진(4주 후): CDSS 권고대로 저지방 70% : 신장 30%로 조정 및 판크레딘 1.5배·인바인더 증량 후 미소화지방(9.5➔4.8%) 정상화, 흡수율(68➔78.5%) 및 혈청 인(5.2➔4.5) 대폭 호전!"
+            );
+            visit2.id = "REC_DEMO_VISIT_2";
+            visit2.savedAt = "2026-10-20 14:15";
+
+            // 다시 기본 화면은 CASE_CKD_PANC 초진 상태로 세팅해 둠
+            loadGutCdssPreset('CASE_CKD_PANC');
+            currentFeedingMode = "DRY_WET_FRESH";
+            currentCustomRatios = { dry: 50, wet: 30, fresh: 20 };
+            renderRatioSliders();
+            runRecommendation(false);
+
+            const existing = getSavedPatientRecords().filter(r => r.id !== "REC_DEMO_VISIT_1" && r.id !== "REC_DEMO_VISIT_2");
+            const updated = [visit2, visit1, ...existing];
+            setSavedPatientRecords(updated);
+            renderPatientRecordsList();
+            if (!silent) {
+                alert("✅ [밍키] 환자의 '1차 초진(50:50 처방)' vs '2차 재진(70:30 조정 4주 후 호전)' 비교 샘플 2건이 생성되었습니다!");
+            }
+        }
+
+        function exportAllRecordsToJson() {
+            const records = getSavedPatientRecords();
+            const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `처방사료_환자차트기록_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importRecordsFromJson(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        setSavedPatientRecords(imported);
+                        renderPatientRecordsList();
+                        alert(`✅ 총 ${imported.length}건의 환자 차트 기록을 성공적으로 불러왔습니다!`);
+                    }
+                } catch (err) {
+                    alert("파일 형식이 올바르지 않습니다.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             renderRatioSliders();
             runRecommendation(false);
             runGutEnvironmentCDSS();
+            if (getSavedPatientRecords().length === 0) {
+                seedDemoComparisonRecords(true);
+            } else {
+                renderPatientRecordsList();
+            }
         });
     </script>
 </body>
