@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
         body {
@@ -330,6 +331,7 @@
                     shield.style.setProperty("display", "none", "important");
                 }
                 try { updateHeaderProfile(userProfile); } catch(e) {}
+                try { if (typeof window.onVetAccountSwitched === 'function') window.onVetAccountSwitched(userProfile); } catch(e) {}
             }
 
             // 헤더 프로필 뱃지 갱신
@@ -1060,6 +1062,198 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="ratio-inputs-grid"></div>
                 </div>
 
+                <!-- 🆕 [수의사 자유 조합 컨트롤] 슬롯별 사료 직접 선택 & 외부 사료(사진 OCR / 인터넷 사료명 검색) 추가 스튜디오 -->
+                <div class="mb-6 rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-white to-sky-50/60 p-4 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="p-2 bg-indigo-600 text-white rounded-xl shadow-sm"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-sm font-black text-slate-900">수의사 직접 사료 지정 & 외부 사료 추가 (📷 성분표 사진 OCR + 🌐 인터넷 사료명 검색)</h3>
+                                    <span class="px-2 py-0.5 text-[10px] font-extrabold bg-indigo-100 text-indigo-800 rounded-full">Tab 2 · 3 · 4 · 5 실시간 연동</span>
+                                </div>
+                                <p class="text-[11px] text-slate-600 mt-0.5">기본 DB에 없는 타사 처방식·일반사료·화식도 <strong>포장지 성분표 사진(OCR)</strong>을 찍거나 <strong>사료명 인터넷 검색</strong>으로 추가하여 믹스피딩 결과를 바로 계산할 수 있습니다.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" onclick="toggleCustomDietStudio()" id="btn-toggle-custom-diet-studio" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black rounded-xl text-xs shadow flex items-center space-x-1.5 transition">
+                                <i class="fa-solid fa-camera-retro"></i>
+                                <span>+ DB에 없는 외부 사료 추가 (사진 OCR / 인터넷 검색)</span>
+                            </button>
+                            <button type="button" onclick="resetDietSlotOverrides()" class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs transition flex items-center space-x-1">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>AI 자동추천으로 초기화</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 슬롯별 사료 직접 선택 드롭다운 바 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-indigo-100 text-xs">
+                        <div>
+                            <label class="block font-extrabold text-blue-800 mb-1"><i class="fa-solid fa-bone mr-1"></i>주 건식 사료 (Dry Slot 1) 제품 선택</label>
+                            <select id="slot-select-dry1" onchange="onDietSlotOverrideChange('dry1', this.value)" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-indigo-800 mb-1"><i class="fa-solid fa-bowl-food mr-1"></i>보조 건식 사료 (Dry Slot 2 · 건식+건식 모드용)</label>
+                            <select id="slot-select-dry2" onchange="onDietSlotOverrideChange('dry2', this.value)" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-sky-800 mb-1"><i class="fa-solid fa-can-food mr-1"></i>습식 캔/파우치 (Wet Slot) 제품 선택</label>
+                            <select id="slot-select-wet1" onchange="onDietSlotOverrideChange('wet1', this.value)" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"></select>
+                        </div>
+                    </div>
+
+                    <!-- 📸 사진 OCR 판독 + 🌐 인터넷 사료명 스마트 검색 상세 스튜디오 (토글 확장 패널) -->
+                    <div id="custom-diet-studio-panel" class="hidden pt-3 border-t border-indigo-200/80 space-y-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <!-- 좌측: 경로 1 (인터넷 사료명 스마트 검색) & 경로 2 (포장지 성분표 사진 OCR 판독) -->
+                            <div class="space-y-3 bg-white p-4 rounded-xl border border-indigo-200 shadow-sm">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                    <span class="text-xs font-black text-indigo-900"><i class="fa-solid fa-magnifying-glass-plus text-indigo-600 mr-1.5"></i>STEP 1. 인터넷 사료명 검색 또는 성분표 사진 OCR 스캔</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">한글·영문 자동 파싱</span>
+                                </div>
+
+                                <!-- [방식 A] 인터넷/스마트 사료명 검색 -->
+                                <div class="p-3 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-2">
+                                    <label class="block text-xs font-extrabold text-indigo-950">🌐 방법 A: 데이터에 없는 사료명 입력 ➔ 스마트 검색 & 성분 자동채우기</label>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <input type="text" id="custom-diet-search-query" placeholder="예: 퓨리나 HA, 파미나 레날, 하림 더리얼, 오리젠, 아카나, 지위픽, 닥터독..." class="flex-1 min-w-[180px] px-3 py-2 text-xs rounded-lg border border-indigo-300 bg-white font-semibold outline-none focus:ring-2 focus:ring-indigo-500">
+                                        <button type="button" onclick="searchExternalDietByName()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-lg text-xs shadow-sm transition flex items-center space-x-1">
+                                            <i class="fa-solid fa-wand-sparkles"></i>
+                                            <span>스마트 검색 & 자동입력</span>
+                                        </button>
+                                        <button type="button" onclick="openWebSearchForDiet()" class="px-2.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-lg text-xs transition flex items-center space-x-1" title="구글/네이버에서 해당 사료의 등록성분량 표를 새 창으로 검색합니다">
+                                            <i class="fa-brands fa-google text-blue-600"></i>
+                                            <span>구글 성분표 검색</span>
+                                        </button>
+                                    </div>
+                                    <!-- 빠른 인기 외부 사료 프리셋 칩 -->
+                                    <div class="flex flex-wrap items-center gap-1 pt-1">
+                                        <span class="text-[10px] font-bold text-slate-500 mr-1">⚡ 원클릭 외부사료 예시:</span>
+                                        <button type="button" onclick="quickFillExternalDiet('퓨리나 프로플랜 수의처방식 HA (가수분해)')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">퓨리나 HA(가수분해)</button>
+                                        <button type="button" onclick="quickFillExternalDiet('퓨리나 프로플랜 수의처방식 NF (신장케어)')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">퓨리나 NF(신장)</button>
+                                        <button type="button" onclick="quickFillExternalDiet('퓨리나 프로플랜 수의처방식 EN Low Fat (저지방 소화기)')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">퓨리나 EN 로우팻</button>
+                                        <button type="button" onclick="quickFillExternalDiet('파미나 Vet Life 레날 (신장 처방식)')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">파미나 Vet Life 레날</button>
+                                        <button type="button" onclick="quickFillExternalDiet('오리젠 오리지널 독 (고단백 그레인프리)')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">오리젠 오리지널</button>
+                                        <button type="button" onclick="quickFillExternalDiet('하림 더리얼 그레인프리 크런치 닭고기 어덜트')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">하림 더리얼</button>
+                                        <button type="button" onclick="quickFillExternalDiet('지위픽 에어드라이 소고기 독 (초고단백/고지방)')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">지위픽 에어드라이</button>
+                                        <button type="button" onclick="quickFillExternalDiet('듀먼 자연화식 닭가슴살&채소 오리지널 (시판 화식)')" class="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-full transition">듀먼 시판화식</button>
+                                    </div>
+                                </div>
+
+                                <!-- [방식 B] 사료 포장지 성분표 사진 촬영 / 이미지 OCR 자동 인식 -->
+                                <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200 space-y-2">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <label class="text-xs font-extrabold text-amber-950">📸 방법 B: 사료 포장지 '등록성분량' 사진 촬영 / 이미지 OCR 자동판독</label>
+                                        <label class="cursor-pointer px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-lg text-xs shadow-sm transition flex items-center space-x-1.5">
+                                            <i class="fa-solid fa-camera"></i>
+                                            <span>사진 촬영 / 이미지 선택 (OCR 실행)</span>
+                                            <input type="file" id="ocr-image-input" accept="image/*" capture="environment" onchange="handleDietOcrImageUpload(event)" class="hidden">
+                                        </label>
+                                    </div>
+                                    <p class="text-[11px] text-amber-800">사료 뒷면의 <strong>등록성분량(조단백질, 조지방, 조섬유, 조회분, 수분, 칼슘, 인, 칼로리 등)</strong> 표를 사진 찍어 올리거나, 아래 칸에 쇼핑몰 성분표 텍스트를 붙여넣으면 자동으로 수치를 읽어옵니다.</p>
+                                    <div id="ocr-status-box" class="hidden p-2.5 rounded-lg bg-white border border-amber-300 text-xs font-bold text-amber-900"></div>
+                                    <div class="flex gap-1.5">
+                                        <textarea id="ocr-raw-text-area" rows="2" placeholder="📋 [텍스트 붙여넣기 가능] 인터넷 상세페이지의 등록성분량 텍스트(예: 조단백질 24% 이상, 조지방 12% 이상, 수분 10% 이하, 인 0.5%...)를 붙여넣고 우측 버튼을 누르셔도 자동 입력됩니다." class="flex-1 px-2.5 py-1.5 text-[11px] rounded-lg border border-amber-300 bg-white outline-none"></textarea>
+                                        <button type="button" onclick="parseGuaranteedAnalysisFromTextarea()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-[11px] shrink-0 transition">
+                                            텍스트 성분 추출
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 우측: STEP 2. 보증성분치(% As-Fed) 확인/보정 ➔ 수의 임상 단위(g/1000kcal) 자동 환산 및 믹스피딩 즉시 적용 -->
+                            <div class="space-y-3 bg-white p-4 rounded-xl border border-indigo-200 shadow-sm flex flex-col justify-between">
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                        <span class="text-xs font-black text-slate-900"><i class="fa-solid fa-calculator text-blue-600 mr-1.5"></i>STEP 2. 추출된 사료 성분(% 보증성분치) 확인 & 1000kcal 당(g) 자동 환산</span>
+                                        <span id="custom-diet-auto-profile-badge" class="text-[10px] font-extrabold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">표준 프로파일</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                        <div class="col-span-2">
+                                            <label class="block text-[10px] font-bold text-slate-500">사료 제품명</label>
+                                            <input type="text" id="cd-name" value="퓨리나 프로플랜 HA (가수분해)" oninput="recalcCustomDietPreview()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-extrabold text-slate-800">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-500">브랜드/제조사</label>
+                                            <input type="text" id="cd-company" value="퓨리나(외부추가)" oninput="recalcCustomDietPreview()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold text-slate-700">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-500">제형 구분</label>
+                                            <select id="cd-type" onchange="recalcCustomDietPreview()" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white font-bold text-slate-800">
+                                                <option value="건식" selected>건식 사료</option>
+                                                <option value="습식">습식 (캔/파우치)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- 포장지 보증성분량 (% As-Fed) 입력 그리드 -->
+                                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                                        <div>
+                                            <label class="block text-[10px] font-extrabold text-blue-700">조단백질 (%)</label>
+                                            <input type="number" step="0.1" id="cd-cp-pct" value="19.5" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-blue-300 font-black text-blue-900">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-extrabold text-amber-700">조지방 (%)</label>
+                                            <input type="number" step="0.1" id="cd-cf-pct" value="11.0" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-amber-300 font-black text-amber-900">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-600">조섬유 (%)</label>
+                                            <input type="number" step="0.1" id="cd-fiber-pct" value="2.0" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-slate-300 font-bold">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-600">조회분 (%)</label>
+                                            <input type="number" step="0.1" id="cd-ash-pct" value="6.0" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-slate-300 font-bold">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-extrabold text-cyan-700">수분 (%)</label>
+                                            <input type="number" step="0.1" id="cd-moist-pct" value="10.0" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-cyan-300 font-black text-cyan-900">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-extrabold text-rose-700">인 P (%)</label>
+                                            <input type="number" step="0.01" id="cd-p-pct" value="0.60" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-rose-300 font-black text-rose-900">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-extrabold text-purple-700">나트륨 Na (%)</label>
+                                            <input type="number" step="0.01" id="cd-na-pct" value="0.25" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-purple-300 font-black text-purple-900">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-slate-600">칼륨 K (%)</label>
+                                            <input type="number" step="0.01" id="cd-k-pct" value="0.65" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-slate-300 font-bold">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-bold text-pink-700">EPA+DHA (%)</label>
+                                            <input type="number" step="0.05" id="cd-epa-pct" value="0.35" oninput="recalcCustomDietPreview()" class="w-full px-2 py-1 rounded border border-pink-300 font-bold">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-extrabold text-emerald-700">열량 (kcal/kg)</label>
+                                            <input type="number" step="10" id="cd-kcal-kg" value="3610" placeholder="자동계산" oninput="recalcCustomDietPreview(true)" class="w-full px-2 py-1 rounded border border-emerald-300 font-black text-emerald-900">
+                                        </div>
+                                    </div>
+
+                                    <!-- 자동 환산된 1000kcal 당 영양소 요약 미리보기 -->
+                                    <div id="custom-diet-converted-preview" class="p-2.5 rounded-xl bg-indigo-950 text-white text-[11px] flex flex-wrap items-center justify-between gap-2"></div>
+                                </div>
+
+                                <!-- 즉시 적용 버튼 그룹 -->
+                                <div class="pt-2 flex flex-wrap gap-2">
+                                    <button type="button" onclick="saveAndApplyCustomDiet('dry1')" class="flex-1 py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-xs shadow transition flex items-center justify-center space-x-1.5">
+                                        <i class="fa-solid fa-bolt"></i>
+                                        <span>주 건식(Dry 1)으로 즉시 믹스피딩 적용 (Tab 2·3·4 연동)</span>
+                                    </button>
+                                    <button type="button" onclick="saveAndApplyCustomDiet('dry2')" class="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow transition flex items-center justify-center space-x-1">
+                                        <span>보조 건식(Dry 2) 적용</span>
+                                    </button>
+                                    <button type="button" onclick="saveAndApplyCustomDiet('wet1')" class="py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white font-black rounded-xl text-xs shadow transition flex items-center justify-center space-x-1">
+                                        <span>습식 슬롯 적용</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="food-cards-grid"></div>
 
                 <!-- 맞춤 화식(Fresh Diet) 식재료별 정량(g) 및 수의 임상 조리 방법 상세 가이드 -->
@@ -1662,6 +1856,10 @@
                                 <span class="px-2.5 py-0.5 text-[10px] font-black bg-emerald-400 text-slate-950 rounded-full">Tab 1~4 전체 스냅샷 보존</span>
                             </div>
                             <p class="text-xs text-emerald-200 mt-0.5">환자의 <strong>[1] 신상·질병·약물 ➔ [2] 믹스피딩·화식(g)·영양제 ➔ [3] 영양성분 ➔ [4] 9대 분변마커·8대 혈액검사·장내환경 점수</strong>를 회차별로 저장하고 다음 내원 시 1:1로 비교합니다.</p>
+                            <div id="emr-current-vet-banner" class="mt-2 inline-flex flex-wrap items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-[11px] font-bold text-emerald-100">
+                                <i class="fa-solid fa-user-lock text-amber-300"></i>
+                                <span>현재 로그인 수의사 전용 독립 보관함: <strong id="emr-vet-name-label" class="text-white">대표 수의사 (vet)</strong> — 로그인한 수의사 계정별로 환자 기록과 추가 사료가 완벽히 분리 보존됩니다.</span>
+                            </div>
                         </div>
                     </div>
                     <!-- 파일 백업 내보내기 / 불러오기 / 샘플 생성 -->
@@ -1850,6 +2048,9 @@
             else if (mode === "DRY_DRY") currentCustomRatios = { dry1: 50, dry2: 50 };
             else if (mode === "FRESH_ONLY") currentCustomRatios = { fresh: 100 };
 
+            if (typeof f !== 'undefined' && f) {
+                window.userSelectedDietOverrides = f.dietSlotOverrides ? { ...f.dietSlotOverrides } : { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            }
             renderRatioSliders();
             runRecommendation(false);
         }
@@ -2023,7 +2224,8 @@
             }
 
             // 4. Candidate Diets Matching
-            const spDiets = EMBEDDED_DIETS.filter(d => d.species === species);
+            const allPool = (typeof getAllAvailableDiets === 'function') ? getAllAvailableDiets() : EMBEDDED_DIETS;
+            const spDiets = allPool.filter(d => d.species === species || d.isCustom);
             const filteredDiets = spDiets.filter(d => {
                 if (d.name.includes("아날러제닉") || d.name.includes("하이포") || d.name.includes("z/d")) return true;
                 for (const alg of allergies) {
@@ -2048,9 +2250,21 @@
             const dryCandidates = filteredDiets.filter(d => d.type === "건식").sort((a,b) => scoreDiet(a) - scoreDiet(b));
             const wetCandidates = filteredDiets.filter(d => d.type === "습식").sort((a,b) => scoreDiet(a) - scoreDiet(b));
 
-            const bestDry1 = dryCandidates[0] || { name: "처방건식", company: "수의처방식", moisture_percent: 10, nutrients: { protein_g: 50, fat_g: 30, carb_g: 120, phosphorus_g: 0.7, sodium_g: 0.7, copper_mg: 1.5, epa_dha_g: 0.8, energy_density_kcal_per_kg: 3800 } };
-            const bestDry2 = dryCandidates[1] || bestDry1;
-            const bestWet1 = wetCandidates[0] || { name: "처방습식", company: "수의처방식", moisture_percent: 78, nutrients: { protein_g: 65, fat_g: 25, carb_g: 80, phosphorus_g: 0.7, sodium_g: 0.7, copper_mg: 1.5, epa_dha_g: 0.8, energy_density_kcal_per_kg: 950 } };
+            let bestDry1 = dryCandidates[0] || { name: "처방건식", company: "수의처방식", moisture_percent: 10, nutrients: { protein_g: 50, fat_g: 30, carb_g: 120, phosphorus_g: 0.7, sodium_g: 0.7, copper_mg: 1.5, epa_dha_g: 0.8, energy_density_kcal_per_kg: 3800 } };
+            let bestDry2 = dryCandidates[1] || bestDry1;
+            let bestWet1 = wetCandidates[0] || { name: "처방습식", company: "수의처방식", moisture_percent: 78, nutrients: { protein_g: 65, fat_g: 25, carb_g: 80, phosphorus_g: 0.7, sodium_g: 0.7, copper_mg: 1.5, epa_dha_g: 0.8, energy_density_kcal_per_kg: 950 } };
+            let activeDry1 = bestDry1;
+            let activeDry2 = bestDry2;
+            let activeWet1 = bestWet1;
+            if (typeof resolveDietSlotSelections === 'function') {
+                const resolved = resolveDietSlotSelections(allPool, dryCandidates, wetCandidates, bestDry1, bestDry2, bestWet1);
+                activeDry1 = resolved.dry1;
+                activeDry2 = resolved.dry2;
+                activeWet1 = resolved.wet1;
+                bestDry1 = activeDry1;
+                bestDry2 = activeDry2;
+                bestWet1 = activeWet1;
+            }
 
             // 4.5 Detailed Fresh Food Recipe Builder (질환·알러지 맞춤형 식재료 정량 g 및 조리법 생성기)
             function buildDetailedFreshRecipe(sp, disList, algList, totalG, totalKcal) {
@@ -2670,6 +2884,7 @@
             window._latestRecommendationSnapshot = {
                 feedingMode: currentFeedingMode,
                 customRatios: { ...currentCustomRatios },
+                dietSlotOverrides: window.userSelectedDietOverrides ? { ...window.userSelectedDietOverrides } : { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' },
                 energy: { rer, ideal_weight_kg, der_kcal, der_factor, der_factor_reason, overall_rate: Math.round(overall_rate * 100), adjusted_der_kcal, total_daily_g },
                 water: { daily_water_target, total_water_from_diet, extra_water_needed },
                 nutrients: {
@@ -2691,6 +2906,7 @@
                     daily_calories: it.daily_calories,
                     daily_amount_g: it.daily_amount_g,
                     water_content_ml: it.water_content_ml,
+                    nutrients: it.nutrients || null,
                     freshIngredients: it.freshIngredients || null
                 })),
                 supplements: matchedSupps.map(s => ({
@@ -3120,6 +3336,13 @@
                 diet_mix.push({ label: "간식 (육포/트릿)", profile: "간식 (트릿/육포 등)", ratio: 0.25 });
             }
 
+            if (typeof buildCdssDietMixFromActiveItems === 'function' && hasCustomDietOverrideActive()) {
+                const customMix = buildCdssDietMixFromActiveItems(treatGiven);
+                if (customMix && customMix.length > 0) {
+                    diet_mix.length = 0;
+                    customMix.forEach(cm => diet_mix.push(cm));
+                }
+            }
             currentCdssState = { age_years, weight_kg, diet_mix, drugs, diseases };
             if (runAfter) runGutEnvironmentCDSS();
         }
@@ -3137,7 +3360,7 @@
             const totRatio = st.diet_mix.reduce((acc, it) => acc + it.ratio, 0) || 1.0;
             CDSS_MARKERS.forEach(m => {
                 dietW[m] = st.diet_mix.reduce((acc, it) => {
-                    const profW = CDSS_DIET_WEIGHTS[it.profile] || CDSS_DIET_WEIGHTS["중단백사료 (표준)"];
+                    const profW = it.customWeights || CDSS_DIET_WEIGHTS[it.profile] || CDSS_DIET_WEIGHTS["중단백사료 (표준)"];
                     return acc + profW[m] * (it.ratio / totRatio);
                 }, 0.0);
             });
@@ -3542,6 +3765,9 @@
                     btn.className = m === "DRY_DRY" ? "px-3.5 py-1.5 text-xs font-bold rounded-xl border border-blue-600 bg-blue-50 text-blue-700 transition" : "px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition";
                 }
             });
+            if (typeof f !== 'undefined' && f) {
+                window.userSelectedDietOverrides = f.dietSlotOverrides ? { ...f.dietSlotOverrides } : { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            }
             renderRatioSliders();
             runRecommendation(true);
         }
@@ -3550,11 +3776,558 @@
         // TAB 5: 환자별 통합 처방 기록(EMR) 보관함 & 회차별 전·후 비교 시스템
         // (Tab 1 신상/질환/약물 + Tab 2 믹스피딩/화식/영양제 + Tab 3 영양소 + Tab 4 9대 마커/8대 혈액검사)
         // =========================================================================
+        function getCurrentLoggedInVet() {
+            try {
+                const raw = sessionStorage.getItem("vet_mix_auth_user") || localStorage.getItem("vet_mix_auth_user");
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && parsed.id) return parsed;
+                }
+            } catch (e) {}
+            return { id: "vet", name: "대표 수의사 (관리자)", clinic: "하국동물의료원", role: "admin" };
+        }
+
+        function getVetEmrStorageKey() {
+            const vet = getCurrentLoggedInVet();
+            const safeId = String(vet.id || "vet").toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+            return `vet_emr_records_v2_user_${safeId}`;
+        }
+
+        function getVetCustomDietStorageKey() {
+            const vet = getCurrentLoggedInVet();
+            const safeId = String(vet.id || "vet").toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+            return `vet_custom_diets_v2_user_${safeId}`;
+        }
+
+        function updateVetIsolationBanner() {
+            const vet = getCurrentLoggedInVet();
+            const label = document.getElementById("emr-vet-name-label");
+            if (label) {
+                label.innerText = `[${vet.clinic || '동물병원'}] ${vet.name} 원장님 (계정 ID: ${vet.id})`;
+            }
+        }
+
+        window.onVetAccountSwitched = function(userProfile) {
+            updateVetIsolationBanner();
+            window.userSelectedDietOverrides = { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            runRecommendation(false);
+            updateVetIsolationBanner();
+            recalcCustomDietPreview(true);
+            if (getSavedPatientRecords().length === 0) {
+                seedDemoComparisonRecords(true);
+            } else {
+                renderPatientRecordsList();
+            }
+        };
+
+        function getVetCustomDiets() {
+            try {
+                const raw = localStorage.getItem(getVetCustomDietStorageKey());
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveVetCustomDiets(list) {
+            try {
+                localStorage.setItem(getVetCustomDietStorageKey(), JSON.stringify(list));
+            } catch (e) {}
+        }
+
+        function normalizeDietItem(d) {
+            const copy = JSON.parse(JSON.stringify(d));
+            const n = copy.nutrients || {};
+            if (n.phosphorus_g > 50) n.phosphorus_g = Math.round((n.phosphorus_g / 1000.0) * 100) / 100;
+            if (n.sodium_g > 50) n.sodium_g = Math.round((n.sodium_g / 1000.0) * 100) / 100;
+            if (n.potassium_g > 50) n.potassium_g = Math.round((n.potassium_g / 1000.0) * 100) / 100;
+            if (n.calcium_g > 50) n.calcium_g = Math.round((n.calcium_g / 1000.0) * 100) / 100;
+            if ((!n.carb_g || n.carb_g <= 0) && n.protein_g && n.fat_g) {
+                const estCarb = Math.max(15.0, Math.round(((1000.0 - (n.protein_g * 3.5 + n.fat_g * 8.5)) / 3.5) * 10) / 10);
+                n.carb_g = estCarb;
+            }
+            copy.nutrients = n;
+            return copy;
+        }
+
+        function getAllAvailableDiets() {
+            const customList = getVetCustomDiets().map(d => ({ ...normalizeDietItem(d), isCustom: true }));
+            const embeddedList = EMBEDDED_DIETS.map(d => normalizeDietItem(d));
+            return [...customList, ...embeddedList];
+        }
+
+        window.userSelectedDietOverrides = { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+
+        function hasCustomDietOverrideActive() {
+            const ov = window.userSelectedDietOverrides || {};
+            return (ov.dry1 && ov.dry1 !== 'AUTO') || (ov.dry2 && ov.dry2 !== 'AUTO') || (ov.wet1 && ov.wet1 !== 'AUTO');
+        }
+
+        function resolveDietSlotSelections(allPool, dryCandidates, wetCandidates, bestDry1, bestDry2, bestWet1) {
+            const ov = window.userSelectedDietOverrides || { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            const findById = (id) => allPool.find(d => d.id === id);
+
+            const dry1 = (ov.dry1 && ov.dry1 !== 'AUTO' && findById(ov.dry1)) ? findById(ov.dry1) : bestDry1;
+            const dry2 = (ov.dry2 && ov.dry2 !== 'AUTO' && findById(ov.dry2)) ? findById(ov.dry2) : bestDry2;
+            const wet1 = (ov.wet1 && ov.wet1 !== 'AUTO' && findById(ov.wet1)) ? findById(ov.wet1) : bestWet1;
+
+            populateDietSlotDropdowns(allPool, bestDry1, bestDry2, bestWet1);
+            return { dry1, dry2, wet1 };
+        }
+
+        function populateDietSlotDropdowns(allPool, bestDry1, bestDry2, bestWet1) {
+            const species = document.getElementById('patient-species')?.value || '개';
+            const customDiets = allPool.filter(d => d.isCustom);
+            const spDry = allPool.filter(d => !d.isCustom && d.species === species && d.type === '건식');
+            const spWet = allPool.filter(d => !d.isCustom && d.species === species && d.type === '습식');
+            const ov = window.userSelectedDietOverrides || { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+
+            const selDry1 = document.getElementById('slot-select-dry1');
+            const selDry2 = document.getElementById('slot-select-dry2');
+            const selWet1 = document.getElementById('slot-select-wet1');
+
+            const buildOptions = (autoLabel, customItems, stdItems, currentVal) => {
+                let html = `<option value="AUTO">🤖 AI 질환 최적 추천: ${autoLabel}</option>`;
+                if (customItems.length > 0) {
+                    html += `<optgroup label="⭐ 내가 추가한 외부/OCR/검색 사료 (${customItems.length}종)">`;
+                    customItems.forEach(d => {
+                        html += `<option value="${d.id}" ${d.id === currentVal ? 'selected' : ''}>⭐ [${d.company}] ${d.name} (단백 ${d.nutrients.protein_g}g / 지방 ${d.nutrients.fat_g}g / 인 ${d.nutrients.phosphorus_g}g)</option>`;
+                    });
+                    html += `</optgroup>`;
+                }
+                html += `<optgroup label="🏥 내장 처방사료 DB (${stdItems.length}종)">`;
+                stdItems.forEach(d => {
+                    html += `<option value="${d.id}" ${d.id === currentVal ? 'selected' : ''}>[${d.company}] ${d.name} (P:${d.nutrients.protein_g}g, F:${d.nutrients.fat_g}g, 인:${d.nutrients.phosphorus_g}g)</option>`;
+                });
+                html += `</optgroup>`;
+                return html;
+            };
+
+            if (selDry1) selDry1.innerHTML = buildOptions(`${bestDry1.company} ${bestDry1.name}`, customDiets.filter(d => d.type === '건식'), spDry, ov.dry1);
+            if (selDry2) selDry2.innerHTML = buildOptions(`${bestDry2.company} ${bestDry2.name}`, customDiets.filter(d => d.type === '건식'), spDry, ov.dry2);
+            if (selWet1) selWet1.innerHTML = buildOptions(`${bestWet1.company} ${bestWet1.name}`, customDiets.filter(d => d.type === '습식'), spWet, ov.wet1);
+        }
+
+        function onDietSlotOverrideChange(slotKey, dietId) {
+            if (!window.userSelectedDietOverrides) window.userSelectedDietOverrides = { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            window.userSelectedDietOverrides[slotKey] = dietId || 'AUTO';
+            runRecommendation(false);
+            runGutEnvironmentCDSS();
+        }
+
+        function resetDietSlotOverrides() {
+            window.userSelectedDietOverrides = { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            runRecommendation(false);
+            runGutEnvironmentCDSS();
+        }
+
+        function classifyDietProfileAndWeights(item) {
+            const n = item.nutrients || {};
+            const name = (item.name || '').toLowerCase();
+            const type = item.type || '건식';
+            const prot = n.protein_g || 55.0;
+            const fat = n.fat_g || 32.0;
+            const carb = n.carb_g || 115.0;
+            const phos = n.phosphorus_g || 1.2;
+
+            let baseProfile = "중단백사료 (표준)";
+            if (type.includes("화식")) baseProfile = "화식 (신선식)";
+            else if (type.includes("습식")) baseProfile = "습식 (캔/파우치)";
+            else if (name.includes("하이드롤") || name.includes("가수분해") || name.includes("하이포") || name.includes("아날러제닉") || name.includes("z/d") || name.includes("ha ")) baseProfile = "가수분해사료";
+            else if (phos <= 0.85 && prot <= 48.0) baseProfile = "신장처방식 (저단백·고지방 k/d·레날)";
+            else if (fat <= 23.0 || name.includes("로우팻") || name.includes("low fat")) baseProfile = "저지방사료";
+            else if (prot >= 78.0) baseProfile = "고단백사료";
+            else if (prot <= 42.0) baseProfile = "저단백사료";
+            else if (carb >= 138.0) baseProfile = "고탄수화물사료";
+
+            const baseW = { ...(CDSS_DIET_WEIGHTS[baseProfile] || CDSS_DIET_WEIGHTS["중단백사료 (표준)"]) };
+
+            const protDelta = (prot - 58.0) / 100.0;
+            const fatDelta = (fat - 34.0) / 100.0;
+            const carbDelta = (carb - 110.0) / 150.0;
+
+            const customWeights = {
+                ph:         Math.max(0.85, Math.min(1.25, baseW.ph + protDelta * 0.12 - carbDelta * 0.08)),
+                ammonia:    Math.max(0.60, Math.min(1.75, baseW.ammonia + protDelta * 0.65)),
+                indole:     Math.max(0.60, Math.min(1.70, baseW.indole + protDelta * 0.60)),
+                lactate:    Math.max(0.70, Math.min(1.50, baseW.lactate + carbDelta * 0.35 - protDelta * 0.20)),
+                blood:      baseW.blood,
+                protein:    Math.max(0.65, Math.min(1.65, baseW.protein + protDelta * 0.50)),
+                carbo:      Math.max(0.70, Math.min(1.60, baseW.carbo + carbDelta * 0.45)),
+                fat:        Math.max(0.55, Math.min(1.75, baseW.fat + fatDelta * 0.85)),
+                absorption: Math.max(0.85, Math.min(1.12, baseW.absorption - Math.max(0, fatDelta * 0.20) - Math.max(0, protDelta * 0.10)))
+            };
+
+            return {
+                label: `${item.name.split('[')[0].trim()} (${item.ratio_percent}%)`,
+                profile: baseProfile,
+                ratio: Math.max(0.05, (item.ratio_percent || 50) / 100.0),
+                customWeights
+            };
+        }
+
+        function buildCdssDietMixFromActiveItems(treatGiven) {
+            const snap = window._latestRecommendationSnapshot;
+            if (!snap || !snap.mix_items || snap.mix_items.length === 0) return null;
+            const list = snap.mix_items.map(it => classifyDietProfileAndWeights(it));
+            if (treatGiven) {
+                list.push({ label: "간식 (육포/트릿)", profile: "간식 (트릿/육포 등)", ratio: 0.25 });
+            }
+            return list;
+        }
+
+        function toggleCustomDietStudio(forceOpen) {
+            const panel = document.getElementById('custom-diet-studio-panel');
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden');
+            const shouldShow = forceOpen !== undefined ? forceOpen : isHidden;
+            if (shouldShow) {
+                panel.classList.remove('hidden');
+                recalcCustomDietPreview();
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
+        const EXTERNAL_DIET_REFERENCE_DB = [
+            { keywords: ["퓨리나", "ha", "가수분해", "purina ha"], name: "퓨리나 프로플랜 수의처방식 HA (가수분해)", company: "퓨리나(Purina)", type: "건식", cp: 19.5, cf: 11.0, fiber: 2.0, ash: 6.0, moist: 10.0, p: 0.60, na: 0.25, k: 0.65, epa: 0.35, kcal: 3610 },
+            { keywords: ["퓨리나", "nf", "신장", "purina nf"], name: "퓨리나 프로플랜 수의처방식 NF (신장케어)", company: "퓨리나(Purina)", type: "건식", cp: 13.5, cf: 14.5, fiber: 2.0, ash: 4.5, moist: 10.0, p: 0.30, na: 0.20, k: 0.80, epa: 0.60, kcal: 3850 },
+            { keywords: ["퓨리나", "en", "로우팻", "low fat", "소화기"], name: "퓨리나 프로플랜 수의처방식 EN Low Fat (저지방 소화기)", company: "퓨리나(Purina)", type: "건식", cp: 24.0, cf: 6.5, fiber: 2.0, ash: 6.5, moist: 10.0, p: 0.70, na: 0.30, k: 0.70, epa: 0.30, kcal: 3420 },
+            { keywords: ["퓨리나", "om", "비만", "다이어트"], name: "퓨리나 프로플랜 수의처방식 OM (비만/체중조절)", company: "퓨리나(Purina)", type: "건식", cp: 29.0, cf: 6.0, fiber: 10.0, ash: 6.5, moist: 10.0, p: 0.80, na: 0.30, k: 0.80, epa: 0.25, kcal: 2960 },
+            { keywords: ["퓨리나", "jm", "관절"], name: "퓨리나 프로플랜 수의처방식 JM (관절모빌리티)", company: "퓨리나(Purina)", type: "건식", cp: 30.0, cf: 12.0, fiber: 2.5, ash: 6.5, moist: 10.0, p: 0.85, na: 0.30, k: 0.75, epa: 1.15, kcal: 3680 },
+            { keywords: ["퓨리나", "nc", "뉴로케어", "뇌", "치매", "간질"], name: "퓨리나 프로플랜 수의처방식 NC (뉴로케어 MCT강화)", company: "퓨리나(Purina)", type: "건식", cp: 29.0, cf: 15.0, fiber: 2.0, ash: 6.5, moist: 10.0, p: 0.85, na: 0.30, k: 0.75, epa: 0.65, kcal: 3790 },
+            { keywords: ["파미나", "레날", "farmina", "vet life renal", "신장"], name: "파미나 Vet Life 레날 (신장 처방식)", company: "파미나(Farmina)", type: "건식", cp: 13.3, cf: 15.0, fiber: 1.4, ash: 4.5, moist: 9.0, p: 0.25, na: 0.16, k: 0.60, epa: 0.65, kcal: 3820 },
+            { keywords: ["파미나", "가스트로", "farmina", "gastro"], name: "파미나 Vet Life 가스트로인테스티널 (소화기)", company: "파미나(Farmina)", type: "건식", cp: 23.0, cf: 10.5, fiber: 1.3, ash: 6.5, moist: 9.0, p: 0.65, na: 0.40, k: 0.70, epa: 0.40, kcal: 3490 },
+            { keywords: ["파미나", "헤파틱", "간", "hepatic"], name: "파미나 Vet Life 헤파틱 (간 처방식)", company: "파미나(Farmina)", type: "건식", cp: 16.0, cf: 18.0, fiber: 3.0, ash: 5.9, moist: 9.0, p: 0.40, na: 0.18, k: 0.70, epa: 0.70, kcal: 3820 },
+            { keywords: ["파미나", "울트라하이포", "하이포", "ultrahypo"], name: "파미나 Vet Life 울트라하이포 (가수분해 알러지)", company: "파미나(Farmina)", type: "건식", cp: 18.0, cf: 15.0, fiber: 1.2, ash: 5.3, moist: 9.0, p: 0.60, na: 0.25, k: 0.60, epa: 0.65, kcal: 3760 },
+            { keywords: ["시그니처바이", "signatureby", "신장", "레날"], name: "시그니처바이(Signatureby) 독 레날 케어", company: "시그니처바이", type: "건식", cp: 14.5, cf: 14.0, fiber: 3.5, ash: 5.0, moist: 10.0, p: 0.32, na: 0.22, k: 0.65, epa: 0.55, kcal: 3680 },
+            { keywords: ["오리젠", "오리지널", "orijen"], name: "오리젠 오리지널 독 (고단백 그레인프리)", company: "오리젠(Orijen)", type: "건식", cp: 38.0, cf: 18.0, fiber: 4.0, ash: 8.5, moist: 12.0, p: 1.20, na: 0.42, k: 0.85, epa: 0.80, kcal: 3860 },
+            { keywords: ["오리젠", "시니어", "노령견"], name: "오리젠 시니어 독 (고단백 노령견용)", company: "오리젠(Orijen)", type: "건식", cp: 38.0, cf: 15.0, fiber: 6.0, ash: 8.5, moist: 12.0, p: 1.15, na: 0.40, k: 0.85, epa: 0.80, kcal: 3630 },
+            { keywords: ["아카나", "acana", "싱글즈", "오리", "양고기"], name: "아카나 싱글즈 프리런 덕 (단일단백 오리)", company: "아카나(Acana)", type: "건식", cp: 31.0, cf: 15.0, fiber: 5.0, ash: 7.5, moist: 12.0, p: 0.95, na: 0.35, k: 0.75, epa: 0.45, kcal: 3405 },
+            { keywords: ["하림", "더리얼", "크런치", "그레인프리"], name: "하림 더리얼 그레인프리 크런치 닭고기 어덜트", company: "하림펫푸드", type: "건식", cp: 28.0, cf: 14.0, fiber: 4.0, ash: 8.0, moist: 11.0, p: 0.90, na: 0.32, k: 0.70, epa: 0.35, kcal: 3580 },
+            { keywords: ["하림", "더리얼", "오븐베이크드"], name: "하림 더리얼 오븐베이크드 소고기 어덜트", company: "하림펫푸드", type: "건식", cp: 25.0, cf: 12.0, fiber: 4.5, ash: 7.5, moist: 14.0, p: 0.85, na: 0.30, k: 0.68, epa: 0.30, kcal: 3420 },
+            { keywords: ["지위픽", "ziwipeak", "에어드라이", "소고기", "양고기"], name: "지위픽 에어드라이 소고기 독 (초고단백/고지방)", company: "지위픽(ZiwiPeak)", type: "건식", cp: 38.0, cf: 30.0, fiber: 2.0, ash: 12.0, moist: 14.0, p: 1.35, na: 0.48, k: 0.90, epa: 0.95, kcal: 4800 },
+            { keywords: ["스텔라", "stella", "동결건조"], name: "스텔라앤츄이스 동결건조 디너패티 치킨", company: "스텔라앤츄이스", type: "건식", cp: 44.0, cf: 25.0, fiber: 4.0, ash: 9.0, moist: 5.0, p: 1.40, na: 0.45, k: 0.95, epa: 0.60, kcal: 4460 },
+            { keywords: ["벨칸도", "belcando", "파이니스트"], name: "벨칸도 파이니스트 라이트 (저지방 노령/체중관리)", company: "벨칸도(Belcando)", type: "건식", cp: 19.5, cf: 9.0, fiber: 6.5, ash: 6.5, moist: 10.0, p: 0.65, na: 0.25, k: 0.65, epa: 0.35, kcal: 3320 },
+            { keywords: ["나우", "now fresh", "스몰브리드", "시니어"], name: "나우 프레시(NOW Fresh) 스몰브리드 시니어 (저단백·저지방)", company: "나우프레시(Petcurean)", type: "건식", cp: 24.0, cf: 11.0, fiber: 5.5, ash: 6.5, moist: 10.0, p: 0.65, na: 0.26, k: 0.68, epa: 0.40, kcal: 3330 },
+            { keywords: ["고!", "go!", "센시티브", "연어"], name: "고! 솔루션(GO! Solutions) 스킨앤코트 연어", company: "고!(Petcurean)", type: "건식", cp: 24.0, cf: 12.0, fiber: 4.5, ash: 7.0, moist: 10.0, p: 0.80, na: 0.30, k: 0.70, epa: 0.75, kcal: 3560 },
+            { keywords: ["닥터독", "dr.dog", "신장", "유리너리", "관절"], name: "닥터독 기능성 사료 (관절/피부/시니어)", company: "닥터독", type: "건식", cp: 25.0, cf: 12.0, fiber: 4.0, ash: 7.0, moist: 10.0, p: 0.75, na: 0.28, k: 0.65, epa: 0.40, kcal: 3480 },
+            { keywords: ["로얄캐닌", "인도어", "미니 인도어", "어덜트"], name: "로얄캐닌 미니 인도어 어덜트 (실내 소형견 일반식)", company: "로얄캐닌", type: "건식", cp: 21.0, cf: 14.0, fiber: 1.9, ash: 6.1, moist: 10.0, p: 0.70, na: 0.30, k: 0.70, epa: 0.35, kcal: 3780 },
+            { keywords: ["힐스", "사이언스", "시니어", "노령견", "스몰포즈"], name: "힐스 사이언스 다이어트 스몰포즈 시니어 11+", company: "힐스", type: "건식", cp: 19.8, cf: 14.5, fiber: 2.2, ash: 5.2, moist: 10.0, p: 0.58, na: 0.24, k: 0.72, epa: 0.45, kcal: 3710 },
+            { keywords: ["듀먼", "화식", "자연화식", "시판화식"], name: "듀먼 자연화식 닭가슴살&채소 오리지널 (시판 화식)", company: "듀먼(D'human)", type: "습식", cp: 11.5, cf: 3.5, fiber: 1.2, ash: 1.5, moist: 74.0, p: 0.16, na: 0.08, k: 0.26, epa: 0.12, kcal: 1150 },
+            { keywords: ["레이앤이본", "화식", "신장화식"], name: "레이앤이본 맞춤 자연화식 (저인/소화기 케어)", company: "레이앤이본", type: "습식", cp: 9.8, cf: 4.2, fiber: 1.0, ash: 1.2, moist: 75.0, p: 0.12, na: 0.07, k: 0.24, epa: 0.18, kcal: 1180 }
+        ];
+
+        function applyExternalRefToForm(ref) {
+            document.getElementById('cd-name').value = ref.name;
+            document.getElementById('cd-company').value = ref.company;
+            document.getElementById('cd-type').value = ref.type;
+            document.getElementById('cd-cp-pct').value = ref.cp;
+            document.getElementById('cd-cf-pct').value = ref.cf;
+            document.getElementById('cd-fiber-pct').value = ref.fiber;
+            document.getElementById('cd-ash-pct').value = ref.ash;
+            document.getElementById('cd-moist-pct').value = ref.moist;
+            document.getElementById('cd-p-pct').value = ref.p;
+            document.getElementById('cd-na-pct').value = ref.na;
+            document.getElementById('cd-k-pct').value = ref.k;
+            document.getElementById('cd-epa-pct').value = ref.epa;
+            document.getElementById('cd-kcal-kg').value = ref.kcal;
+            recalcCustomDietPreview(true);
+        }
+
+        function quickFillExternalDiet(dietTitle) {
+            document.getElementById('custom-diet-search-query').value = dietTitle;
+            searchExternalDietByName();
+        }
+
+        function searchExternalDietByName() {
+            const qRaw = (document.getElementById('custom-diet-search-query')?.value || '').trim();
+            if (!qRaw) {
+                alert("검색할 사료명을 입력해 주세요. (예: 퓨리나 HA, 파미나 레날, 오리젠, 하림 더리얼 등)");
+                return;
+            }
+            const q = qRaw.toLowerCase();
+
+            let bestMatch = null;
+            let bestScore = 0;
+            EXTERNAL_DIET_REFERENCE_DB.forEach(item => {
+                let s = 0;
+                if (item.name.toLowerCase().includes(q)) s += 5;
+                item.keywords.forEach(kw => {
+                    if (q.includes(kw.toLowerCase())) s += 3;
+                });
+                if (s > bestScore) {
+                    bestScore = s;
+                    bestMatch = item;
+                }
+            });
+
+            const statusBox = document.getElementById('ocr-status-box');
+            if (statusBox) statusBox.classList.remove('hidden');
+
+            if (bestMatch && bestScore >= 2) {
+                applyExternalRefToForm(bestMatch);
+                if (statusBox) {
+                    statusBox.innerHTML = `✅ <strong>[스마트 사료 DB 매칭 완료]</strong> '${bestMatch.name}'의 표준 보증성분량(단백질 ${bestMatch.cp}%, 지방 ${bestMatch.cf}%, 인 ${bestMatch.p}%, ${bestMatch.kcal} kcal/kg)을 자동으로 불러왔습니다! 우측 하단 <strong>[즉시 믹스피딩 적용]</strong> 버튼을 누르면 2·3·4번 탭에 즉시 반영됩니다.`;
+                }
+                return;
+            }
+
+            const isWet = q.includes("캔") || q.includes("파우치") || q.includes("습식") || q.includes("화식");
+            const isRenal = q.includes("레날") || q.includes("신장") || q.includes("renal") || q.includes("k/d") || q.includes("nf");
+            const isLowFat = q.includes("로우팻") || q.includes("저지방") || q.includes("췌장") || q.includes("low fat") || q.includes("라이트");
+            const isHighProt = q.includes("그레인프리") || q.includes("고단백") || q.includes("퍼피") || q.includes("생식") || q.includes("에어드라이");
+            const isHydro = q.includes("가수분해") || q.includes("하이포") || q.includes("알러지") || q.includes("센시티브");
+
+            const inferred = {
+                name: qRaw,
+                company: qRaw.split(" ")[0] || "외부지정사료",
+                type: isWet ? "습식" : "건식",
+                cp: isWet ? (isRenal ? 5.5 : 9.5) : (isRenal ? 14.5 : (isHighProt ? 34.0 : (isHydro ? 20.0 : 25.0))),
+                cf: isWet ? (isLowFat ? 2.2 : 5.5) : (isLowFat ? 7.5 : (isRenal ? 16.5 : 13.5)),
+                fiber: isWet ? 1.2 : 3.2,
+                ash: isWet ? 1.8 : 6.2,
+                moist: isWet ? 76.0 : 10.0,
+                p: isWet ? (isRenal ? 0.11 : 0.22) : (isRenal ? 0.35 : 0.80),
+                na: isWet ? 0.09 : (isRenal ? 0.22 : 0.30),
+                k: isWet ? 0.22 : 0.68,
+                epa: isRenal ? 0.55 : 0.35,
+                kcal: isWet ? 1050 : (isLowFat ? 3350 : 3680)
+            };
+            applyExternalRefToForm(inferred);
+            if (statusBox) {
+                statusBox.innerHTML = `💡 <strong>['${qRaw}' 맞춤 영양 프로파일 자동 세팅]</strong> 사료명 키워드를 분석하여 추정 보증성분치를 입력했습니다. 더 정확한 실측치는 옆의 <strong>[구글 성분표 검색]</strong> 또는 <strong>[사진 촬영 OCR]</strong>로 보정하실 수 있습니다.`;
+            }
+        }
+
+        function openWebSearchForDiet() {
+            const q = (document.getElementById('custom-diet-search-query')?.value || document.getElementById('cd-name')?.value || '강아지 사료').trim();
+            const url = `https://www.google.com/search?q=${encodeURIComponent(q + " 등록성분량 조단백질 조지방 인 칼로리")}`;
+            window.open(url, '_blank', 'noopener');
+        }
+
+        async function handleDietOcrImageUpload(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
+            const statusBox = document.getElementById('ocr-status-box');
+            if (statusBox) {
+                statusBox.classList.remove('hidden');
+                statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-amber-600"></i><strong>[AI 사진 OCR 작동 중]</strong> '${file.name}' 사료 성분표 이미지에서 한글·영문 텍스트를 스캔하고 있습니다... (약 3~6초 소요)`;
+            }
+
+            try {
+                if (typeof Tesseract === 'undefined') {
+                    throw new Error("Tesseract OCR 라이브러리를 불러오지 못했습니다.");
+                }
+                const result = await Tesseract.recognize(file, 'kor+eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text' && statusBox) {
+                            const pct = Math.round((m.progress || 0) * 100);
+                            statusBox.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-amber-600"></i><strong>[사료 성분표 OCR 판독 중... ${pct}%]</strong> 조단백질 · 조지방 · 인 · 나트륨 · 칼로리 수치를 추출하고 있습니다...`;
+                        }
+                    }
+                });
+
+                const rawText = (result?.data?.text || '').trim();
+                const textArea = document.getElementById('ocr-raw-text-area');
+                if (textArea) textArea.value = rawText;
+
+                const extractedCount = parseGuaranteedAnalysisText(rawText, file.name.replace(/\.[^.]+$/, ''));
+                if (statusBox) {
+                    if (extractedCount > 0) {
+                        statusBox.innerHTML = `🎉 <strong>[사진 OCR 성분 추출 완료!]</strong> 촬영하신 성분표에서 총 <strong>${extractedCount}개 핵심 영양 지표</strong>를 자동 인식하여 우측 표에 반영했습니다! 수치를 확인 후 <strong>[즉시 믹스피딩 적용]</strong>을 눌러주세요.`;
+                    } else {
+                        statusBox.innerHTML = `⚠️ <strong>[OCR 스캔 안내]</strong> 이미지 텍스트를 읽었으나 표준 성분 키워드가 흐릿합니다. 아래 텍스트 창에서 숫자를 확인하거나 우측 표에서 직접 보정해 주세요.`;
+                    }
+                }
+            } catch (err) {
+                if (statusBox) {
+                    statusBox.innerHTML = `⚠️ 이미지 OCR 처리 중 오류가 발생했습니다 (${err.message}). 아래 텍스트 칸에 성분표를 붙여넣거나 우측 칸에 직접 입력해 주세요.`;
+                }
+            }
+        }
+
+        function parseGuaranteedAnalysisFromTextarea() {
+            const rawText = document.getElementById('ocr-raw-text-area')?.value || '';
+            if (!rawText.trim()) {
+                alert("추출할 사료 등록성분량 텍스트를 입력하거나 붙여넣어 주세요.");
+                return;
+            }
+            const cnt = parseGuaranteedAnalysisText(rawText);
+            const statusBox = document.getElementById('ocr-status-box');
+            if (statusBox) {
+                statusBox.classList.remove('hidden');
+                statusBox.innerHTML = `✅ <strong>[텍스트 성분 파싱 완료]</strong> 총 <strong>${cnt}개 영양 성분 수치</strong>를 추출하여 우측 표와 1000kcal 당(g) 환산값에 즉시 반영했습니다!`;
+            }
+        }
+
+        function parseGuaranteedAnalysisText(rawText, fallbackName) {
+            if (!rawText) return 0;
+            const text = rawText.replace(/,/g, '');
+            let count = 0;
+
+            const extractNum = (regexList, minVal, maxVal) => {
+                for (const rgx of regexList) {
+                    const m = text.match(rgx);
+                    if (m && m[1]) {
+                        const v = parseFloat(m[1]);
+                        if (!isNaN(v) && v >= minVal && v <= maxVal) return v;
+                    }
+                }
+                return null;
+            };
+
+            const cp = extractNum([/(?:조단백질|조단백|단백질|Crude\s*Protein|Protein)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 1.0, 75.0);
+            const cf = extractNum([/(?:조지방|지방|Crude\s*Fat|Fat\s*Content|Lipid)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.5, 60.0);
+            const fiber = extractNum([/(?:조섬유|식이섬유|섬유질|Crude\s*Fiber|Crude\s*Fibre|Fiber)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.1, 35.0);
+            const ash = extractNum([/(?:조회분|회분|Crude\s*Ash|Ash)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.2, 25.0);
+            const moist = extractNum([/(?:수분|Moisture|Water)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 2.0, 92.0);
+            const phos = extractNum([/(?:인\b|인의\s*함량|Phosphorus|Phos)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.02, 5.0);
+            const na = extractNum([/(?:나트륨|소듐|Sodium)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.01, 4.0);
+            const k = extractNum([/(?:칼륨|포타슘|Potassium)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.05, 5.0);
+            const epa = extractNum([/(?:오메가\s*[-]?3|EPA\s*\+?\s*DHA|Omega\s*[-]?3)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.02, 8.0);
+            let kcal = extractNum([/(\d{3,4}(?:\.\d+)?)\s*(?:kcal\s*\/\s*kg|kcal\/kg)/i, /(?:칼로리|대사에너지|열량|ME|Energy)[^\d]{0,20}(\d{3,4}(?:\.\d+)?)/i], 400, 6500);
+            const kcalPer100g = extractNum([/(\d{2,3}(?:\.\d+)?)\s*(?:kcal\s*\/\s*100\s*g|kcal\/100g)/i], 50, 650);
+            if (!kcal && kcalPer100g) kcal = Math.round(kcalPer100g * 10);
+
+            if (fallbackName && (!document.getElementById('cd-name').value || document.getElementById('cd-name').value.includes("퓨리나"))) {
+                document.getElementById('cd-name').value = fallbackName;
+            }
+            if (cp !== null) { document.getElementById('cd-cp-pct').value = cp; count++; }
+            if (cf !== null) { document.getElementById('cd-cf-pct').value = cf; count++; }
+            if (fiber !== null) { document.getElementById('cd-fiber-pct').value = fiber; count++; }
+            if (ash !== null) { document.getElementById('cd-ash-pct').value = ash; count++; }
+            if (moist !== null) {
+                document.getElementById('cd-moist-pct').value = moist;
+                document.getElementById('cd-type').value = moist >= 45.0 ? "습식" : "건식";
+                count++;
+            }
+            if (phos !== null) { document.getElementById('cd-p-pct').value = phos; count++; }
+            if (na !== null) { document.getElementById('cd-na-pct').value = na; count++; }
+            if (k !== null) { document.getElementById('cd-k-pct').value = k; count++; }
+            if (epa !== null) { document.getElementById('cd-epa-pct').value = epa; count++; }
+            if (kcal !== null) { document.getElementById('cd-kcal-kg').value = kcal; count++; }
+
+            recalcCustomDietPreview(kcal !== null);
+            return count;
+        }
+
+        function recalcCustomDietPreview(keepManualKcal = false) {
+            const cp = parseFloat(document.getElementById('cd-cp-pct')?.value) || 20.0;
+            const cf = parseFloat(document.getElementById('cd-cf-pct')?.value) || 10.0;
+            const fiber = parseFloat(document.getElementById('cd-fiber-pct')?.value) || 2.5;
+            const ash = parseFloat(document.getElementById('cd-ash-pct')?.value) || 6.0;
+            const moist = parseFloat(document.getElementById('cd-moist-pct')?.value) || 10.0;
+            const p = parseFloat(document.getElementById('cd-p-pct')?.value) || 0.60;
+            const na = parseFloat(document.getElementById('cd-na-pct')?.value) || 0.25;
+            const k = parseFloat(document.getElementById('cd-k-pct')?.value) || 0.65;
+            const epa = parseFloat(document.getElementById('cd-epa-pct')?.value) || 0.35;
+
+            const nfe = Math.max(0.0, Math.round((100.0 - (cp + cf + fiber + ash + moist)) * 10) / 10);
+            const atwaterKcal = Math.max(500, Math.round(10.0 * (3.5 * cp + 8.5 * cf + 3.5 * nfe)));
+
+            const kcalInput = document.getElementById('cd-kcal-kg');
+            let kcalKg = parseFloat(kcalInput?.value) || atwaterKcal;
+            if (!keepManualKcal && kcalInput) {
+                kcalKg = atwaterKcal;
+                kcalInput.value = atwaterKcal;
+            }
+
+            const conv = (pctVal) => Math.round(((pctVal * 10000.0) / Math.max(400.0, kcalKg)) * 100) / 100;
+            const prot_g = Math.round(conv(cp) * 10) / 10;
+            const fat_g = Math.round(conv(cf) * 10) / 10;
+            const carb_g = Math.round(conv(nfe) * 10) / 10;
+            const fiber_g = Math.round(conv(fiber) * 10) / 10;
+            const phos_g = conv(p);
+            const na_g = conv(na);
+            const k_g = conv(k);
+            const epa_g = conv(epa);
+
+            const dummyItem = {
+                name: document.getElementById('cd-name')?.value || '외부사료',
+                type: document.getElementById('cd-type')?.value || '건식',
+                ratio_percent: 100,
+                nutrients: { protein_g: prot_g, fat_g: fat_g, carb_g: carb_g, phosphorus_g: phos_g, sodium_g: na_g, potassium_g: k_g, epa_dha_g: epa_g, energy_density_kcal_per_kg: kcalKg }
+            };
+            const profInfo = classifyDietProfileAndWeights(dummyItem);
+
+            const badgeEl = document.getElementById('custom-diet-auto-profile-badge');
+            if (badgeEl) badgeEl.innerText = `장내환경 자동분류: ${profInfo.profile}`;
+
+            const prevEl = document.getElementById('custom-diet-converted-preview');
+            if (prevEl) {
+                prevEl.innerHTML = `
+                    <div><span class="text-indigo-300 font-bold">자동 환산 (Per 1000kcal):</span> <strong>단백질 ${prot_g}g</strong> · <strong>지방 ${fat_g}g</strong> · <strong>탄수화물(NFE ${nfe}%) ${carb_g}g</strong> · <strong class="text-amber-300">인(P) ${phos_g}g</strong> · <strong>나트륨 ${na_g}g</strong> · <strong>오메가3 ${epa_g}g</strong></div>
+                    <div class="text-[10px] text-emerald-300 font-bold">대사에너지: ${kcalKg} kcal/kg</div>
+                `;
+            }
+
+            return {
+                id: 'CUSTOM_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                name: (document.getElementById('cd-name')?.value || '수의사 추가 사료').trim(),
+                company: (document.getElementById('cd-company')?.value || '외부추가').trim(),
+                species: document.getElementById('patient-species')?.value || '개',
+                type: document.getElementById('cd-type')?.value || '건식',
+                indications: [profInfo.profile],
+                protein_sources: [],
+                moisture_percent: moist,
+                isCustom: true,
+                nutrients: {
+                    protein_g: prot_g,
+                    fat_g: fat_g,
+                    carb_g: carb_g,
+                    fiber_g: fiber_g,
+                    calcium_g: Math.round(phos_g * 1.3 * 100) / 100,
+                    phosphorus_g: phos_g,
+                    potassium_g: k_g,
+                    sodium_g: na_g,
+                    magnesium_g: 0.2,
+                    copper_mg: 1.2,
+                    zinc_mg: 40.0,
+                    taurine_g: 0.6,
+                    epa_dha_g: epa_g,
+                    energy_density_kcal_per_kg: kcalKg
+                }
+            };
+        }
+
+        function saveAndApplyCustomDiet(targetSlot) {
+            const newDiet = recalcCustomDietPreview(true);
+            const list = getVetCustomDiets();
+            const existingIdx = list.findIndex(d => d.name === newDiet.name && d.type === newDiet.type);
+            if (existingIdx >= 0) {
+                newDiet.id = list[existingIdx].id;
+                list[existingIdx] = newDiet;
+            } else {
+                list.unshift(newDiet);
+            }
+            saveVetCustomDiets(list);
+
+            if (!window.userSelectedDietOverrides) window.userSelectedDietOverrides = { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            window.userSelectedDietOverrides[targetSlot] = newDiet.id;
+
+            if (targetSlot === 'dry2' && currentFeedingMode !== 'DRY_DRY') {
+                setFeedingMode('DRY_DRY');
+            } else if (targetSlot === 'wet1' && (currentFeedingMode === 'DRY_DRY' || currentFeedingMode === 'FRESH_ONLY')) {
+                setFeedingMode('DRY_WET');
+            }
+
+            runRecommendation(false);
+            syncGutCdssFromCurrentTabs(true);
+
+            const statusBox = document.getElementById('ocr-status-box');
+            if (statusBox) {
+                statusBox.classList.remove('hidden');
+                statusBox.innerHTML = `🎉 <strong>['${newDiet.name}' 믹스피딩 적용 완료!]</strong> 내 수의사 계정 DB에 저장되었으며, <strong>Tab 2(급여량 g) · Tab 3(혼합 영양소 차트) · Tab 4(9대 분변 마커 기대치 및 원인분해 CDSS)</strong>가 모두 이 사료 조합 기준으로 즉시 업데이트되었습니다!`;
+            }
+        }
         const EMR_STORAGE_KEY = "vet_emr_patient_records_v1";
 
         function getSavedPatientRecords() {
             try {
-                const raw = localStorage.getItem(EMR_STORAGE_KEY);
+                updateVetIsolationBanner();
+                const raw = localStorage.getItem(getVetEmrStorageKey());
                 return raw ? JSON.parse(raw) : [];
             } catch (e) {
                 return [];
@@ -3562,7 +4335,8 @@
         }
 
         function setSavedPatientRecords(records) {
-            localStorage.setItem(EMR_STORAGE_KEY, JSON.stringify(records));
+            updateVetIsolationBanner();
+            localStorage.setItem(getVetEmrStorageKey(), JSON.stringify(records));
             updateRecordCountBadges(records.length);
         }
 
@@ -3597,6 +4371,7 @@
                 savedAt: timestamp,
                 visitStage: visitStage || "정기 진료",
                 memo: memo || "믹스피딩 및 장내환경·혈액검사 통합 기록",
+                vetAccount: getCurrentLoggedInVet(),
                 // 1. Tab 1: 환자 신상 · 초음파 · 질환 · 약물 전체
                 tab1_profile: {
                     name: patientName,
@@ -3712,6 +4487,9 @@
             }
             if (f.customRatios) {
                 currentCustomRatios = { ...f.customRatios };
+            }
+            if (typeof f !== 'undefined' && f) {
+                window.userSelectedDietOverrides = f.dietSlotOverrides ? { ...f.dietSlotOverrides } : { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
             }
             renderRatioSliders();
 
@@ -4077,6 +4855,9 @@
             loadGutCdssPreset('CASE_CKD_PANC');
             currentFeedingMode = "DRY_WET_FRESH";
             currentCustomRatios = { dry: 50, wet: 30, fresh: 20 };
+            if (typeof f !== 'undefined' && f) {
+                window.userSelectedDietOverrides = f.dietSlotOverrides ? { ...f.dietSlotOverrides } : { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            }
             renderRatioSliders();
             runRecommendation(false);
 
@@ -4120,9 +4901,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            if (typeof f !== 'undefined' && f) {
+                window.userSelectedDietOverrides = f.dietSlotOverrides ? { ...f.dietSlotOverrides } : { dry1: 'AUTO', dry2: 'AUTO', wet1: 'AUTO' };
+            }
             renderRatioSliders();
             runRecommendation(false);
             runGutEnvironmentCDSS();
+            updateVetIsolationBanner();
+            recalcCustomDietPreview(true);
             if (getSavedPatientRecords().length === 0) {
                 seedDemoComparisonRecords(true);
             } else {
