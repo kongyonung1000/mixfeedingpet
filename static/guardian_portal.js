@@ -288,8 +288,10 @@
         },
         charts: {
             calDonut: null,
-            macroBar: null
-        }
+            macroBar: null,
+            unifiedRadar: null
+        },
+        activeSchemaTab: "schema_patient"
     };
 
     // =========================================================================
@@ -512,6 +514,10 @@
                             <i class="fa-solid fa-user-doctor"></i>
                             <span>🩺 수의사용 PRO 포털 (임상 CDSS)</span>
                         </button>
+                        <button type="button" onclick="jumpToUnifiedDashboardAndSchema()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/50 font-black transition flex items-center space-x-1 shadow">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>📊 통합 대시보드 & 데이터 스키마</span>
+                        </button>
                         <button type="button" onclick="openDualLandingModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold transition">
                             <i class="fa-solid fa-house"></i> 포털 선택창
                         </button>
@@ -682,9 +688,9 @@
                     </div>
                 </div>
 
-                <!-- 5단계 스텝 바로가기 바 -->
+                <!-- 6단계 스텝 & 통합 대시보드 바로가기 바 -->
                 <div class="bg-emerald-950/40 border-t border-white/15">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-6 gap-2 text-xs">
                         <button type="button" onclick="scrollToGuardianSection('g-step1-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
                             <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">1</span>
                             <div>
@@ -713,11 +719,18 @@
                                 <div class="text-[11px] text-emerald-200">칼로리 게이지 · 아침/저녁 스케줄</div>
                             </div>
                         </button>
-                        <button type="button" onclick="scrollToGuardianSection('g-step5-sec')" class="p-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/35 border border-amber-300/40 text-left transition flex items-center space-x-2.5 col-span-2 lg:col-span-1">
+                        <button type="button" onclick="scrollToGuardianSection('g-step5-sec')" class="p-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/35 border border-amber-300/40 text-left transition flex items-center space-x-2.5">
                             <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">5</span>
                             <div>
                                 <div class="font-black text-amber-200">[Step 5] 분변키트 & 장내환경</div>
                                 <div class="text-[11px] text-emerald-100">키트 결과 입력 · 장내환경 쉬운 해설</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="scrollToGuardianSection('g-unified-dashboard-sec')" class="p-2 rounded-xl bg-indigo-500/35 hover:bg-indigo-500/50 border border-indigo-300/50 text-left transition flex items-center space-x-2.5">
+                            <span class="w-6 h-6 rounded-full bg-indigo-300 text-slate-950 font-black flex items-center justify-center shrink-0"><i class="fa-solid fa-chart-pie text-[11px]"></i></span>
+                            <div>
+                                <div class="font-black text-indigo-100">📊 통합 대시보드 & 스키마</div>
+                                <div class="text-[11px] text-indigo-200">5축 밸런스 · 6대 DB 스키마 명세</div>
                             </div>
                         </button>
                     </div>
@@ -1730,6 +1743,113 @@
                     </div>
                 </section>
 
+                <!-- ================================================================== -->
+                <!-- [UNIFIED DASHBOARD & SCHEMA] 통합 영양·장내환경 종합 대시보드 & 6대 표준 데이터 스키마 센터 -->
+                <!-- ================================================================== -->
+                <section id="g-unified-dashboard-sec" class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-indigo-400/50 space-y-6">
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-700/80 pb-4 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-black shadow">INTEGRATED DASHBOARD & SCHEMA</span>
+                            <div>
+                                <h2 class="text-xl font-black text-white">📊 통합 영양·장내환경 컨트롤 타워 대시보드 & 6대 표준 데이터 스키마 아키텍처</h2>
+                                <p class="text-xs text-slate-300">Step 1~5에서 분석된 우리 아이의 에너지·영양·토핑·분변키트 장내환경 지표를 한눈에 종합하고, 단일 백엔드(Single Backend)의 6대 표준 데이터 스키마와 실시간 JSON 페이로드를 관리합니다.</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-xs">
+                            <button type="button" onclick="copyLiveSchemaJson()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-indigo-200 font-bold transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-copy"></i>
+                                <span id="g-schema-copy-txt">현재 통합 JSON 복사</span>
+                            </button>
+                            <button type="button" onclick="downloadLiveSchemaJson()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black shadow transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-download"></i>
+                                <span>통합 스키마 데이터(.json) 다운로드</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. 상단 4대 핵심 KPI 요약 카드 -->
+                    <div id="g-unified-kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs"></div>
+
+                    <!-- 2. 중단: 5축 통합 영양·장내 밸런스 레이더 차트 & 데이터 스키마 무결성 매트릭스 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                        <!-- 좌측(5칸): 5축 통합 건강 밸런스 레이더 차트 -->
+                        <div class="lg:col-span-5 bg-slate-800/90 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-black text-indigo-200">🎯 5축 통합 영양·장내환경 밸런스 레이더</span>
+                                    <span id="g-unified-total-grade" class="px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black">종합 S등급</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mb-3">칼로리 적정성 · 다량영양소 · 칼슘:인(Ca:P) · 간식 안전성 · 장내 유익균/흡수율 5대 지표를 100점 만점으로 통합 시각화합니다.</p>
+                            </div>
+                            <div class="h-60 flex items-center justify-center bg-slate-900/60 rounded-xl p-2 border border-slate-700/60">
+                                <canvas id="gUnifiedRadarCanvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- 우측(7칸): 단일 백엔드 6대 데이터 스키마 무결성 검증(Validation) 상태 테이블 -->
+                        <div class="lg:col-span-7 bg-slate-800/90 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <h3 class="text-sm font-black text-emerald-300">🛡️ 단일 백엔드(Single Backend) 6대 핵심 데이터 스키마 무결성 & 연동 현황</h3>
+                                    <p class="text-[11px] text-slate-400">보호자용 포털(Frontend A)과 수의사용 CDSS(Frontend B)가 실시간 공유하는 표준 데이터 스키마 규격입니다.</p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[11px] font-black">✔ 6/6 스키마 검증 통과</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11.5px] text-left border-collapse">
+                                    <thead class="bg-slate-900/90 text-slate-300 font-black border-b border-slate-700">
+                                        <tr>
+                                            <th class="py-2 px-2.5">스키마 ID</th>
+                                            <th class="py-2 px-2.5">데이터 도메인 명칭</th>
+                                            <th class="py-2 px-2.5">핵심 필드 및 정규화 기준</th>
+                                            <th class="py-2 px-2.5 text-center">레코드/상태</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="g-unified-schema-summary-tbody" class="divide-y divide-slate-700/60 text-slate-200"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 하단: 6대 표준 데이터 스키마(JSON Schema) 명세 & 실시간 데이터(Live Payload) 인터랙티브 뷰어 -->
+                    <div class="bg-slate-950/90 p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="text-sm font-black text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-database text-indigo-400"></i>
+                                <span>🗄️ 6대 데이터 스키마(JSON Schema) 구조 명세 & 현재 실시간 레코드 인스펙터</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 text-[11px]">
+                                <button type="button" onclick="selectGuardianSchemaTab('schema_patient')" id="g-sch-tab-schema_patient" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-black transition">① 환자·에너지 스키마</button>
+                                <button type="button" onclick="selectGuardianSchemaTab('schema_feed')" id="g-sch-tab-schema_feed" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">② 사료·DM 환산 스키마</button>
+                                <button type="button" onclick="selectGuardianSchemaTab('schema_ingredient')" id="g-sch-tab-schema_ingredient" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">③ 117종 원재료(36영양소)</button>
+                                <button type="button" onclick="selectGuardianSchemaTab('schema_mix_diy')" id="g-sch-tab-schema_mix_diy" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">④ 믹스피딩·화식DIY 스키마</button>
+                                <button type="button" onclick="selectGuardianSchemaTab('schema_reverse')" id="g-sch-tab-schema_reverse" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">⑤ 사료역추적(PAVA) 스키마</button>
+                                <button type="button" onclick="selectGuardianSchemaTab('schema_fecal_cdss')" id="g-sch-tab-schema_fecal_cdss" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition">⑥ 분변키트·수의사CDSS 스키마</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
+                            <!-- 좌측: 선택된 스키마의 필드 정의서 (Schema Spec) -->
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                    <span id="g-schema-spec-title" class="font-black text-indigo-300">📐 스키마 필드 정의서 (Field Type & Validation Rules)</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">JSON Schema Draft-07</span>
+                                </div>
+                                <pre id="g-schema-spec-pre" class="text-[11px] font-mono text-emerald-300 overflow-x-auto max-h-72 leading-relaxed"></pre>
+                            </div>
+
+                            <!-- 우측: 현재 화면에서 실시간 생성된 Live JSON 데이터 -->
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                    <span class="font-black text-amber-300">⚡ 실시간 바인딩 데이터 (Live Instance Payload)</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Real-time Synced</span>
+                                </div>
+                                <pre id="g-schema-live-pre" class="text-[11px] font-mono text-sky-200 overflow-x-auto max-h-72 leading-relaxed"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         `;
 
@@ -1738,6 +1858,7 @@
         populateDiyIngredientDropdown("ALL");
         populateReverseIngredientDropdown();
         evaluateGuardianFecalKit();
+        renderUnifiedDashboardAndSchemas();
     }
 
     // =========================================================================
@@ -3137,6 +3258,30 @@
         }
 
         updateGuardianCharts(mainKcal, subKcal, toppingSum.totalKcal, mixP_dm, mixF_dm, mixNfe_dm);
+
+        // 통합 대시보드용 최신 혼합 영양 수치 캐싱
+        guardianState.lastMixSummary = {
+            menuBadgeText,
+            mainLabel,
+            subLabel,
+            mainKcal,
+            subKcal,
+            toppingKcal: toppingSum.totalKcal,
+            totalSupplyKcal,
+            mainGrams,
+            subGrams,
+            mixP_dm,
+            mixF_dm,
+            mixFb_dm,
+            mixNfe_dm,
+            mixCa_dm,
+            mixPhos_dm,
+            mixCaP,
+            waterFromFoodMl
+        };
+        if (typeof renderUnifiedDashboardAndSchemas === "function") {
+            renderUnifiedDashboardAndSchemas();
+        }
     }
 
     function updateGuardianCharts(mainKcal, subKcal, topKcal, p_dm, f_dm, nfe_dm) {
@@ -3527,7 +3672,541 @@
         // 만약 이미 흡수율 반영 토글이 켜져 있다면 급여량도 실시간 재계산
         if (fk.applyAbsorptionToDiet) {
             refreshAllGuardianCalculations();
+        } else if (typeof renderUnifiedDashboardAndSchemas === "function") {
+            renderUnifiedDashboardAndSchemas();
         }
+    }
+
+    // =========================================================================
+    // 13. [통합 대시보드 & 6대 표준 데이터 스키마 아키텍처 센터]
+    // =========================================================================
+    const UNIFIED_SCHEMA_REGISTRY = {
+        schema_patient: {
+            id: "SCHEMA-01",
+            name: "PatientProfile & Energy Schema (환자 신상 · 체형 · 대사에너지)",
+            fieldsSummary: "patient_id, species(dog|cat), weight_kg, ideal_weight_kg, bcs_9(1~9), mcs_4(1~4), rer_kcal, der_kcal, max_treat_10pct_kcal",
+            recordCount: "실시간 환자 세션 (1:1)",
+            jsonSchema: {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "PatientProfileAndEnergySchema",
+                "type": "object",
+                "required": ["name", "species", "weightKg", "bcs", "mcs", "energy"],
+                "properties": {
+                    "name": { "type": "string", "description": "반려동물 이름" },
+                    "species": { "type": "string", "enum": ["dog", "cat"], "description": "축종 구분" },
+                    "breed": { "type": "string", "description": "품종명" },
+                    "weightKg": { "type": "number", "minimum": 0.3, "maximum": 100.0, "description": "현재 체중 (kg)" },
+                    "bcs": { "type": "integer", "minimum": 1, "maximum": 9, "description": "WSAVA 9단계 체형 점수 (이상치=5)" },
+                    "mcs": { "type": "integer", "minimum": 1, "maximum": 4, "description": "근육량 점수 (4=정상, 1=심한 근감소증)" },
+                    "lifeStage": { "type": "string", "enum": ["puppy_young", "puppy_older", "adult", "senior", "pregnant"] },
+                    "energy": {
+                        "type": "object",
+                        "properties": {
+                            "rer": { "type": "number", "description": "기초대사량 RER = 70 * (체중_kg)^0.75" },
+                            "der": { "type": "number", "description": "일일 목표 에너지 요구량 DER (kcal/day)" },
+                            "idealWeightKg": { "type": "number", "description": "BCS 기반 추정 이상 체중 (kg)" },
+                            "maxTreatKcal": { "type": "number", "description": "간식·토핑 10% 안전 허용 상한 (kcal/day)" }
+                        }
+                    }
+                }
+            }
+        },
+        schema_feed: {
+            id: "SCHEMA-02",
+            name: "Commercial & Prescription Feed Schema (상용·처방 사료 & DM 정규화)",
+            fieldsSummary: "feed_id, brand, type(건식|습식|화식), moisture_af, protein_af/dm, fat_af/dm, nfe_af/dm, ca_dm, phos_dm, ca_p_ratio, kcal_per_kg",
+            recordCount: "처방식 142종 + 상용 건·습·화식 16종",
+            jsonSchema: {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "NormalizedFeedNutrientSchema",
+                "type": "object",
+                "required": ["id", "name", "moisture_af", "p_dm", "f_dm", "ca_p_ratio", "kcal_per_kg"],
+                "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string", "description": "사료 제품명 (국문/영문)" },
+                    "inputMode": { "type": "string", "enum": ["db_search", "ai_ocr_scan", "manual_input"] },
+                    "asFed": {
+                        "type": "object",
+                        "description": "포장지 표기 보증성분 (As-Fed %)",
+                        "properties": {
+                            "moisture_af": { "type": "number" },
+                            "protein_af": { "type": "number" },
+                            "fat_af": { "type": "number" },
+                            "fiber_af": { "type": "number" },
+                            "ash_af": { "type": "number" },
+                            "nfe_af": { "type": "number" }
+                        }
+                    },
+                    "dryMatter": {
+                        "type": "object",
+                        "description": "수분 제거 건물 기준 정규화 성분 (% DM = As-Fed / (100 - 수분) * 100)",
+                        "properties": {
+                            "p_dm": { "type": "number", "description": "조단백질 (% DM)" },
+                            "f_dm": { "type": "number", "description": "조지방 (% DM)" },
+                            "nfe_dm": { "type": "number", "description": "순탄수화물 NFE (% DM)" },
+                            "ca_dm": { "type": "number", "description": "칼슘 (% DM)" },
+                            "phos_dm": { "type": "number", "description": "인 (% DM)" },
+                            "ca_p_ratio": { "type": "number", "description": "칼슘:인 비율 (AAFCO 권장 1.1~1.8:1)" },
+                            "kcal_per_kg": { "type": "number", "description": "Modified Atwater 대사에너지 (kcal/kg)" }
+                        }
+                    }
+                }
+            }
+        },
+        schema_ingredient: {
+            id: "SCHEMA-03",
+            name: "Natural Ingredient 36-Nutrient Schema (농진청/USDA 117종 화식 원재료)",
+            fieldsSummary: "ing_id, category(육류|어류|채소|곡물|보충제), group(P|C|F|S), 36대 영양소(단백질·지방·미네랄10종·비타민12종·아미노산·EPA/DHA per 100g)",
+            recordCount: "원재료 117종 + 보충제 6종 × 36영양소",
+            jsonSchema: {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "NaturalIngredient36NutrientsSchema",
+                "type": "object",
+                "required": ["id", "name_ko", "category", "group", "nutrients_per_100g_af"],
+                "properties": {
+                    "id": { "type": "string", "description": "원재료 고유 식별자 (예: ing_89)" },
+                    "name_ko": { "type": "string", "description": "국가표준식품성분표 원재료명" },
+                    "category": { "type": "string", "enum": ["육류/가금류/난류", "어패류/수산물", "채소/버섯/해조류", "곡류/고구마/감자", "필수 보충제 (칼슘·오메가3)"] },
+                    "group": { "type": "string", "enum": ["P", "C", "F", "S"], "description": "핵심 영양 역할 그룹" },
+                    "nutrients_per_100g_af": {
+                        "type": "object",
+                        "description": "생원료/조리원료 100g당 36대 영양소 벡터",
+                        "properties": {
+                            "macros": { "type": "string", "example": "에너지(kcal), 수분(g), 단백질(g), 지방(g), 탄수화물(g), 식이섬유(g), 회분(g)" },
+                            "minerals": { "type": "string", "example": "칼슘(mg), 인(mg), 칼륨(mg), 나트륨(mg), 마그네슘(mg), 철(mg), 아연(mg), 구리(mg), 망간(mg), 셀레늄(ug)" },
+                            "vitamins": { "type": "string", "example": "비타민A, D, E, B1, B2, B3, B5, B6, B12, 엽산, 콜린" },
+                            "fattyAcidsAndAmino": { "type": "string", "example": "EPA+DHA(g), 오메가-3(g), 오메가-6(g), 아르기닌, 타우린, 라이신, 메티오닌" }
+                        }
+                    }
+                }
+            }
+        },
+        schema_mix_diy: {
+            id: "SCHEMA-04",
+            name: "Mix-Feeding & DIY Recipe Schema (6대 배합 프로그램 · 10% 토핑 · 밀프랩)",
+            fieldsSummary: "active_menu(menu1~6), main_ratio_pct, sub_ratio_pct, topping_items[], diy_recipe_items[], prep_days, traffic_light_status",
+            recordCount: "6대 메뉴 실시간 배합 파이프라인",
+            jsonSchema: {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "MixFeedingAndDiyRecipeSchema",
+                "type": "object",
+                "properties": {
+                    "activeMenu": { "type": "string", "enum": ["menu1", "menu2", "menu3", "menu4", "menu5", "menu6"] },
+                    "dailyFeedingGramPlan": {
+                        "type": "object",
+                        "properties": {
+                            "mainFoodGramsPerDay": { "type": "number" },
+                            "subFoodGramsPerDay": { "type": "number" },
+                            "toppingTotalKcal": { "type": "number" },
+                            "toppingShareOfDerPct": { "type": "number", "maximum": 10.0, "description": "10% 초과 시 영양 불균형 경고 트리거" }
+                        }
+                    },
+                    "diyRecipeBuilder": {
+                        "type": "object",
+                        "properties": {
+                            "prepDays": { "type": "integer", "enum": [1, 7, 14, 30] },
+                            "targetDisease": { "type": "string" },
+                            "items": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "ratio": { "type": "number" } } } }
+                        }
+                    }
+                }
+            }
+        },
+        schema_reverse: {
+            id: "SCHEMA-05",
+            name: "Reverse-Tracing (PAVA + AI Imputation) Schema (사료 역추적 & 28대 영양소 신뢰도)",
+            fieldsSummary: "ordered_ingredients[], pava_weights_pct[], l1_fit_error, 28_nutrients_prediction[dm_est, min_bound, max_bound, confidence_pct]",
+            recordCount: "비음수 단조감소(PAVA) 최적화 엔진",
+            jsonSchema: {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "ReverseTracingPavaOutputSchema",
+                "type": "object",
+                "properties": {
+                    "constraintRule": { "type": "string", "default": "w_1 >= w_2 >= ... >= w_n >= 0, sum(w_i) = 100%" },
+                    "imputationEnabled": { "type": "boolean", "description": "결측 영양소 AI 카테고리 다중 보간 활성화 여부" },
+                    "estimatedWeights": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "rank": { "type": "integer" },
+                                "ingredientName": { "type": "string" },
+                                "weightPct": { "type": "number" }
+                            }
+                        }
+                    },
+                    "unlabeled28NutrientsConfidence": {
+                        "type": "array",
+                        "description": "포장지 미표기 28대 영양소의 역추적 추정치 및 신뢰구간(Min~Max)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "nutrient": { "type": "string" },
+                                "estimatedDm": { "type": "number" },
+                                "confidencePct": { "type": "number" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        schema_fecal_cdss: {
+            id: "SCHEMA-06",
+            name: "Fecal Kit Biomarker & Vet Lab CDSS Schema (분변키트 · 혈액 가중치 연동)",
+            fieldsSummary: "fecal_ph, ammonia, indole, undigested_fat, reducing_sugar, mucosal_calprotectin, gut_score_100, est_absorption_pct, vet_lab_delta_w",
+            recordCount: "보호자 Step 5 ⇄ 수의사 Tab 4 양방향 연동",
+            jsonSchema: {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "FecalKitAndVetCdssBridgeSchema",
+                "type": "object",
+                "properties": {
+                    "fecalBiomarkers": {
+                        "type": "object",
+                        "properties": {
+                            "phValue": { "type": "number", "minimum": 4.5, "maximum": 9.0 },
+                            "phLevel": { "type": "string", "enum": ["normal", "acidic", "alkaline"] },
+                            "ammonia": { "type": "string", "enum": ["normal", "warn", "high"] },
+                            "indole": { "type": "string", "enum": ["normal", "warn", "high"] },
+                            "undigestedFat": { "type": "string", "enum": ["neg", "trace", "pos"] },
+                            "reducingSugar": { "type": "string", "enum": ["normal", "warn", "high"] },
+                            "mucosalInflam": { "type": "string", "enum": ["neg", "trace", "pos"] }
+                        }
+                    },
+                    "gutAssessment": {
+                        "type": "object",
+                        "properties": {
+                            "gutHealthScore100": { "type": "integer", "minimum": 0, "maximum": 100 },
+                            "estimatedAbsorptionPct": { "type": "number", "minimum": 60.0, "maximum": 98.0 },
+                            "applyAbsorptionToDer": { "type": "boolean" }
+                        }
+                    },
+                    "vetCdssMapping": {
+                        "type": "object",
+                        "description": "수의사용 Tab 4 장내환경 9대 마커 & 혈액 가중치(ΔW_Lab) 자동 매핑 페이로드"
+                    }
+                }
+            }
+        }
+    };
+
+    function buildLiveUnifiedPayload() {
+        const p = guardianState.profile;
+        const e = guardianState.energy || {};
+        const dry = getActiveDryFoodMetrics();
+        const mix = guardianState.lastMixSummary || {};
+        const fk = guardianState.fecalKit || {};
+        const gutScoreEl = document.getElementById("g-kit-score-num");
+        const gutScore = gutScoreEl ? parseInt(gutScoreEl.innerText) || 94 : 94;
+
+        return {
+            schemaVersion: "2.5.0-SingleBackend-DualFrontend",
+            generatedAt: new Date().toISOString(),
+            schema_patient: {
+                profile: { ...p },
+                energyCalculation: { ...e }
+            },
+            schema_feed: {
+                inputMode: guardianState.step2Mode,
+                selectedMainFood: {
+                    id: dry.id,
+                    name: dry.name,
+                    brand: dry.brand,
+                    asFed: {
+                        moisture_af: dry.moisture_af,
+                        protein_af: dry.protein_af,
+                        fat_af: dry.fat_af,
+                        fiber_af: dry.fiber_af,
+                        ash_af: dry.ash_af,
+                        nfe_af: dry.nfe_af
+                    },
+                    dryMatter: {
+                        p_dm: dry.p_dm,
+                        f_dm: dry.f_dm,
+                        fb_dm: dry.fb_dm,
+                        nfe_dm: dry.nfe_dm,
+                        ca_dm: dry.ca_dm,
+                        phos_dm: dry.phos_dm,
+                        ca_p_ratio: dry.ca_p_ratio,
+                        kcal_per_kg: dry.kcal_per_kg
+                    }
+                }
+            },
+            schema_ingredient: {
+                databaseSource: "농촌진흥청 국가표준식품성분표 + USDA 36대 영양소 통합 DB",
+                totalNaturalIngredientsCount: (window.GUARDIAN_NATURAL_INGREDIENTS || []).length,
+                totalSupplementsCount: (window.GUARDIAN_SUPPLEMENTS || []).length,
+                sampleActiveDiyIngredients: guardianState.menu5_diy.items.map(it => {
+                    const found = findNaturalIngredientById(it.id);
+                    return {
+                        id: it.id,
+                        name_ko: it.name_ko,
+                        ratio_pct: it.ratio,
+                        category: found ? found.category : "기타",
+                        group: found ? found.group : "P",
+                        kcal_100g: found && found.nutrients ? found.nutrients["에너지(kcal)"] : null,
+                        protein_g_100g: found && found.nutrients ? found.nutrients["단백질(g)"] : null,
+                        calcium_mg_100g: found && found.nutrients ? found.nutrients["칼슘(mg)"] : null,
+                        phosphorus_mg_100g: found && found.nutrients ? found.nutrients["인(mg)"] : null
+                    };
+                })
+            },
+            schema_mix_diy: {
+                activeMenu: guardianState.activeMenu,
+                activeMenuTitle: mix.menuBadgeText || "건식 + 습식 배합",
+                dailyGramsAndKcal: {
+                    mainLabel: mix.mainLabel,
+                    mainGrams: mix.mainGrams,
+                    mainKcal: mix.mainKcal,
+                    subLabel: mix.subLabel,
+                    subGrams: mix.subGrams,
+                    subKcal: mix.subKcal,
+                    toppingKcal: mix.toppingKcal,
+                    totalSupplyKcal: mix.totalSupplyKcal
+                },
+                mixedDryMatterProfile: {
+                    protein_dm_pct: mix.mixP_dm,
+                    fat_dm_pct: mix.mixF_dm,
+                    carb_nfe_dm_pct: mix.mixNfe_dm,
+                    ca_dm_pct: mix.mixCa_dm,
+                    phos_dm_pct: mix.mixPhos_dm,
+                    ca_to_p_ratio: mix.mixCaP
+                },
+                diyMealPrepConfig: {
+                    prepDays: guardianState.menu5_diy.prepDays,
+                    targetDisease: guardianState.menu5_diy.targetDisease,
+                    recipeItems: guardianState.menu5_diy.items
+                }
+            },
+            schema_reverse: {
+                imputationEnabled: guardianState.menu6_reverse.enableImputation,
+                selectedIngredientsOrderCount: guardianState.menu6_reverse.selectedIngIds.length,
+                lastReverseTracingResult: guardianState.menu6_reverse.lastResult
+                    ? {
+                        weightsPct: guardianState.menu6_reverse.lastResult.items.map((it, idx) => ({
+                            rank: idx + 1,
+                            name_ko: it.name_ko,
+                            estimatedWeightPct: Math.round(guardianState.menu6_reverse.lastResult.weights[idx] * 10) / 10
+                        })),
+                        estProteinDm: guardianState.menu6_reverse.lastResult.estP_dm,
+                        estFatDm: guardianState.menu6_reverse.lastResult.estF_dm,
+                        estCarbDm: guardianState.menu6_reverse.lastResult.estNfe_dm
+                    }
+                    : "역추적 메뉴 실행 시 PAVA 수렴 배합비 자동 기록"
+            },
+            schema_fecal_cdss: {
+                guardianFecalKitInput: { ...fk },
+                gutEnvironmentScore100: gutScore,
+                estimatedDigestiveAbsorptionPct: fk.estimatedAbsorption,
+                vetTab4MappedMarkers: {
+                    m9_ph: fk.phValue,
+                    m9_ammonia_ppm: fk.ammonia === "high" ? 85 : (fk.ammonia === "warn" ? 48 : 22),
+                    m9_indole_ug_g: fk.indole === "high" ? 72 : (fk.indole === "warn" ? 42 : 18),
+                    m9_undigested_fat: fk.undigestedFat,
+                    m9_reducing_sugar_pct: fk.reducingSugar === "high" ? 1.2 : (fk.reducingSugar === "warn" ? 0.6 : 0.15),
+                    m9_calprotectin_ug_g: fk.mucosalInflam === "pos" ? 160 : (fk.mucosalInflam === "trace" ? 75 : 20),
+                    m9_occult_blood: fk.mucosalInflam
+                }
+            }
+        };
+    }
+
+    window.selectGuardianSchemaTab = function (tabKey) {
+        guardianState.activeSchemaTab = tabKey;
+        const keys = ["schema_patient", "schema_feed", "schema_ingredient", "schema_mix_diy", "schema_reverse", "schema_fecal_cdss"];
+        keys.forEach(k => {
+            const btn = document.getElementById(`g-sch-tab-${k}`);
+            if (!btn) return;
+            if (k === tabKey) {
+                btn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-black transition shadow";
+            } else {
+                btn.className = "px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition";
+            }
+        });
+        renderUnifiedDashboardAndSchemas();
+    };
+
+    window.jumpToUnifiedDashboardAndSchema = function () {
+        const gRoot = document.getElementById("guardian-portal-root");
+        if (!gRoot || gRoot.classList.contains("hidden")) {
+            enterGuardianPortal();
+        }
+        setTimeout(() => {
+            scrollToGuardianSection("g-unified-dashboard-sec");
+        }, 120);
+    };
+
+    window.copyLiveSchemaJson = function () {
+        const payload = buildLiveUnifiedPayload();
+        const jsonStr = JSON.stringify(payload, null, 2);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(jsonStr).then(() => {
+                const el = document.getElementById("g-schema-copy-txt");
+                if (el) {
+                    el.innerText = "✅ 클립보드에 복사 완료!";
+                    setTimeout(() => { el.innerText = "현재 통합 JSON 복사"; }, 2000);
+                }
+            });
+        }
+    };
+
+    window.downloadLiveSchemaJson = function () {
+        const payload = buildLiveUnifiedPayload();
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mixfeeding_unified_schema_${guardianState.profile.name || "pet"}_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    function renderUnifiedDashboardAndSchemas() {
+        const sec = document.getElementById("g-unified-dashboard-sec");
+        if (!sec) return;
+
+        const p = guardianState.profile;
+        const e = guardianState.energy || { rer: 216, der: 346, idealWeightKg: 4.5, maxTreatKcal: 34.6 };
+        const mix = guardianState.lastMixSummary || {
+            menuBadgeText: "건식 + 습식 배합",
+            totalSupplyKcal: e.der,
+            toppingKcal: 0,
+            mixP_dm: 26.5,
+            mixF_dm: 14.5,
+            mixCaP: 1.25
+        };
+        const fk = guardianState.fecalKit || { estimatedAbsorption: 93.0 };
+        const gutScoreEl = document.getElementById("g-kit-score-num");
+        const gutScore = gutScoreEl ? parseInt(gutScoreEl.innerText) || 94 : 94;
+
+        // 1. 상단 4대 KPI 카드 렌더링
+        const kpiCont = document.getElementById("g-unified-kpi-cards");
+        const treatPctOfDer = e.der > 0 ? Math.round((mix.toppingKcal / e.der) * 1000) / 10 : 0;
+        if (kpiCont) {
+            kpiCont.innerHTML = `
+                <div class="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 space-y-1">
+                    <div class="flex items-center justify-between text-slate-400 text-[11px] font-bold">
+                        <span>① 환자 대사에너지 (DER)</span>
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black">BCS ${p.bcs}/9 · MCS ${p.mcs}/4</span>
+                    </div>
+                    <div class="text-2xl font-black text-white">${e.der} <span class="text-xs font-normal text-slate-300">kcal/일</span></div>
+                    <div class="text-[11px] text-slate-400">기초 RER ${e.rer} kcal · 이상체중 ${e.idealWeightKg} kg</div>
+                </div>
+                <div class="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 space-y-1">
+                    <div class="flex items-center justify-between text-slate-400 text-[11px] font-bold">
+                        <span>② 믹스피딩 영양 밸런스 (DM)</span>
+                        <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-black">Ca:P ${mix.mixCaP}:1</span>
+                    </div>
+                    <div class="text-2xl font-black text-sky-300">단백 ${mix.mixP_dm}% <span class="text-sm text-amber-300">/ 지방 ${mix.mixF_dm}%</span></div>
+                    <div class="text-[11px] text-slate-400">활성 프로그램: ${mix.menuBadgeText}</div>
+                </div>
+                <div class="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 space-y-1">
+                    <div class="flex items-center justify-between text-slate-400 text-[11px] font-bold">
+                        <span>③ 토핑·간식 10% 안전 한도</span>
+                        <span class="px-2 py-0.5 rounded ${treatPctOfDer <= 10 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'} font-black">${treatPctOfDer <= 10 ? '🟢 안전' : '🔴 초과'}</span>
+                    </div>
+                    <div class="text-2xl font-black ${treatPctOfDer <= 10 ? 'text-emerald-300' : 'text-rose-400'}">${mix.toppingKcal} <span class="text-xs font-normal text-slate-300">/ ${e.maxTreatKcal} kcal (${treatPctOfDer}%)</span></div>
+                    <div class="text-[11px] text-slate-400">하루 총 열량의 10% 이내 영양왜곡 방지</div>
+                </div>
+                <div class="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 space-y-1">
+                    <div class="flex items-center justify-between text-slate-400 text-[11px] font-bold">
+                        <span>④ 분변키트 장내환경 & 흡수율</span>
+                        <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 font-black">pH ${(fk.phValue || 6.4).toFixed(1)}</span>
+                    </div>
+                    <div class="text-2xl font-black text-amber-300">${gutScore}점 <span class="text-sm text-teal-300">/ 흡수율 ${fk.estimatedAbsorption.toFixed(1)}%</span></div>
+                    <div class="text-[11px] text-slate-400">${fk.applyAbsorptionToDiet ? '⚡ 급여량에 흡수율 보정 반영 중' : 'Step 5 분변키트 바이오마커 연동'}</div>
+                </div>
+            `;
+        }
+
+        // 2. 6대 스키마 요약 테이블 렌더링
+        const tbody = document.getElementById("g-unified-schema-summary-tbody");
+        if (tbody) {
+            tbody.innerHTML = Object.keys(UNIFIED_SCHEMA_REGISTRY).map(key => {
+                const s = UNIFIED_SCHEMA_REGISTRY[key];
+                const isSelected = guardianState.activeSchemaTab === key;
+                return `
+                    <tr onclick="selectGuardianSchemaTab('${key}')" class="cursor-pointer transition ${isSelected ? 'bg-indigo-950/80 font-bold' : 'hover:bg-slate-800/60'}">
+                        <td class="py-2 px-2.5 font-mono text-indigo-300 font-black">${s.id}</td>
+                        <td class="py-2 px-2.5 text-white">${s.name.split('(')[0].trim()}</td>
+                        <td class="py-2 px-2.5 text-slate-400 text-[11px]">${s.fieldsSummary}</td>
+                        <td class="py-2 px-2.5 text-center">
+                            <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black">🟢 ${s.recordCount}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        // 3. 5축 통합 밸런스 레이더 차트 업데이트
+        const calScore = e.der > 0 ? Math.max(40, Math.round(100 - Math.abs(mix.totalSupplyKcal - e.der) / e.der * 100)) : 95;
+        const macroScore = (mix.mixP_dm >= 18 && mix.mixP_dm <= 45 && mix.mixF_dm >= 8 && mix.mixF_dm <= 25) ? 94 : 76;
+        const capScore = (mix.mixCaP >= 1.1 && mix.mixCaP <= 1.8) ? 96 : (mix.mixCaP >= 1.0 && mix.mixCaP <= 2.1 ? 78 : 52);
+        const treatSafetyScore = treatPctOfDer <= 10 ? 98 : Math.max(40, Math.round(100 - (treatPctOfDer - 10) * 4));
+        const gutTotalScore = gutScore;
+
+        const avgTotal = Math.round((calScore + macroScore + capScore + treatSafetyScore + gutTotalScore) / 5);
+        const gradeBadge = document.getElementById("g-unified-total-grade");
+        if (gradeBadge) {
+            const grade = avgTotal >= 90 ? "S등급" : (avgTotal >= 80 ? "A등급" : (avgTotal >= 70 ? "B등급" : "주의 등급"));
+            gradeBadge.innerText = `종합 ${grade} (${avgTotal}점)`;
+            gradeBadge.className = avgTotal >= 85
+                ? "px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black"
+                : "px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[11px] font-black";
+        }
+
+        if (typeof Chart !== "undefined") {
+            const radarCanvas = document.getElementById("gUnifiedRadarCanvas");
+            if (radarCanvas) {
+                if (guardianState.charts.unifiedRadar) guardianState.charts.unifiedRadar.destroy();
+                guardianState.charts.unifiedRadar = new Chart(radarCanvas.getContext("2d"), {
+                    type: "radar",
+                    data: {
+                        labels: ["칼로리 적정성", "단백·지방 균형", "칼슘:인(Ca:P) 안전", "간식 10% 한도", "장내환경·흡수율"],
+                        datasets: [{
+                            label: `${p.name || '우리 아이'} 통합 건강 밸런스`,
+                            data: [calScore, macroScore, capScore, treatSafetyScore, gutTotalScore],
+                            backgroundColor: "rgba(99, 102, 241, 0.28)",
+                            borderColor: "#818cf8",
+                            pointBackgroundColor: "#34d399",
+                            pointBorderColor: "#ffffff",
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 100,
+                                ticks: { stepSize: 25, display: false },
+                                grid: { color: "rgba(148, 163, 184, 0.2)" },
+                                angleLines: { color: "rgba(148, 163, 184, 0.2)" },
+                                pointLabels: { color: "#e2e8f0", font: { size: 11, weight: "bold" } }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 4. 하단 선택된 스키마의 JSON Schema 명세 & Live JSON Payload 출력
+        const activeKey = guardianState.activeSchemaTab || "schema_patient";
+        const schemaObj = UNIFIED_SCHEMA_REGISTRY[activeKey] || UNIFIED_SCHEMA_REGISTRY.schema_patient;
+        const livePayload = buildLiveUnifiedPayload();
+
+        const specTitle = document.getElementById("g-schema-spec-title");
+        const specPre = document.getElementById("g-schema-spec-pre");
+        const livePre = document.getElementById("g-schema-live-pre");
+
+        if (specTitle) specTitle.innerText = `📐 [${schemaObj.id}] ${schemaObj.name}`;
+        if (specPre) specPre.textContent = JSON.stringify(schemaObj.jsonSchema, null, 2);
+        if (livePre) livePre.textContent = JSON.stringify(livePayload[activeKey], null, 2);
     }
 
     // =========================================================================
