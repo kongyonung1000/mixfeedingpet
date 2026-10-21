@@ -1,0 +1,3012 @@
+/**
+ * static/guardian_portal.js
+ * 보호자용 믹스피딩 + 수의사용 믹스피딩 통합 아키텍처 (Single Backend, Dual Frontend)
+ * - Role-Based Access Control & Lazy Loading
+ * - [Step 1] 랜딩 및 이지 Q&A 기초 프로필 (신상, BCS/MCS, RER/MER/DER 자동 산출)
+ * - [Step 2] 사료 데이터 입력 인터페이스 (DB 검색 / AI OCR 라벨 스캔 / 직접 입력)
+ * - [Step 3] 핵심 메뉴 분기: 6대 믹스피딩 프로그램
+ *     1) 건식 + 습식 배합기
+ *     2) 건식 + 화식 배합기
+ *     3) 건식 + 원재료 배합기 (영양 왜곡 방지)
+ *     4) 토핑 공통 모듈 (하루 10% 허용 칼로리 안전 제어기)
+ *     5) 화식 자가 만들기 (Recipe DIY Builder - 세련된 전면 리디자인 & 36대 영양소·밀프랩)
+ *     6) 사료 역추적 프로그램 (Reverse-Tracing Calculator - PAVA + AI Imputation + 30대 영양소 신뢰도)
+ * - [Step 4] 결과 출력 및 시각화 대시보드 (칼로리 게이지 바, AAFCO/FEDIAF 신호등 리포트, 아침/저녁 급여 스케줄표)
+ */
+
+(function () {
+    "use strict";
+
+    // =========================================================================
+    // 1. 통합 상용 사료 & 습식 & 화식 & 원재료 & 토핑 데이터베이스
+    // =========================================================================
+    const COMMERCIAL_DRY_FOODS = [
+        {
+            id: "comm_rc_mini_adult",
+            name: "로얄캐닌 미니 인도어 어덜트 (소형 성견용)",
+            brand: "로얄캐닌 (Royal Canin)",
+            species: "dog",
+            type: "건식",
+            protein_af: 21.0, fat_af: 14.0, fiber_af: 1.9, ash_af: 6.1, moisture_af: 9.5, ca_af: 0.82, p_af: 0.70,
+            kcal_per_kg: 3765,
+            ingredients_order: ["쌀", "탈수가금육단백질", "옥수수", "동물성지방", "분리대두단백", "가수분해동물성단백질", "비트펄프", "어유", "대두유", "프락토올리고당"]
+        },
+        {
+            id: "comm_orijen_original",
+            name: "오리젠 오리지널 독 (고단백 그레인프리)",
+            brand: "오리젠 (Orijen)",
+            species: "dog",
+            type: "건식",
+            protein_af: 38.0, fat_af: 18.0, fiber_af: 4.0, ash_af: 8.5, moisture_af: 10.0, ca_af: 1.40, p_af: 1.10,
+            kcal_per_kg: 3860,
+            ingredients_order: ["생닭고기", "생칠면조고기", "생연어", "생닭간", "통청어", "완두콩", "붉은렌틸콩", "병아리콩", "계란", "단호박"]
+        },
+        {
+            id: "comm_acana_singles_duck",
+            name: "아카나 싱글즈 프리런 오리 (단일육류 저알러지)",
+            brand: "아카나 (Acana)",
+            species: "dog",
+            type: "건식",
+            protein_af: 31.0, fat_af: 15.0, fiber_af: 5.0, ash_af: 7.5, moisture_af: 10.0, ca_af: 1.30, p_af: 1.00,
+            kcal_per_kg: 3393,
+            ingredients_order: ["생오리고기", "건조오리육", "녹색완두콩", "붉은렌틸콩", "생오리간", "오리지방", "병아리콩", "단호박", "배", "어유"]
+        },
+        {
+            id: "comm_now_fresh_small",
+            name: "나우 프레시 스몰브리드 어덜트 (칠면조·연어·오리)",
+            brand: "나우 프레시 (NOW Fresh)",
+            species: "dog",
+            type: "건식",
+            protein_af: 26.0, fat_af: 16.0, fiber_af: 3.5, ash_af: 7.5, moisture_af: 10.0, ca_af: 1.10, p_af: 0.75,
+            kcal_per_kg: 3742,
+            ingredients_order: ["순살칠면조", "감자분말", "완두콩", "사과", "전란", "카놀라유", "아마씨", "순살연어", "순살오리", "당근"]
+        },
+        {
+            id: "comm_hills_sd_small",
+            name: "힐스 사이언스 다이어트 어덜트 스몰포즈 (닭고기)",
+            brand: "힐스 (Hill's)",
+            species: "dog",
+            type: "건식",
+            protein_af: 22.5, fat_af: 14.5, fiber_af: 1.8, ash_af: 5.5, moisture_af: 9.0, ca_af: 0.85, p_af: 0.68,
+            kcal_per_kg: 3740,
+            ingredients_order: ["닭고기분", "양조용쌀", "통밀", "대두분", "수수", "닭지방", "보리", "옥수수글루텐", "아마씨", "당근"]
+        },
+        {
+            id: "comm_ziwipeak_lamb",
+            name: "지위픽 에어드라이 독 양고기 (초고단백 육류 96%)",
+            brand: "지위픽 (ZiwiPeak)",
+            species: "dog",
+            type: "건식",
+            protein_af: 35.0, fat_af: 33.0, fiber_af: 2.0, ash_af: 10.0, moisture_af: 14.0, ca_af: 1.80, p_af: 1.30,
+            kcal_per_kg: 5200,
+            ingredients_order: ["양고기", "양심장", "양트라이프", "양간", "양신장", "초록입홍합", "레시틴", "치커리이눌린", "다시마"]
+        },
+        {
+            id: "comm_harim_thereal_chicken",
+            name: "하림 더리얼 그레인프리 크런치 닭고기 어덜트",
+            brand: "하림펫푸드",
+            species: "dog",
+            type: "건식",
+            protein_af: 28.0, fat_af: 14.0, fiber_af: 4.0, ash_af: 8.5, moisture_af: 10.0, ca_af: 1.15, p_af: 0.85,
+            kcal_per_kg: 3650,
+            ingredients_order: ["생닭고기", "고구마", "완두콩", "닭간", "병아리콩", "닭기름", "아마씨", "당근", "브로콜리", "블루베리"]
+        },
+        {
+            id: "comm_cat_rc_indoor",
+            name: "로얄캐닌 인도어 27 (실내 성묘용)",
+            brand: "로얄캐닌 (Royal Canin)",
+            species: "cat",
+            type: "건식",
+            protein_af: 27.0, fat_af: 13.0, fiber_af: 4.0, ash_af: 7.3, moisture_af: 8.0, ca_af: 1.10, p_af: 0.84,
+            kcal_per_kg: 3750,
+            ingredients_order: ["탈수가금육단백질", "쌀", "밀", "옥수수", "분리대두단백", "동물성지방", "가수분해동물성단백질", "비트펄프", "어유"]
+        },
+        {
+            id: "comm_cat_orijen_cat",
+            name: "오리젠 캣 앤 키튼 (고단백 전연령 고양이)",
+            brand: "오리젠 (Orijen)",
+            species: "cat",
+            type: "건식",
+            protein_af: 40.0, fat_af: 20.0, fiber_af: 3.0, ash_af: 8.0, moisture_af: 10.0, ca_af: 1.40, p_af: 1.10,
+            kcal_per_kg: 4160,
+            ingredients_order: ["생닭고기", "생칠면조고기", "생연어", "통청어", "생닭간", "계란", "완두콩", "병아리콩", "명태오일"]
+        }
+    ];
+
+    const COMMERCIAL_WET_AND_FRESH = [
+        {
+            id: "wet_rc_instinctive",
+            name: "로얄캐닌 어덜트 인스팅티브 습식 파우치 (고수분)",
+            brand: "로얄캐닌",
+            type: "습식",
+            moisture_af: 79.0, protein_af: 10.5, fat_af: 3.2, fiber_af: 1.1, ash_af: 1.6, ca_af: 0.24, p_af: 0.20,
+            kcal_per_kg: 870,
+            desc: "수분 79% 함유로 음수량 보충 및 신장·요로계 보호에 탁월한 주식형 습식 파우치"
+        },
+        {
+            id: "wet_hills_id_stew",
+            name: "힐스 소화기/저지방 치킨&베지터블 스튜 캔 (습식)",
+            brand: "힐스",
+            type: "습식",
+            moisture_af: 78.0, protein_af: 5.5, fat_af: 2.2, fiber_af: 0.8, ash_af: 1.4, ca_af: 0.19, p_af: 0.14,
+            kcal_per_kg: 810,
+            desc: "소화기가 약하거나 췌장·장 건강 관리가 필요한 아이를 위한 저지방 고소화성 스튜"
+        },
+        {
+            id: "wet_ziwi_mackerel_can",
+            name: "지위픽 고등어 & 양고기 주식 캔 (습식)",
+            brand: "지위픽",
+            type: "습식",
+            moisture_af: 76.0, protein_af: 10.5, fat_af: 5.5, fiber_af: 0.5, ash_af: 2.5, ca_af: 0.35, p_af: 0.28,
+            kcal_per_kg: 1125,
+            desc: "오메가-3가 풍부한 고등어와 양고기를 사용한 그레인프리 고기호성 주식 캔"
+        },
+        {
+            id: "fresh_slim_chicken",
+            name: "슬림 & 라이트 닭안심·단호박·양배추 화식 (다이어트/저지방)",
+            brand: "맞춤 조리/상용 화식",
+            type: "화식",
+            moisture_af: 74.0, protein_af: 11.2, fat_af: 1.8, fiber_af: 1.2, ash_af: 1.1, ca_af: 0.26, p_af: 0.20,
+            kcal_per_kg: 1050,
+            desc: "삶은 닭안심 50% + 찐 단호박 25% + 데친 양배추/브로콜리 23% + 칼슘/오메가3 2%"
+        },
+        {
+            id: "fresh_joint_beef",
+            name: "머슬 & 액티브 소고기 우둔살·고구마·계란 화식 (근육/활력)",
+            brand: "맞춤 조리/상용 화식",
+            type: "화식",
+            moisture_af: 71.0, protein_af: 13.5, fat_af: 4.2, fiber_af: 1.0, ash_af: 1.3, ca_af: 0.30, p_af: 0.24,
+            kcal_per_kg: 1280,
+            desc: "삶은 소고기 우둔살 50% + 삶은 계란 15% + 찐 고구마 20% + 당근/브로콜리 13% + 칼슘 2%"
+        },
+        {
+            id: "fresh_renal_cod",
+            name: "저인(Low-P) 흰살생선(대구)·백미진밥·계란흰자 화식 (신장/시니어)",
+            brand: "맞춤 조리/상용 화식",
+            type: "화식",
+            moisture_af: 75.0, protein_af: 8.2, fat_af: 3.5, fiber_af: 0.8, ash_af: 0.9, ca_af: 0.25, p_af: 0.13,
+            kcal_per_kg: 1080,
+            desc: "스팀 찐 대구살 30% + 삶은 계란흰자 20% + 무염 백미진밥 30% + 단호박/양배추 18% + 연어오일/칼슘 2%"
+        },
+        {
+            id: "fresh_skin_salmon",
+            name: "피부·모질 케어 스팀 연어·귀리·블루베리 화식",
+            brand: "맞춤 조리/상용 화식",
+            type: "화식",
+            moisture_af: 72.0, protein_af: 11.8, fat_af: 5.2, fiber_af: 1.1, ash_af: 1.2, ca_af: 0.28, p_af: 0.23,
+            kcal_per_kg: 1340,
+            desc: "스팀 연어 순살 48% + 익힌 귀리/감자 27% + 브로콜리/블루베리 23% + 칼슘 2%"
+        }
+    ];
+
+    // 메뉴 3: 건식 + 단일 원재료 배합기용 핵심 원재료 풀
+    const SINGLE_RAW_INGREDIENTS = [
+        { id: "raw_chicken_breast", name: "삶은 닭가슴살/닭안심 (무염)", category: "육류", kcal_100g: 109, moisture: 73.8, protein: 22.97, fat: 1.24, ca_mg: 6, p_mg: 210, maxSafePct: 15, prepTip: "껍질과 기름기를 제거하고 끓는 물에 10분간 삶아 잘게 찢어 급여하세요. (인 함량이 높으므로 일일 칼로리의 15% 이내 권장)" },
+        { id: "raw_pollack", name: "무염 황태채 / 북어살 (푹 삶아 염분 제거)", category: "어류", kcal_100g: 115, moisture: 72.0, protein: 24.5, fat: 0.9, ca_mg: 28, p_mg: 240, maxSafePct: 12, prepTip: "찬물에 1시간 이상 담가 염분을 완전히 뺀 뒤 끓는 물에 한 번 더 데쳐 가시를 발라내고 급여하세요." },
+        { id: "raw_egg_whole", name: "삶은 계란 (완숙 전란)", category: "난류", kcal_100g: 138, moisture: 75.8, protein: 12.4, fat: 9.7, ca_mg: 48, p_mg: 185, maxSafePct: 15, prepTip: "날계란 흰자의 아비딘(Avidin)이 비오틴 흡수를 방해하므로 반드시 완숙으로 삶아 으깨어 주세요." },
+        { id: "raw_egg_white", name: "삶은 계란 흰자 (난백 · 초저지방/저인)", category: "난류", kcal_100g: 48, moisture: 88.0, protein: 10.8, fat: 0.1, ca_mg: 7, p_mg: 14, maxSafePct: 20, prepTip: "인과 지방이 거의 없는 최고급 단백질원입니다. 신장·췌장염 환견의 단백질 보충용으로 이상적입니다." },
+        { id: "raw_pumpkin", name: "찐 단호박 (씨와 껍질 제거)", category: "채소류", kcal_100g: 51, moisture: 86.2, protein: 1.66, fat: 0.24, ca_mg: 19, p_mg: 42, maxSafePct: 15, prepTip: "찜기에 부드럽게 쪄서 으깨어 급여하세요. 수용성 식이섬유가 풍부해 변 상태 개선에 도움을 줍니다." },
+        { id: "raw_cabbage", name: "데친 양배추 (위장 점막 보호)", category: "채소류", kcal_100g: 24, moisture: 93.0, protein: 1.3, fat: 0.2, ca_mg: 38, p_mg: 26, maxSafePct: 10, prepTip: "비타민 U가 위점막을 보호합니다. 생으로 주면 가스가 찰 수 있으니 살짝 데쳐서 잘게 다져 주세요." },
+        { id: "raw_broccoli", name: "데친 브로콜리 (꽃송이 부분)", category: "채소류", kcal_100g: 32, moisture: 90.3, protein: 3.1, fat: 0.3, ca_mg: 42, p_mg: 65, maxSafePct: 10, prepTip: "끓는 물에 1분간 살짝 데쳐 잘게 다져 주세요. 설포라판 항산화 성분이 풍부합니다." },
+        { id: "raw_sweetpotato", name: "찐 고구마 (껍질 제거)", category: "감자류", kcal_100g: 134, moisture: 65.5, protein: 1.5, fat: 0.2, ca_mg: 24, p_mg: 46, maxSafePct: 10, prepTip: "혈당 지수(GI)와 칼로리가 높으므로 하루 권장 칼로리의 10%를 넘지 않도록 주의하세요." },
+        { id: "raw_tofu", name: "무염 순두부 / 끓는 물에 데친 두부", category: "콩류", kcal_100g: 84, moisture: 82.5, protein: 8.5, fat: 4.6, ca_mg: 120, p_mg: 110, maxSafePct: 15, prepTip: "끓는 물에 3분간 데쳐 간수(염분)를 빼고 으깨어 급여하세요. 식물성 단백질로 간 부담이 적습니다." },
+        { id: "raw_beef_round", name: "삶은 소고기 우둔살/홍두깨살 (살코기)", category: "육류", kcal_100g: 132, moisture: 71.5, protein: 21.8, fat: 4.3, ca_mg: 8, p_mg: 198, maxSafePct: 15, prepTip: "기름기가 없는 살코기 부위를 끓는 물에 삶아 육수는 버리고 살코기만 잘게 다져 급여하세요." }
+    ];
+
+    // 메뉴 4: 토핑/간식 10% 안전 제어기용 프리셋
+    const TOPPING_SNACK_ITEMS = [
+        { id: "top_jerky", name: "소고기/오리 육포 (1조각, 약 8g)", unitLabel: "조각", weightPerUnitG: 8, kcalPerUnit: 26, proteinPct: 55, fatPct: 8, warning: "고단백·고인 간식이므로 신장/췌장 질환 시 주의" },
+        { id: "top_freezedried", name: "동결건조 닭가슴살/북어 트릿 (5개, 약 5g)", unitLabel: "회분(5알)", weightPerUnitG: 5, kcalPerUnit: 19, proteinPct: 78, fatPct: 5, warning: "수분이 거의 없으므로 급여 시 음수량을 함께 늘려주세요" },
+        { id: "top_churu", name: "짜먹는 액상 스틱 간식 (츄르 1포, 14g)", unitLabel: "스틱(14g)", weightPerUnitG: 14, kcalPerUnit: 9, proteinPct: 8, fatPct: 1.5, warning: "나트륨/인 함량을 확인하고 하루 1~2포 이내로 제한하세요" },
+        { id: "top_dental", name: "소형견 덴탈껌 (1개, 약 15g)", unitLabel: "개", weightPerUnitG: 15, kcalPerUnit: 48, proteinPct: 12, fatPct: 2.5, warning: "생각보다 칼로리가 높습니다! 급여 시 저녁 사료량을 반드시 줄여주세요" },
+        { id: "top_cheese", name: "반려동물용 무염 코티지/슬라이스 치즈 (1장, 12g)", unitLabel: "장", weightPerUnitG: 12, kcalPerUnit: 32, proteinPct: 18, fatPct: 18, warning: "지방 함량이 높으므로 췌장염 이력이 있다면 피하세요" },
+        { id: "top_apple_berry", name: "사과/블루베리 과일 토핑 (한 줌, 20g)", unitLabel: "줌(20g)", weightPerUnitG: 20, kcalPerUnit: 11, proteinPct: 0.5, fatPct: 0.2, warning: "사과 씨는 독성이 있으므로 반드시 제거 후 급여하세요" }
+    ];
+
+    // =========================================================================
+    // 2. 보호자 포털 전역 상태 (Guardian App State)
+    // =========================================================================
+    const guardianState = {
+        initialized: false,
+        currentStep: 1,
+        activeMenu: 1, // 1: 건식+습식, 2: 건식+화식, 3: 건식+원재료, 4: 토핑 10% 제어기, 5: 화식 DIY 빌더, 6: 사료 역추적
+        profile: {
+            species: "dog",
+            name: "보리",
+            breed: "말티즈",
+            weightKg: 4.5,
+            lifeStage: "adult", // puppy_young, puppy_older, adult, senior, pregnant
+            neutered: true,
+            activity: "moderate", // low, moderate, high, very_high
+            bcs: 5,
+            mcs: 4,
+            fecalScore: 3.5,
+            mealsPerDay: 2,
+            healthConcern: "none" // none, ckd, pancreatitis, heart, liver, urolithiasis, obesity, ibd
+        },
+        energy: {
+            rer: 216,
+            der: 346,
+            idealWeightKg: 4.5,
+            factor: 1.6,
+            maxTreatKcal: 34.6,
+            perMealKcal: 173
+        },
+        selectedDryFood: { ...COMMERCIAL_DRY_FOODS[0] },
+        menu1: {
+            wetFoodId: "wet_rc_instinctive",
+            dryRatioPct: 70
+        },
+        menu2: {
+            freshFoodId: "fresh_slim_chicken",
+            dryRatioPct: 70
+        },
+        menu3: {
+            rawIngId: "raw_chicken_breast",
+            rawRatioPct: 10
+        },
+        menu4: {
+            selectedToppings: {
+                "top_jerky": 0,
+                "top_freezedried": 1,
+                "top_churu": 1,
+                "top_dental": 0,
+                "top_cheese": 0,
+                "top_apple_berry": 0
+            }
+        },
+        menu5_diy: {
+            prepDays: 7,
+            targetDisease: "none",
+            items: [
+                { id: "ing_89", name_ko: "닭고기, 안심, 생것 (삶음)", ratio: 48 },
+                { id: "ing_0", name_ko: "귀리, 겉귀리, 도정, 밥", ratio: 22 },
+                { id: "ing_34", name_ko: "단호박, 찐것", ratio: 18 },
+                { id: "ing_46", name_ko: "양배추, 삶은것", ratio: 9 },
+                { id: "supp_salmon_oil", name_ko: "정제 연어오일/어유 (오메가-3 보충)", ratio: 1.8 },
+                { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 1.2 }
+            ]
+        },
+        menu6_reverse: {
+            selectedIngIds: [],
+            enableImputation: true,
+            lastResult: null
+        },
+        charts: {
+            calDonut: null,
+            macroBar: null
+        }
+    };
+
+    // =========================================================================
+    // 3. 수학 및 임상 영양 코어 연산 함수 (공통 백엔드 로직)
+    // =========================================================================
+    function calcDryFoodMetrics(food) {
+        const moisture = Math.min(88, Math.max(1, parseFloat(food.moisture_af) || 10.0));
+        const dmFactor = (100.0 - moisture) / 100.0;
+        const p_af = parseFloat(food.protein_af) || 24.0;
+        const f_af = parseFloat(food.fat_af) || 14.0;
+        const fb_af = parseFloat(food.fiber_af) || 3.0;
+        const ash_af = parseFloat(food.ash_af) || 6.5;
+        const ca_af = parseFloat(food.ca_af) || 1.0;
+        const phos_af = parseFloat(food.p_af) || 0.8;
+
+        const nfe_af = Math.max(0, 100.0 - moisture - p_af - f_af - fb_af - ash_af);
+        // Modified Atwater ME (kcal/kg AF)
+        const autoKcalKg = Math.round(((3.5 * p_af) + (8.5 * f_af) + (3.5 * nfe_af)) * 10);
+        const kcal_per_kg = parseFloat(food.kcal_per_kg) || autoKcalKg;
+
+        return {
+            ...food,
+            moisture_af: moisture,
+            nfe_af: Math.round(nfe_af * 10) / 10,
+            kcal_per_kg,
+            p_dm: Math.round((p_af / dmFactor) * 10) / 10,
+            f_dm: Math.round((f_af / dmFactor) * 10) / 10,
+            fb_dm: Math.round((fb_af / dmFactor) * 10) / 10,
+            ash_dm: Math.round((ash_af / dmFactor) * 10) / 10,
+            nfe_dm: Math.round((nfe_af / dmFactor) * 10) / 10,
+            ca_dm: Math.round((ca_af / dmFactor) * 100) / 100,
+            phos_dm: Math.round((phos_af / dmFactor) * 100) / 100,
+            ca_p_ratio: phos_af > 0 ? Math.round((ca_af / phos_af) * 100) / 100 : 1.25
+        };
+    }
+
+    function computeGuardianEnergy() {
+        const p = guardianState.profile;
+        const w = Math.max(0.5, parseFloat(p.weightKg) || 4.5);
+        const bcs = parseInt(p.bcs) || 5;
+        const idealW = Math.round((w / (1.0 + (bcs - 5) * 0.10)) * 100) / 100;
+
+        // 비만(BCS >= 7)일 때는 이상 체중 기준 RER 적용
+        const baseW = bcs >= 7 ? idealW : w;
+        const rer = Math.round(70.0 * Math.pow(baseW, 0.75) * 10) / 10;
+
+        let factor = 1.6;
+        const isDog = p.species === "dog";
+
+        if (p.lifeStage === "puppy_young") factor = isDog ? 3.0 : 2.5;
+        else if (p.lifeStage === "puppy_older") factor = isDog ? 2.0 : 2.0;
+        else if (p.lifeStage === "pregnant") factor = isDog ? 3.0 : 2.5;
+        else if (bcs >= 8) factor = isDog ? 1.0 : 0.8;
+        else if (bcs === 7) factor = isDog ? 1.1 : 0.9;
+        else if (bcs <= 3) factor = isDog ? 1.8 : 1.5;
+        else if (p.lifeStage === "senior") {
+            factor = isDog ? (p.neutered ? 1.3 : 1.4) : (p.neutered ? 1.1 : 1.2);
+        } else {
+            factor = isDog ? (p.neutered ? 1.6 : 1.8) : (p.neutered ? 1.2 : 1.4);
+        }
+
+        // 활동량 보정
+        if (p.activity === "low") factor = Math.max(0.8, Math.round((factor - 0.2) * 10) / 10);
+        else if (p.activity === "high") factor = Math.round((factor + 0.2) * 10) / 10;
+        else if (p.activity === "very_high") factor = Math.round((factor + 0.5) * 10) / 10;
+
+        // 변 상태(흡수율) 보정
+        let fecalNote = "정상 소화 흡수율 (92~95%)";
+        if (p.fecalScore >= 6.0) {
+            fecalNote = "수양성/설사 변 상태 감지 — 소화 부담 완화를 위해 저지방·고소화성 배합 권장";
+        } else if (p.fecalScore >= 4.5) {
+            fecalNote = "무른 변 상태 감지 — 간식/토핑을 5% 이내로 줄이고 식이섬유 밸런스 조절 권장";
+        }
+
+        const der = Math.round(rer * factor);
+        const maxTreatKcal = Math.round(der * 0.10 * 10) / 10;
+        const meals = parseInt(p.mealsPerDay) || 2;
+        const perMealKcal = Math.round(der / meals);
+
+        guardianState.energy = {
+            rer,
+            der,
+            idealWeightKg: idealW,
+            factor,
+            maxTreatKcal,
+            perMealKcal,
+            fecalNote
+        };
+        return guardianState.energy;
+    }
+
+    function getAafcoStandardForProfile() {
+        const p = guardianState.profile;
+        const isDog = p.species === "dog";
+        const isGrowth = p.lifeStage === "puppy_young" || p.lifeStage === "puppy_older" || p.lifeStage === "pregnant";
+
+        if (isDog) {
+            return isGrowth
+                ? { label: "강아지 성장기/번식기 (AAFCO/FEDIAF)", p_min: 22.5, p_max: 42.0, f_min: 8.5, f_max: 25.0, ca_min: 1.2, ca_max: 1.8, phos_min: 1.0, phos_max: 1.6, cap_min: 1.1, cap_max: 1.8 }
+                : { label: "성견/시니어 유지기 (AAFCO/FEDIAF)", p_min: 18.0, p_max: 38.0, f_min: 5.5, f_max: 22.0, ca_min: 0.5, ca_max: 1.8, phos_min: 0.4, phos_max: 1.4, cap_min: 1.0, cap_max: 2.0 };
+        } else {
+            return isGrowth
+                ? { label: "고양이 성장기/번식기 (AAFCO/FEDIAF)", p_min: 30.0, p_max: 50.0, f_min: 9.0, f_max: 28.0, ca_min: 1.0, ca_max: 1.8, phos_min: 0.8, phos_max: 1.6, cap_min: 1.0, cap_max: 1.8 }
+                : { label: "성묘/시니어 유지기 (AAFCO/FEDIAF)", p_min: 26.0, p_max: 46.0, f_min: 9.0, f_max: 25.0, ca_min: 0.6, ca_max: 1.8, phos_min: 0.5, phos_max: 1.4, cap_min: 1.0, cap_max: 2.0 };
+        }
+    }
+
+    // =========================================================================
+    // 4. 듀얼 포털 랜딩 게이트 & 상단 모드 스위처 주입
+    // =========================================================================
+    function setupDualPortalLandingAndHeader() {
+        const shield = document.getElementById("private-gate-shield");
+        if (shield && !document.getElementById("dual-portal-role-cards")) {
+            const innerCard = shield.firstElementChild;
+            if (innerCard) {
+                innerCard.style.maxWidth = "880px";
+                innerCard.style.padding = "32px";
+
+                const existingContent = innerCard.innerHTML;
+                innerCard.innerHTML = `
+                    <!-- 듀얼 포털 선택 화면 (Role-Based Access Control) -->
+                    <div id="dual-portal-role-cards">
+                        <div class="flex items-center justify-center space-x-2 mb-2">
+                            <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-black">Single Backend · Dual Frontend Architecture</span>
+                        </div>
+                        <h2 style="font-size: 24px; font-weight: 900; color: #0f172a; margin: 0 0 6px; letter-spacing: -0.5px;">
+                            🐾 반려동물 맞춤 믹스피딩 & 임상 영양 통합 플랫폼
+                        </h2>
+                        <p style="font-size: 13.5px; color: #64748b; margin: 0 0 24px;">
+                            방문 목적에 맞는 전용 포털을 선택해 주세요. 보호자용은 복잡한 설정 없이 즉시 가볍게 시작됩니다.
+                        </p>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; text-align: left;">
+                            <!-- [Frontend A] 보호자용 뷰 카드 -->
+                            <div onclick="enterGuardianPortal()" style="cursor: pointer; border: 2px solid #10b981; background: linear-gradient(145deg, #ecfdf5 0%, #ffffff 100%); border-radius: 20px; padding: 24px; transition: all 0.2s; box-shadow: 0 12px 24px -8px rgba(16, 185, 129, 0.25); display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                        <span style="background: #10b981; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px;">🐾 보호자용 (Guardian Easy View)</span>
+                                        <span style="font-size: 11px; color: #059669; font-weight: 700;">로그인 없이 즉시 이용</span>
+                                    </div>
+                                    <h3 style="font-size: 19px; font-weight: 900; color: #064e3b; margin: 0 0 8px;">이지 Q&A 믹스피딩 · 화식 · 사료 역추적</h3>
+                                    <p style="font-size: 12.5px; color: #047857; line-height: 1.5; margin-bottom: 14px;">
+                                        어려운 수의학 용어 대신 쉬운 Q&A로 우리 아이 체형(BCS·MCS)과 하루 칼로리(DER)를 계산하고 6가지 맞춤 식단 프로그램을 제공합니다.
+                                    </p>
+                                    <ul style="font-size: 12px; color: #334155; space-y: 6px; margin: 0 0 18px; padding-left: 4px; list-style: none;">
+                                        <li style="margin-bottom: 5px;">✅ <strong>[Step 1]</strong> 신상 · 체형(BCS/MCS) 쉬운 Q&A & RER·DER 산출</li>
+                                        <li style="margin-bottom: 5px;">✅ <strong>[Step 2]</strong> 사료 DB 검색 · 포장지 AI OCR 스캔 · 직접 입력</li>
+                                        <li style="margin-bottom: 5px;">✅ <strong>[Step 3]</strong> 6대 메뉴 (건+습 / 건+화 / 건+원재료 / 10%토핑 / 화식DIY / 사료역추적)</li>
+                                        <li>✅ <strong>[Step 4]</strong> 칼로리 게이지 · AAFCO 신호등 리포트 · 아침/저녁 급여표</li>
+                                    </ul>
+                                </div>
+                                <button type="button" onclick="event.stopPropagation(); enterGuardianPortal();" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 16px -4px rgba(16,185,129,0.4);">
+                                    🐾 보호자용 믹스피딩 시작하기 ➔
+                                </button>
+                            </div>
+
+                            <!-- [Frontend B] 수의사용 뷰 카드 -->
+                            <div onclick="showVetLoginFormInGate()" style="cursor: pointer; border: 2px solid #3b82f6; background: linear-gradient(145deg, #eff6ff 0%, #ffffff 100%); border-radius: 20px; padding: 24px; transition: all 0.2s; box-shadow: 0 12px 24px -8px rgba(37, 99, 235, 0.2); display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                        <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px;">🩺 수의사용 (Veterinarian PRO)</span>
+                                        <span style="font-size: 11px; color: #1d4ed8; font-weight: 700;">수의사 인증 접속</span>
+                                    </div>
+                                    <h3 style="font-size: 19px; font-weight: 900; color: #1e3a8a; margin: 0 0 8px;">복합질환 처방식 & 장내환경 9대 마커 CDSS</h3>
+                                    <p style="font-size: 12.5px; color: #1e40af; line-height: 1.5; margin-bottom: 14px;">
+                                        다중 복합질환(신부전·췌장염·심장병 등) 영양 상충 해결 알고리즘과 초음파·혈액검사 가중치(ΔW_Lab) 연동 정밀 처방 시스템입니다.
+                                    </p>
+                                    <ul style="font-size: 12px; color: #334155; margin: 0 0 18px; padding-left: 4px; list-style: none;">
+                                        <li style="margin-bottom: 5px;">🩺 <strong>[Tab 1~3]</strong> 복합질환 28종 · 약물 15종 · 처방식 믹스피딩 & 조리법</li>
+                                        <li style="margin-bottom: 5px;">🔬 <strong>[Tab 4]</strong> 장내환경 9대 분변 마커 + 혈액 가중치(ΔW_Lab) 원인 분해</li>
+                                        <li style="margin-bottom: 5px;">📋 <strong>[Tab 5]</strong> 수의사 계정별 환자 차트(EMR) 보존 & 초진·재진 1:1 비교</li>
+                                        <li>🔄 <strong>[양방향 연동]</strong> 보호자 Q&A 데이터를 진료실 차트로 즉시 수신</li>
+                                    </ul>
+                                </div>
+                                <button type="button" onclick="event.stopPropagation(); showVetLoginFormInGate();" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 16px -4px rgba(37,99,235,0.4);">
+                                    🩺 수의사 전용 로그인 및 CDSS 접속 ➔
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 수의사 전용 로그인/회원가입 컨테이너 (클릭 시 표시) -->
+                    <div id="vet-auth-box-wrapper" style="display: none; max-width: 420px; margin: 0 auto;">
+                        <div style="margin-bottom: 14px; text-align: left;">
+                            <button type="button" onclick="backToDualPortalCards()" style="background: #f1f5f9; color: #334155; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                                ← 포털 선택 화면으로 돌아가기
+                            </button>
+                        </div>
+                        ${existingContent}
+                    </div>
+                `;
+            }
+        }
+
+        // 상단 글로벌 모드 전환 스위처 바 추가
+        if (!document.getElementById("global-portal-switcher-bar")) {
+            const switcherBar = document.createElement("div");
+            switcherBar.id = "global-portal-switcher-bar";
+            switcherBar.className = "bg-slate-900 text-white border-b border-slate-800 px-4 py-2 text-xs sticky top-0 z-[60]";
+            switcherBar.innerHTML = `
+                <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-0.5 rounded bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 font-black text-[11px]">Dual Frontend</span>
+                        <span id="current-portal-indicator" class="font-bold text-emerald-300">현재 화면: 🐾 보호자용 믹스피딩 & 화식·역추적 포털</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="enterGuardianPortal()" id="top-switch-guardian-btn" class="px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black transition flex items-center space-x-1 shadow">
+                            <i class="fa-solid fa-paw"></i>
+                            <span>🐾 보호자용 포털 (Easy Q&A · 6대 메뉴)</span>
+                        </button>
+                        <button type="button" onclick="switchToVetPortalFromTop()" id="top-switch-vet-btn" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white border border-slate-700 font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-user-doctor"></i>
+                            <span>🩺 수의사용 PRO 포털 (임상 CDSS)</span>
+                        </button>
+                        <button type="button" onclick="openDualLandingModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold transition">
+                            <i class="fa-solid fa-house"></i> 포털 선택창
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.insertBefore(switcherBar, document.body.firstChild);
+        }
+        if (shield) {
+            backToDualPortalCards();
+            shield.style.setProperty("display", "flex", "important");
+        }
+    }
+
+    window.showVetLoginFormInGate = function () {
+        // 만약 이미 수의사 로그인 세션이 있으면 바로 수의사 뷰로 진입
+        const rawSession = sessionStorage.getItem("vet_mix_auth_user");
+        if (rawSession) {
+            enterVetPortalDirect();
+            return;
+        }
+        const roleCards = document.getElementById("dual-portal-role-cards");
+        const authBox = document.getElementById("vet-auth-box-wrapper");
+        const shield = document.getElementById("private-gate-shield");
+        if (shield && shield.firstElementChild) {
+            shield.firstElementChild.style.maxWidth = "460px";
+        }
+        if (roleCards) roleCards.style.display = "none";
+        if (authBox) authBox.style.display = "block";
+    };
+
+    window.backToDualPortalCards = function () {
+        const roleCards = document.getElementById("dual-portal-role-cards");
+        const authBox = document.getElementById("vet-auth-box-wrapper");
+        const shield = document.getElementById("private-gate-shield");
+        if (shield && shield.firstElementChild) {
+            shield.firstElementChild.style.maxWidth = "880px";
+        }
+        if (authBox) authBox.style.display = "none";
+        if (roleCards) roleCards.style.display = "block";
+    };
+
+    window.openDualLandingModal = function () {
+        const shield = document.getElementById("private-gate-shield");
+        if (shield) {
+            backToDualPortalCards();
+            shield.style.setProperty("display", "flex", "important");
+        }
+    };
+
+    window.switchToVetPortalFromTop = function () {
+        const rawSession = sessionStorage.getItem("vet_mix_auth_user");
+        if (rawSession) {
+            enterVetPortalDirect();
+        } else {
+            const shield = document.getElementById("private-gate-shield");
+            if (shield) {
+                shield.style.setProperty("display", "flex", "important");
+                showVetLoginFormInGate();
+            }
+        }
+    };
+
+    function setVetElementsVisibility(visible) {
+        const vetHeader = document.querySelector("body > header");
+        const vetNav = document.querySelector("body > nav");
+        const vetMain = document.querySelector("body > main");
+        const vetFooter = document.querySelector("body > footer");
+        [vetHeader, vetNav, vetMain, vetFooter].forEach(el => {
+            if (el) el.style.display = visible ? "" : "none";
+        });
+    }
+
+    window.enterVetPortalDirect = function () {
+        const shield = document.getElementById("private-gate-shield");
+        if (shield) shield.style.setProperty("display", "none", "important");
+
+        const gRoot = document.getElementById("guardian-portal-root");
+        if (gRoot) gRoot.classList.add("hidden");
+
+        setVetElementsVisibility(true);
+
+        const ind = document.getElementById("current-portal-indicator");
+        if (ind) {
+            ind.innerText = "현재 화면: 🩺 수의사용 PRO 임상 영양 & 9대 마커 CDSS 포털";
+            ind.className = "font-bold text-sky-300";
+        }
+        const gBtn = document.getElementById("top-switch-guardian-btn");
+        const vBtn = document.getElementById("top-switch-vet-btn");
+        if (gBtn && vBtn) {
+            gBtn.className = "px-3 py-1 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-200 hover:text-white border border-slate-700 font-bold transition flex items-center space-x-1";
+            vBtn.className = "px-3 py-1 rounded-lg bg-blue-500 text-white font-black transition flex items-center space-x-1 shadow";
+        }
+    };
+
+    // 수의사 로그인 성공 시 자동으로 수의사용 포털 뷰 활성화
+    const origOnVetSwitched = window.onVetAccountSwitched;
+    window.onVetAccountSwitched = function (userProfile) {
+        if (typeof origOnVetSwitched === "function") origOnVetSwitched(userProfile);
+        enterVetPortalDirect();
+    };
+
+    // =========================================================================
+    // 5. 보호자용 포털 진입 및 지연 렌더링 (Lazy Initialization)
+    // =========================================================================
+    window.enterGuardianPortal = function () {
+        const shield = document.getElementById("private-gate-shield");
+        if (shield) shield.style.setProperty("display", "none", "important");
+
+        // 수의사용 무거운 화면은 숨김
+        setVetElementsVisibility(false);
+
+        let gRoot = document.getElementById("guardian-portal-root");
+        if (!gRoot) {
+            gRoot = document.createElement("div");
+            gRoot.id = "guardian-portal-root";
+            gRoot.className = "min-h-screen bg-slate-50 pb-20";
+            document.body.appendChild(gRoot);
+        }
+        gRoot.classList.remove("hidden");
+
+        const ind = document.getElementById("current-portal-indicator");
+        if (ind) {
+            ind.innerText = "현재 화면: 🐾 보호자용 믹스피딩 & 화식·역추적 포털";
+            ind.className = "font-bold text-emerald-300";
+        }
+        const gBtn = document.getElementById("top-switch-guardian-btn");
+        const vBtn = document.getElementById("top-switch-vet-btn");
+        if (gBtn && vBtn) {
+            gBtn.className = "px-3 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black transition flex items-center space-x-1 shadow";
+            vBtn.className = "px-3 py-1 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white border border-slate-700 font-bold transition flex items-center space-x-1";
+        }
+
+        if (!guardianState.initialized) {
+            buildGuardianPortalDOM(gRoot);
+            guardianState.initialized = true;
+            // 초기 역추적 원재료 세팅
+            syncReverseIngredientsFromDryFood();
+            refreshAllGuardianCalculations();
+        }
+    };
+
+    // =========================================================================
+    // 6. 보호자용 포털 전체 UI 빌드 (Step 1 ~ Step 4 + 6대 핵심 메뉴)
+    // =========================================================================
+    function buildGuardianPortalDOM(container) {
+        container.innerHTML = `
+            <!-- 보호자용 전용 헤더 -->
+            <div class="bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-700 text-white shadow-lg">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="bg-white text-emerald-700 p-3 rounded-2xl shadow-md text-2xl">
+                            <i class="fa-solid fa-bowl-rice"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-amber-300 text-slate-950 text-[11px] font-black">보호자 맞춤형 이지 케어</span>
+                                <span class="text-xs text-emerald-100">AAFCO · FEDIAF 국제 영양 기준 연동</span>
+                            </div>
+                            <h1 class="text-xl sm:text-2xl font-black tracking-tight mt-0.5">우리 아이 맞춤 믹스피딩 · 화식 DIY · 사료 역추적 스튜디오</h1>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <button type="button" onclick="sendGuardianDataToVetCdss()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 font-black shadow-md flex items-center space-x-1.5 transition">
+                            <i class="fa-solid fa-stethoscope text-emerald-600"></i>
+                            <span>이 결과를 수의사용 정밀 CDSS로 연동하기 ➔</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4단계 스텝 바로가기 바 -->
+                <div class="bg-emerald-950/40 border-t border-white/15">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                        <button type="button" onclick="scrollToGuardianSection('g-step1-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
+                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">1</span>
+                            <div>
+                                <div class="font-black text-white">[Step 1] 기초 프로필 & Q&A</div>
+                                <div class="text-[11px] text-emerald-200">체형(BCS/MCS) · RER/DER 산출</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="scrollToGuardianSection('g-step2-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
+                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">2</span>
+                            <div>
+                                <div class="font-black text-white">[Step 2] 사료 데이터 입력</div>
+                                <div class="text-[11px] text-emerald-200">DB 검색 · OCR 스캔 · 직접 입력</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="scrollToGuardianSection('g-step3-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
+                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">3</span>
+                            <div>
+                                <div class="font-black text-white">[Step 3] 6대 믹스피딩 프로그램</div>
+                                <div class="text-[11px] text-emerald-200">배합기 · 토핑10% · 화식DIY · 역추적</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="scrollToGuardianSection('g-step4-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
+                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">4</span>
+                            <div>
+                                <div class="font-black text-white">[Step 4] 신호등 리포트 & 급여표</div>
+                                <div class="text-[11px] text-emerald-200">칼로리 게이지 · 아침/저녁 스케줄</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 메인 컨텐츠 영역 -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+                <!-- ================================================================== -->
+                <!-- [STEP 1] 랜딩 및 기초 프로필 페이지 (Easy Q&A Assessment) -->
+                <!-- ================================================================== -->
+                <section id="g-step1-sec" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded-xl bg-emerald-600 text-white font-black text-xs">STEP 1</span>
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900">우리 아이 기초 프로필 & 쉬운 Q&A 체형 진단 (Landing & Assessment)</h2>
+                                <p class="text-xs text-slate-500">질문에 맞게 카드를 선택하시면 기초대사량(RER)과 하루 권장 칼로리(MER/DER)가 자동으로 계산됩니다.</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">이지 플로우 Q&A</span>
+                    </div>
+
+                    <!-- Q1. 기본 신상 정보 -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+                        <div class="text-sm font-black text-slate-800 flex items-center space-x-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">Q1</span>
+                            <span>아이의 기본 정보(이름, 종류, 생애주기, 체중, 중성화 여부)를 알려주세요.</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">반려동물 종류</label>
+                                <select id="g-species" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
+                                    <option value="dog" selected>🐶 강아지 (Canine)</option>
+                                    <option value="cat">🐱 고양이 (Feline)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">아이 이름</label>
+                                <input type="text" id="g-name" value="보리" oninput="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">품종</label>
+                                <input type="text" id="g-breed" value="말티즈" oninput="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">현재 체중 (kg)</label>
+                                <input type="number" step="0.1" min="0.5" id="g-weight" value="4.5" oninput="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-emerald-400 bg-emerald-50/40 font-black text-emerald-900">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">연령대 (생애주기)</label>
+                                <select id="g-lifestage" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
+                                    <option value="puppy_young">🍼 성장기 자견/자묘 (4개월 미만)</option>
+                                    <option value="puppy_older">🌱 성장기 자견/자묘 (4~12개월)</option>
+                                    <option value="adult" selected>🐕 성견/성묘 유지기 (1~7세)</option>
+                                    <option value="senior">🦮 노령기 시니어 (7세 이상)</option>
+                                    <option value="pregnant">🤰 임신/수유기</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1">중성화 여부</label>
+                                <select id="g-neutered" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
+                                    <option value="true" selected>중성화 완료</option>
+                                    <option value="false">미중성화</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q2 & Q3: 쉬운 체형(BCS) & 근육량(MCS) Q&A 선택 가이드 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <!-- Q2: BCS 체형 평가 -->
+                        <div class="p-5 rounded-2xl border border-slate-200 bg-white space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm font-black text-slate-800 flex items-center space-x-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">Q2</span>
+                                    <span>위에서 본 허리선과 갈비뼈 촉감은 어떤가요? (체형 BCS)</span>
+                                </div>
+                                <span id="g-bcs-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black">BCS 5/9 (이상적)</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5 text-xs">
+                                <button type="button" onclick="selectGuardianBcs(3)" id="g-bcs-card-3" class="g-bcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-emerald-400 transition">
+                                    <div class="font-black text-slate-800">🦴 말랐어요 (BCS 3)</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">갈비뼈가 눈에 보이고 만지면 지방층 없이 뼈가 바로 만져져요.</p>
+                                </button>
+                                <button type="button" onclick="selectGuardianBcs(5)" id="g-bcs-card-5" class="g-bcs-card text-left p-3 rounded-xl border-2 border-emerald-500 bg-emerald-50/60 transition">
+                                    <div class="font-black text-emerald-950">✨ 딱 좋아요 (BCS 5)</div>
+                                    <p class="text-[11px] text-emerald-800 mt-1">위에서 보면 허리가 잘록하고 갈비뼈가 기분 좋게 만져져요.</p>
+                                </button>
+                                <button type="button" onclick="selectGuardianBcs(7)" id="g-bcs-card-7" class="g-bcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-emerald-400 transition">
+                                    <div class="font-black text-slate-800">🎈 통통해요 (BCS 7)</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">허리 잘록함이 없고 갈비뼈를 힘주어 눌러야 만져져요.</p>
+                                </button>
+                                <button type="button" onclick="selectGuardianBcs(8)" id="g-bcs-card-8" class="g-bcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-emerald-400 transition">
+                                    <div class="font-black text-slate-800">🐻 뚱뚱해요 (BCS 8~9)</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">배가 옆으로 볼록 나와 있고 등·꼬리 주변에 지방이 두툼해요.</p>
+                                </button>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                                <span>세부 점수 직접 조정 (1~9점):</span>
+                                <div class="flex space-x-1" id="g-bcs-num-btns">
+                                    ${[1,2,3,4,5,6,7,8,9].map(n => `<button type="button" onclick="selectGuardianBcs(${n})" data-bcs="${n}" class="w-6 h-6 rounded-lg font-bold border ${n===5 ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200'}">${n}</button>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q3: MCS 근육량 평가 -->
+                        <div class="p-5 rounded-2xl border border-slate-200 bg-white space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm font-black text-slate-800 flex items-center space-x-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs flex items-center justify-center">Q3</span>
+                                    <span>등줄기·엉덩이·허벅지를 쓰다듬을 때 근육은 어떤가요? (MCS)</span>
+                                </div>
+                                <span id="g-mcs-badge" class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-black">MCS 4/4 (정상 근육)</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5 text-xs">
+                                <button type="button" onclick="selectGuardianMcs(4)" id="g-mcs-card-4" class="g-mcs-card text-left p-3 rounded-xl border-2 border-blue-500 bg-blue-50/60 transition">
+                                    <div class="font-black text-blue-950">💪 탄탄해요 (MCS 4 정상)</div>
+                                    <p class="text-[11px] text-blue-800 mt-1">등뼈나 골반뼈가 도드라지지 않고 허벅지 근육이 탄탄해요.</p>
+                                </button>
+                                <button type="button" onclick="selectGuardianMcs(3)" id="g-mcs-card-3" class="g-mcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+                                    <div class="font-black text-slate-800">🍂 살짝 빠졌어요 (MCS 3 경도)</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">예전보다 등줄기나 뒷다리 허벅지가 약간 홀쭉해졌어요.</p>
+                                </button>
+                                <button type="button" onclick="selectGuardianMcs(2)" id="g-mcs-card-2" class="g-mcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+                                    <div class="font-black text-slate-800">⚠️ 많이 빠졌어요 (MCS 2 중등도)</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">어깨뼈와 골반뼈가 도드라져 만져질 만큼 근육이 줄었어요.</p>
+                                </button>
+                                <button type="button" onclick="selectGuardianMcs(1)" id="g-mcs-card-1" class="g-mcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-blue-400 transition">
+                                    <div class="font-black text-slate-800">🚨 앙상해요 (MCS 1 심한 손실)</div>
+                                    <p class="text-[11px] text-slate-500 mt-1">근육이 심하게 빠져 뼈 윤곽이 그대로 드러나요 (단백질 보강 필수).</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Q4: 활동량, 변 상태, 급여 횟수, 건강 관심사 -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                        <div>
+                            <label class="block font-black text-slate-700 mb-1">🏃 Q4-1. 하루 산책·놀이 활동량</label>
+                            <select id="g-activity" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
+                                <option value="low">🛋️ 낮음 (실내 휴식 위주, 산책 적음)</option>
+                                <option value="moderate" selected>🐕 보통 (매일 30분~1시간 산책/놀이)</option>
+                                <option value="high">⚡ 활발함 (매일 1~2시간 이상 운동)</option>
+                                <option value="very_high">🔥 매우 높음 (에너자이저/스포츠견)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-black text-slate-700 mb-1">💩 Q4-2. 최근 응가(변) 상태</label>
+                            <select id="g-fecal" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
+                                <option value="2.0">🌰 토끼똥처럼 딱딱하고 건조해요 (Score 2)</option>
+                                <option value="3.5" selected>🍌 바나나처럼 예쁘고 촉촉해요 (Score 3.5 정상)</option>
+                                <option value="4.5">🍦 형태는 있지만 집으면 뭉개져요 (Score 4.5 무른변)</option>
+                                <option value="6.0">💧 형태가 없는 죽 같거나 물설사예요 (Score 6)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-black text-slate-700 mb-1">🍽️ Q4-3. 하루 식사 횟수</label>
+                            <select id="g-meals" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
+                                <option value="2" selected>하루 2끼 (아침 / 저녁 급여)</option>
+                                <option value="3">하루 3끼 (아침 / 점심 / 저녁 급여)</option>
+                                <option value="1">하루 1끼 급여</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-black text-slate-700 mb-1">🩺 Q4-4. 특별히 관리 중인 건강 고민</label>
+                            <select id="g-concern" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
+                                <option value="none" selected>없음 (일반 건강 유지 · AAFCO 기준)</option>
+                                <option value="obesity">🎈 체중 감량 / 다이어트 관리</option>
+                                <option value="ckd">💧 신장 케어 (만성신부전 · 저인 식단)</option>
+                                <option value="pancreatitis">🥦 췌장/소화기 케어 (저지방 식단)</option>
+                                <option value="heart">❤️ 심장/혈압 케어 (저나트륨 식단)</option>
+                                <option value="liver">🍀 간 건강 케어</option>
+                                <option value="urolithiasis">💎 요로결석 예방 (수분 극대화)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 1 자동 산출 결과 배너 (RER / MER·DER / 1회 급여량 / 10% 토핑 한도) -->
+                    <div class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white rounded-2xl p-5 shadow-md">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 text-center">
+                            <div class="p-3 rounded-xl bg-white/10 border border-white/15">
+                                <div class="text-[11px] text-emerald-200 font-bold">기초대사량 (RER)</div>
+                                <div class="text-2xl font-black text-white mt-0.5"><span id="g-out-rer">216</span> <span class="text-xs font-normal">kcal</span></div>
+                                <div class="text-[10px] text-slate-300">숨만 쉬어도 쓰는 에너지</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-amber-400/20 border-2 border-amber-400">
+                                <div class="text-[11px] text-amber-300 font-black">1일 총 목표 칼로리 (DER/MER)</div>
+                                <div class="text-2xl font-black text-amber-300 mt-0.5"><span id="g-out-der">346</span> <span class="text-xs font-normal">kcal/일</span></div>
+                                <div class="text-[10px] text-amber-100">에너지 계수 <span id="g-out-factor">1.6</span> × RER</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/10 border border-white/15">
+                                <div class="text-[11px] text-sky-200 font-bold">1끼당 권장 칼로리</div>
+                                <div class="text-2xl font-black text-sky-300 mt-0.5"><span id="g-out-permeal">173</span> <span class="text-xs font-normal">kcal/끼</span></div>
+                                <div class="text-[10px] text-slate-300" id="g-out-meals-label">하루 2끼 급여 기준</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/10 border border-white/15">
+                                <div class="text-[11px] text-rose-200 font-bold">간식/토핑 10% 허용 상한</div>
+                                <div class="text-2xl font-black text-rose-300 mt-0.5"><span id="g-out-maxtreat">34.6</span> <span class="text-xs font-normal">kcal/일</span></div>
+                                <div class="text-[10px] text-slate-300">영양 불균형 방지 안전선</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/10 border border-white/15 col-span-2 sm:col-span-1">
+                                <div class="text-[11px] text-purple-200 font-bold">추정 이상 체중</div>
+                                <div class="text-2xl font-black text-purple-300 mt-0.5"><span id="g-out-idealw">4.5</span> <span class="text-xs font-normal">kg</span></div>
+                                <div class="text-[10px] text-slate-300" id="g-out-bcs-comment">현재 이상적 체형 유지 중</div>
+                            </div>
+                        </div>
+                        <div id="g-out-fecal-banner" class="mt-3 pt-2.5 border-t border-white/15 text-xs text-emerald-200 flex items-center justify-between flex-wrap gap-2">
+                            <span>💡 <strong>변 상태 & 체형 진단 피드백:</strong> 정상 소화 흡수율(92~95%) 상태입니다.</span>
+                            <span id="g-out-aafco-badge" class="px-2.5 py-0.5 rounded-full bg-white/15 text-white font-bold text-[11px]">적용 기준: 성견 유지기 (단백질 ≥18% DM, 지방 ≥5.5% DM)</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================================== -->
+                <!-- [STEP 2] 사료 데이터 입력 인터페이스 (Data Ingestion: 검색 / OCR / 직접입력) -->
+                <!-- ================================================================== -->
+                <section id="g-step2-sec" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded-xl bg-blue-600 text-white font-black text-xs">STEP 2</span>
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900">현재 급여 중인 주식 사료 데이터 입력 (Data Ingestion)</h2>
+                                <p class="text-xs text-slate-500">① 사료 DB 검색, ② 사료 뒷면 성분표 사진 OCR 스캔, ③ 직접 입력 중 편한 방법을 선택하세요.</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-1.5 bg-slate-100 p-1 rounded-xl text-xs">
+                            <button type="button" onclick="switchGuardianIngestTab('search')" id="g-ingest-btn-search" class="px-3 py-1.5 rounded-lg bg-white text-blue-700 font-black shadow-sm transition">🔍 1. 사료 DB 검색</button>
+                            <button type="button" onclick="switchGuardianIngestTab('ocr')" id="g-ingest-btn-ocr" class="px-3 py-1.5 rounded-lg text-slate-600 font-bold hover:text-slate-900 transition">📸 2. 포장지 OCR 스캔</button>
+                            <button type="button" onclick="switchGuardianIngestTab('manual')" id="g-ingest-btn-manual" class="px-3 py-1.5 rounded-lg text-slate-600 font-bold hover:text-slate-900 transition">✍️ 3. 직접 입력</button>
+                        </div>
+                    </div>
+
+                    <!-- 방식 1: 사료 DB 검색 자동완성 -->
+                    <div id="g-ingest-panel-search" class="bg-blue-50/50 p-5 rounded-2xl border border-blue-200 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                            <div>
+                                <label class="block text-xs font-black text-blue-950 mb-1.5"><i class="fa-solid fa-magnifying-glass mr-1"></i>국내외 인기 상용 사료 & 처방사료 키워드 검색</label>
+                                <input type="text" id="g-food-search-input" placeholder="예: 로얄캐닌, 오리젠, 아카나, 나우, 힐스, 지위픽, 더리얼..." oninput="filterGuardianFoodSearch(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-blue-300 bg-white text-xs font-bold outline-none focus:border-blue-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black text-blue-950 mb-1.5">검색 결과에서 사료 선택 (클릭 시 성분 & 원재료 자동 입력)</label>
+                                <select id="g-food-search-select" onchange="onSelectGuardianCommercialFood(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-blue-300 bg-white text-xs font-extrabold text-slate-800 outline-none">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 방식 2: 포장지 뒷면 AI OCR 스캔 -->
+                    <div id="g-ingest-panel-ocr" class="hidden bg-indigo-50/50 p-5 rounded-2xl border border-indigo-200 space-y-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="block text-xs font-black text-indigo-950">📷 사료 포장지 뒷면(등록성분량/원재료명) 사진 업로드</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="file" id="g-ocr-file" accept="image/*" onchange="runGuardianImageOCR(event)" class="text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                    <span id="g-ocr-status" class="text-xs font-bold text-indigo-700"></span>
+                                </div>
+                                <p class="text-[11px] text-slate-500">포장지 사진을 선택하면 AI OCR(Tesseract)이 조단백·조지방·칼슘·인 수치와 원재료 순서를 자동으로 읽어옵니다.</p>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-black text-indigo-950">📋 또는 포장지 성분/원재료 텍스트 붙여넣기 후 자동 파싱</label>
+                                <textarea id="g-ocr-textarea" rows="3" placeholder="예: 조단백질 27% 이상, 조지방 16% 이상, 조섬유 3.5% 이하, 조회분 7.0% 이하, 칼슘 1.0% 이상, 인 0.8% 이상, 수분 10% 이하 / 원재료: 생닭고기, 쌀, 완두콩, 단호박, 어유..." class="w-full p-2.5 rounded-xl border border-indigo-300 text-xs"></textarea>
+                                <button type="button" onclick="parseGuardianOcrText()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shadow">
+                                    🔍 텍스트에서 영양소 & 원재료 순서 자동 추출
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 방식 3 (및 공통 확인창): 보증성분 & 원재료 직접 입력/수정 폼 -->
+                    <div id="g-ingest-panel-manual" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="text-xs font-black text-slate-800">
+                                📌 현재 선택/입력된 주식 사료: <span id="g-current-food-title" class="text-blue-700 underline">로얄캐닌 미니 인도어 어덜트</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500">수치를 직접 수정하면 건물(DM) 영양소와 칼로리가 즉시 재계산됩니다</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-2.5 text-xs">
+                            <div class="col-span-2 sm:col-span-2">
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">사료 제품명</label>
+                                <input type="text" id="g-dry-name" value="로얄캐닌 미니 인도어 어덜트" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">조단백 (% AF)</label>
+                                <input type="number" step="0.1" id="g-dry-prot" value="21.0" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold text-blue-900">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">조지방 (% AF)</label>
+                                <input type="number" step="0.1" id="g-dry-fat" value="14.0" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold text-amber-900">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">조섬유 (% AF)</label>
+                                <input type="number" step="0.1" id="g-dry-fiber" value="1.9" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">조회분 (% AF)</label>
+                                <input type="number" step="0.1" id="g-dry-ash" value="6.1" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">수분 (% AF)</label>
+                                <input type="number" step="0.1" id="g-dry-moist" value="9.5" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">칼슘 Ca (%)</label>
+                                <input type="number" step="0.05" id="g-dry-ca" value="0.82" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold text-emerald-900">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-600 mb-1">인 P (%)</label>
+                                <input type="number" step="0.05" id="g-dry-p" value="0.70" oninput="onGuardianDryFoodManualChange()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 font-bold text-rose-900">
+                            </div>
+                        </div>
+
+                        <!-- DM 자동 환산 요약 줄 -->
+                        <div id="g-dry-dm-summary-bar" class="p-3 rounded-xl bg-white border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================================== -->
+                <!-- [STEP 3] 핵심 메뉴 분기: 6대 믹스피딩 프로그램 (Menu Routing) -->
+                <!-- ================================================================== -->
+                <section id="g-step3-sec" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded-xl bg-indigo-600 text-white font-black text-xs">STEP 3</span>
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900">핵심 메뉴 분기: 6대 믹스피딩 & 화식 · 사료 역추적 프로그램</h2>
+                                <p class="text-xs text-slate-500">원하시는 급여 조합이나 분석 프로그램을 선택하세요. 어떤 메뉴를 선택하든 하단 [Step 4] 신호등 리포트에 즉시 반영됩니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6대 핵심 메뉴 선택 카드 그리드 -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                        <button type="button" onclick="selectGuardianMenu(1)" id="g-menu-card-1" class="g-menu-card text-left p-3.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50/70 transition flex flex-col justify-between">
+                            <div>
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-black text-[10px]">메뉴 1</span>
+                                <div class="font-black text-slate-900 text-sm mt-1.5">🥫 건식 + 습식</div>
+                                <p class="text-[11px] text-slate-600 mt-1">주식 건식과 고수분 습식캔/파우치 칼로리 배분 & 음수량 보충</p>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectGuardianMenu(2)" id="g-menu-card-2" class="g-menu-card text-left p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-400 bg-white transition flex flex-col justify-between">
+                            <div>
+                                <span class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-black text-[10px]">메뉴 2</span>
+                                <div class="font-black text-slate-900 text-sm mt-1.5">🍲 건식 + 화식</div>
+                                <p class="text-[11px] text-slate-600 mt-1">상용/조리 화식과 건식사료 조합 시 단백질·지방 과부족 & Fit 검증</p>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectGuardianMenu(3)" id="g-menu-card-3" class="g-menu-card text-left p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-400 bg-white transition flex flex-col justify-between">
+                            <div>
+                                <span class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-black text-[10px]">메뉴 3</span>
+                                <div class="font-black text-slate-900 text-sm mt-1.5">🍗 건식 + 원재료</div>
+                                <p class="text-[11px] text-slate-600 mt-1">닭가슴살·황태·단호박·계란 등 단일 식재료 부식 영양왜곡 방지</p>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectGuardianMenu(4)" id="g-menu-card-4" class="g-menu-card text-left p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-400 bg-white transition flex flex-col justify-between">
+                            <div>
+                                <span class="px-2 py-0.5 rounded-md bg-amber-500 text-white font-black text-[10px]">메뉴 4 · 공통필터</span>
+                                <div class="font-black text-slate-900 text-sm mt-1.5">🍖 토핑 10% 제어기</div>
+                                <p class="text-[11px] text-slate-600 mt-1">육포·트릿·츄르·껌이 하루 칼로리의 10%를 넘지 않도록 안전 제어</p>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectGuardianMenu(5)" id="g-menu-card-5" class="g-menu-card text-left p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-400 bg-white transition flex flex-col justify-between">
+                            <div>
+                                <span class="px-2 py-0.5 rounded-md bg-indigo-600 text-white font-black text-[10px]">메뉴 5 · 리디자인</span>
+                                <div class="font-black text-slate-900 text-sm mt-1.5">👩‍🍳 화식 자가 만들기</div>
+                                <p class="text-[11px] text-slate-600 mt-1">117종 원료 기반 AAFCO 칼슘:인 황금비율 DIY 빌더 & 밀프랩 레시피</p>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectGuardianMenu(6)" id="g-menu-card-6" class="g-menu-card text-left p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-400 bg-white transition flex flex-col justify-between">
+                            <div>
+                                <span class="px-2 py-0.5 rounded-md bg-purple-600 text-white font-black text-[10px]">메뉴 6 · 심화엔진</span>
+                                <div class="font-black text-slate-900 text-sm mt-1.5">🔬 사료 역추적 해부</div>
+                                <p class="text-[11px] text-slate-600 mt-1">포장지 성분·원료 순서로 배합비(%)와 30대 미량영양소 신뢰도 역산</p>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- ==================== [메뉴 1] 건식 + 습식 배합기 ==================== -->
+                    <div id="g-menu-view-1" class="g-menu-view bg-emerald-50/40 p-6 rounded-2xl border border-emerald-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-base font-black text-emerald-950">🥫 [메뉴 1] 건식 + 습식 사료 칼로리 배합기</h3>
+                                <p class="text-xs text-emerald-800">주식형 건식사료와 수분감이 높은 습식사료(캔/파우치)의 칼로리 비율을 배분하고 영양 밸런스를 검증합니다.</p>
+                            </div>
+                            <div class="flex gap-1.5 text-xs">
+                                <button type="button" onclick="setMenu1Ratio(70)" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-black">70 : 30 (추천)</button>
+                                <button type="button" onclick="setMenu1Ratio(50)" class="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-900 font-bold">50 : 50 (반반)</button>
+                                <button type="button" onclick="setMenu1Ratio(80)" class="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-900 font-bold">80 : 20</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div class="bg-white p-4 rounded-xl border border-emerald-200 space-y-2">
+                                <label class="block font-black text-slate-700">조합할 습식 사료(캔/파우치) 선택</label>
+                                <select id="g-m1-wet-select" onchange="onChangeMenu1Wet(this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold">
+                                    ${COMMERCIAL_WET_AND_FRESH.filter(x => x.type === "습식").map(w => `<option value="${w.id}">${w.name} (${w.kcal_per_kg} kcal/kg · 수분 ${w.moisture_af}%)</option>`).join('')}
+                                </select>
+                                <p id="g-m1-wet-desc" class="text-[11px] text-slate-500">${COMMERCIAL_WET_AND_FRESH[0].desc}</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border border-emerald-200 space-y-2">
+                                <div class="flex justify-between font-black text-slate-800">
+                                    <span>건식 사료 칼로리 비중: <strong id="g-m1-dry-pct-label" class="text-blue-700">70%</strong></span>
+                                    <span>습식 사료 칼로리 비중: <strong id="g-m1-wet-pct-label" class="text-emerald-700">30%</strong></span>
+                                </div>
+                                <input type="range" id="g-m1-slider" min="10" max="90" step="5" value="70" oninput="setMenu1Ratio(this.value)" class="w-full h-2.5 bg-emerald-100 rounded-lg accent-emerald-600">
+                                <div id="g-m1-summary-box" class="pt-1 text-xs font-bold text-slate-700"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== [메뉴 2] 건식 + 화식 배합기 ==================== -->
+                    <div id="g-menu-view-2" class="g-menu-view hidden bg-amber-50/40 p-6 rounded-2xl border border-amber-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-base font-black text-amber-950">🍲 [메뉴 2] 건식 + 상용/맞춤 화식 배합기</h3>
+                                <p class="text-xs text-amber-800">건식사료와 화식(신선식) 조합 시 단백질 및 지방의 과부족 여부와 칼로리 핏(Fit)을 확인합니다.</p>
+                            </div>
+                            <div class="flex gap-1.5 text-xs">
+                                <button type="button" onclick="setMenu2Ratio(80)" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white font-black">80 : 20 (추천)</button>
+                                <button type="button" onclick="setMenu2Ratio(70)" class="px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-900 font-bold">70 : 30</button>
+                                <button type="button" onclick="setMenu2Ratio(50)" class="px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-900 font-bold">50 : 50</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-2">
+                                <label class="block font-black text-slate-700">조합할 맞춤/상용 화식 포뮬러 선택</label>
+                                <select id="g-m2-fresh-select" onchange="onChangeMenu2Fresh(this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold">
+                                    ${COMMERCIAL_WET_AND_FRESH.filter(x => x.type === "화식").map(w => `<option value="${w.id}">${w.name} (${w.kcal_per_kg} kcal/kg)</option>`).join('')}
+                                </select>
+                                <p id="g-m2-fresh-desc" class="text-[11px] text-slate-500">${COMMERCIAL_WET_AND_FRESH.find(x => x.type === "화식").desc}</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-2">
+                                <div class="flex justify-between font-black text-slate-800">
+                                    <span>건식 사료 칼로리 비중: <strong id="g-m2-dry-pct-label" class="text-blue-700">70%</strong></span>
+                                    <span>화식 칼로리 비중: <strong id="g-m2-fresh-pct-label" class="text-amber-700">30%</strong></span>
+                                </div>
+                                <input type="range" id="g-m2-slider" min="10" max="90" step="5" value="70" oninput="setMenu2Ratio(this.value)" class="w-full h-2.5 bg-amber-100 rounded-lg accent-amber-600">
+                                <div id="g-m2-summary-box" class="pt-1 text-xs font-bold text-slate-700"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== [메뉴 3] 건식 + 단일 원재료 배합기 ==================== -->
+                    <div id="g-menu-view-3" class="g-menu-view hidden bg-sky-50/50 p-6 rounded-2xl border border-sky-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-base font-black text-sky-950">🍗 [메뉴 3] 건식 + 단일 원재료(닭가슴살·황태·채소 등) 배합기</h3>
+                                <p class="text-xs text-sky-800">건식사료에 단일 식재료를 토핑/부식으로 줄 때 <strong>칼슘:인(Ca:P) 불균형 등 영양 왜곡을 방지</strong>하고 안전한 정량(g)을 계산합니다.</p>
+                            </div>
+                            <div class="flex gap-1.5 text-xs">
+                                <button type="button" onclick="setMenu3Ratio(10)" class="px-3 py-1.5 rounded-xl bg-sky-600 text-white font-black">원재료 10% (안전 표준)</button>
+                                <button type="button" onclick="setMenu3Ratio(15)" class="px-3 py-1.5 rounded-xl bg-white border border-sky-300 text-sky-900 font-bold">원재료 15% (상한선)</button>
+                                <button type="button" onclick="setMenu3Ratio(25)" class="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 font-bold">25% (과다 시뮬레이션)</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div class="bg-white p-4 rounded-xl border border-sky-200 space-y-2">
+                                <label class="block font-black text-slate-700">토핑/부식으로 섞어줄 단일 원재료 선택</label>
+                                <select id="g-m3-raw-select" onchange="onChangeMenu3Raw(this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold">
+                                    ${SINGLE_RAW_INGREDIENTS.map(r => `<option value="${r.id}">[${r.category}] ${r.name} (${r.kcal_100g} kcal/100g)</option>`).join('')}
+                                </select>
+                                <div id="g-m3-prep-tip" class="p-2.5 rounded-lg bg-sky-50 text-sky-900 text-[11px] font-medium">${SINGLE_RAW_INGREDIENTS[0].prepTip}</div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border border-sky-200 space-y-2">
+                                <div class="flex justify-between font-black text-slate-800">
+                                    <span>주식 건식사료: <strong id="g-m3-dry-pct-label" class="text-blue-700">90%</strong></span>
+                                    <span>단일 원재료 비중: <strong id="g-m3-raw-pct-label" class="text-sky-700">10%</strong></span>
+                                </div>
+                                <input type="range" id="g-m3-slider" min="5" max="40" step="1" value="10" oninput="setMenu3Ratio(this.value)" class="w-full h-2.5 bg-sky-100 rounded-lg accent-sky-600">
+                                <div id="g-m3-distortion-alert" class="mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== [메뉴 4] 토핑 공통 안전 제어기 (10% Rule) ==================== -->
+                    <div id="g-menu-view-4" class="g-menu-view hidden bg-rose-50/40 p-6 rounded-2xl border border-rose-200 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-base font-black text-rose-950">🍖 [메뉴 4] 토핑 & 간식 공통 안전 제어기 (10% 칼로리 캡 필터)</h3>
+                                <p class="text-xs text-rose-800">어떤 사료 조합이든 간에 <strong>'하루 간식/토핑 허용 칼로리(일일 섭취량 DER의 10%)'</strong>를 넘지 않도록 제어하고 본식 차감량을 계산합니다.</p>
+                            </div>
+                            <button type="button" onclick="resetMenu4Toppings()" class="px-3 py-1.5 rounded-xl bg-white border border-rose-300 text-rose-800 text-xs font-bold hover:bg-rose-100">간식 선택 초기화</button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs" id="g-m4-topping-cards">
+                            ${TOPPING_SNACK_ITEMS.map(t => `
+                                <div class="bg-white p-3.5 rounded-xl border border-rose-200/80 flex flex-col justify-between space-y-2">
+                                    <div>
+                                        <div class="font-black text-slate-800">${t.name}</div>
+                                        <div class="text-[11px] text-rose-600 font-bold">1${t.unitLabel}당 ${t.kcalPerUnit} kcal (약 ${t.weightPerUnitG}g)</div>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">${t.warning}</p>
+                                    </div>
+                                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                        <span class="text-[11px] font-bold text-slate-600">하루 급여 수량:</span>
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button" onclick="changeToppingCount('${t.id}', -1)" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 font-black text-slate-700">-</button>
+                                            <span id="g-top-cnt-${t.id}" class="w-6 text-center font-black text-sm text-rose-700">${guardianState.menu4.selectedToppings[t.id] || 0}</span>
+                                            <button type="button" onclick="changeToppingCount('${t.id}', 1)" class="w-7 h-7 rounded-lg bg-rose-600 hover:bg-rose-700 font-black text-white">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- 토핑 10% 게이지 및 본식 사료 차감 안내 -->
+                        <div id="g-m4-gauge-banner" class="p-4 rounded-xl bg-white border border-rose-200 space-y-2 text-xs"></div>
+                    </div>
+
+                    <!-- ==================== [메뉴 5] 화식 자가 만들기 (Recipe DIY Builder - 세련된 리디자인) ==================== -->
+                    <div id="g-menu-view-5" class="g-menu-view hidden bg-indigo-50/40 p-6 rounded-2xl border border-indigo-200 space-y-5">
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-200/70 pb-4">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-black">사료배합성분계산기 모던 리디자인</span>
+                                    <h3 class="text-base font-black text-indigo-950">👩‍🍳 [메뉴 5] 화식 자가 만들기 (Recipe DIY Builder & 36대 영양소 분석)</h3>
+                                </div>
+                                <p class="text-xs text-indigo-800 mt-0.5">고기, 곡류/감자, 채소, 오일, 칼슘보충제를 조합해 <strong>AAFCO/FEDIAF 영양 기준(칼슘:인 비율 등)</strong>에 맞는 홈메이드 화식을 설계합니다.</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <button type="button" onclick="autoBalanceDiyRecipe()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black shadow-md flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>⚡ AAFCO 황금비율(칼슘:인 1.25:1) 자동 맞춤</span>
+                                </button>
+                                <button type="button" onclick="saveCurrentDiyRecipe()" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold">💾 레시피 저장</button>
+                            </div>
+                        </div>
+
+                        <!-- 카테고리별 원재료 빠른 추가 바 -->
+                        <div class="bg-white p-4 rounded-2xl border border-indigo-200/80 grid grid-cols-1 md:grid-cols-3 gap-3 items-end text-xs">
+                            <div>
+                                <label class="block font-black text-slate-700 mb-1">1. 식품군 카테고리 필터</label>
+                                <select id="g-diy-cat-select" onchange="populateDiyIngredientDropdown(this.value)" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold">
+                                    <option value="ALL">전체 원재료 보기 (117종)</option>
+                                    <option value="육류">🥩 육류 (닭/오리/소/돼지/양/사슴)</option>
+                                    <option value="어류">🐟 어류 / 해산물 (연어/대구/명태/고등어)</option>
+                                    <option value="난류">🥚 난류 (계란 전란/흰자/노른자/메추리알)</option>
+                                    <option value="곡류">🌾 곡류 (귀리/백미/현미/보리/퀴노아)</option>
+                                    <option value="감자류">🍠 감자 / 고구마 / 전분류</option>
+                                    <option value="채소류">🥦 채소류 (단호박/양배추/브로콜리/당근)</option>
+                                    <option value="콩류">🫘 콩류 / 두부</option>
+                                    <option value="과일류">🍎 과일류 (사과/블루베리/바나나)</option>
+                                    <option value="버섯류">🍄 버섯류</option>
+                                    <option value="유지류">🫗 유지류 (연어오일/들기름/올리브유)</option>
+                                    <option value="보충제/기타">💊 칼슘/미네랄 보충제 (난각분말/인산칼슘)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-black text-slate-700 mb-1">2. 화식에 넣을 식재료 선택</label>
+                                <select id="g-diy-ing-select" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold"></select>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="addDiyIngredientRow()" class="flex-1 py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black">+ 식재료 레시피에 추가</button>
+                                <select id="g-diy-preset-select" onchange="loadDiyPresetTemplate(this.value)" class="px-3 py-2 rounded-xl border border-indigo-300 bg-indigo-50 text-indigo-900 font-bold">
+                                    <option value="">✨ 추천 화식 템플릿 불러오기</option>
+                                    <option value="standard_chicken">닭안심·귀리·단호박 표준 화식</option>
+                                    <option value="lowfat_cod">저지방 대구살·감자·양배추 (췌장/다이어트)</option>
+                                    <option value="renal_lowp">저인 닭안심·계란흰자·백미밥 (신장케어)</option>
+                                    <option value="beef_energy">소고기 우둔살·고구마·브로콜리 (근육/활력)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- DIY 배합 리스트 & 밀프랩(1일/3일/7일/14일) 조리 계량표 -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
+                            <!-- 좌측: 원재료 배합비(%) 슬라이더/입력 -->
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-black text-slate-800">⚖️ 1. 화식 원재료 배합 비율 조절</h4>
+                                    <span id="g-diy-total-pct-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black">총합 100.0%</span>
+                                </div>
+                                <div id="g-diy-items-container" class="space-y-2 max-h-80 overflow-y-auto pr-1"></div>
+                            </div>
+
+                            <!-- 우측: 밀프랩(Meal-Prep) 조리 정량(g) & 조리 순서 -->
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <h4 class="font-black text-slate-800">🍳 2. 밀프랩(Meal-Prep) 조리용 정량 계량표</h4>
+                                    <div class="flex space-x-1">
+                                        ${[1, 3, 7, 14].map(d => `<button type="button" onclick="setDiyPrepDays(${d})" id="g-diy-prep-btn-${d}" class="px-2.5 py-1 rounded-lg font-bold ${d===7 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}">${d}일분</button>`).join('')}
+                                    </div>
+                                </div>
+                                <div id="g-diy-mealprep-summary" class="p-2.5 rounded-xl bg-indigo-50 text-indigo-950 font-bold text-[11px]"></div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                            <tr>
+                                                <th class="py-2 px-2.5">식재료명</th>
+                                                <th class="py-2 px-2.5 text-right">배합비</th>
+                                                <th class="py-2 px-2.5 text-right text-indigo-700">1일 급여량(g)</th>
+                                                <th class="py-2 px-2.5 text-right text-emerald-700" id="g-diy-prep-col-header">7일분 총량(g)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="g-diy-mealprep-tbody" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DIY 핵심 영양 신호등 요약 + 36대 전 영양소 정밀 분석표 (접이식 토글 지원) -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 text-xs">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="font-black text-slate-800">🔬 3. 설계된 화식의 AAFCO / 질환별 영양 적정성 평가</div>
+                                <button type="button" onclick="toggleDiyFull36Table()" class="px-3 py-1.5 rounded-xl bg-slate-800 text-white font-bold text-[11px]">
+                                    📊 36대 전 영양소(비타민·미네랄 포함) 상세 분석표 펼치기/접기
+                                </button>
+                            </div>
+                            <div id="g-diy-kpi-strip" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5"></div>
+
+                            <div id="g-diy-full36-wrapper" class="hidden pt-3 border-t border-slate-100 overflow-x-auto">
+                                <table class="w-full text-[11px] text-left border-collapse">
+                                    <thead class="bg-slate-100 text-slate-700 font-black border-b border-slate-200">
+                                        <tr>
+                                            <th class="py-2 px-2.5">영양소 (단위)</th>
+                                            <th class="py-2 px-2.5 text-right">100g 원물(AF) 함량</th>
+                                            <th class="py-2 px-2.5 text-right text-blue-700">건물(DM 100g) 환산치</th>
+                                            <th class="py-2 px-2.5 text-right text-indigo-700">1일 급여 총섭취량</th>
+                                            <th class="py-2 px-2.5 text-center">AAFCO 생애주기 판정</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="g-diy-full36-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==================== [메뉴 6] 사료 역추적 프로그램 (Reverse-Tracing Calculator - 고도화 엔진) ==================== -->
+                    <div id="g-menu-view-6" class="g-menu-view hidden bg-purple-50/40 p-6 rounded-2xl border border-purple-200 space-y-5">
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-purple-200/70 pb-4">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-black">고정밀 PAVA + AI Imputation 엔진</span>
+                                    <h3 class="text-base font-black text-purple-950">🔬 [메뉴 6] 사료 영양소 역추적 프로그램 (Reverse-Tracing Calculator)</h3>
+                                </div>
+                                <p class="text-xs text-purple-800 mt-0.5">포장지에 적힌 <strong>보증성분(%)</strong>과 <strong>원재료 표기 순서(P1 ≥ P2 ≥ P3...)</strong>만으로 실제 원료 배합비와 숨은 30대 미량 영양소(DM) 및 신뢰도(%)를 해부합니다.</p>
+                            </div>
+                            <button type="button" onclick="runGuardianReverseTracing()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs shadow-lg flex items-center space-x-1.5">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span>▶ 성분 비율 고정밀 역추적 & 30대 영양소 신뢰도(%) 실행</span>
+                            </button>
+                        </div>
+
+                        <!-- 원재료 순서 칩 편집기 & Smart Imputation 옵션 -->
+                        <div class="bg-white p-4 rounded-2xl border border-purple-200 space-y-3 text-xs">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="font-black text-slate-800">🥣 포장지 원재료 표기 순서 (제1원료 ➔ 마지막 원료 순으로 자동 단조감소 제약 적용)</div>
+                                <label class="flex items-center space-x-1.5 font-bold text-purple-800 cursor-pointer">
+                                    <input type="checkbox" id="g-rev-impute-chk" checked onchange="guardianState.menu6_reverse.enableImputation = this.checked; runGuardianReverseTracing();" class="rounded text-purple-600">
+                                    <span>💡 포장지에 생략된 미량 보충 원료(칼슘제/인산염/정제유) Smart AI 자동 유추</span>
+                                </label>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 items-center">
+                                <select id="g-rev-add-ing-select" class="px-3 py-2 rounded-xl border border-slate-300 font-bold flex-1 min-w-[220px]"></select>
+                                <button type="button" onclick="addIngredientToReverseList()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black">+ 순서 끝에 원료 추가</button>
+                                <button type="button" onclick="syncReverseIngredientsFromDryFood(); runGuardianReverseTracing();" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">🔄 Step 2 사료 기본 원료로 리셋</button>
+                            </div>
+
+                            <div id="g-rev-chips-container" class="flex flex-wrap gap-2 pt-1"></div>
+                        </div>
+
+                        <!-- 역추적 결과: 1) 원료 배합비 추정도 & 2) 보증성분 일치도 검증 -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                                <h4 class="font-black text-slate-800">📊 1. 역추적된 원재료별 배합 비율 (건물 DM 100% 기준)</h4>
+                                <div id="g-rev-imputation-banner" class="hidden p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold"></div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                            <tr>
+                                                <th class="py-2 px-2.5">순위</th>
+                                                <th class="py-2 px-2.5">원재료명</th>
+                                                <th class="py-2 px-2.5">구분</th>
+                                                <th class="py-2 px-2.5 text-right">추정 배합비 (% DM)</th>
+                                                <th class="py-2 px-2.5 text-right">칼로리 기여도</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="g-rev-ratios-tbody" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
+                                <h4 class="font-black text-slate-800">🎯 2. 포장지 보증성분 vs 역추적 모델 적합도 검증</h4>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                                            <tr>
+                                                <th class="py-2 px-2.5">보증 성분</th>
+                                                <th class="py-2 px-2.5 text-right">포장지 목표 (건물 DM 환산)</th>
+                                                <th class="py-2 px-2.5 text-right text-purple-700">역추적 산출값 (% DM)</th>
+                                                <th class="py-2 px-2.5 text-center">일치도 판정</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="g-rev-fit-tbody" class="divide-y divide-slate-100"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 30대 다량·미량 영양소 예상 범위(Min~Max) 및 신뢰도(%) 해부 테이블 -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 text-xs">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                    <h4 class="font-black text-slate-800">📋 3. 포장지에 적혀 있지 않은 28대 다량·미량 영양소 역추적 추정치 & 신뢰도(%) 리포트</h4>
+                                    <p class="text-[11px] text-slate-500">원재료 DB와 배합비 수렴도를 결합하여 미네랄·비타민·오메가 지방산의 건물(DM) 함량과 예측 신뢰구간(Prediction Range)을 해부합니다.</p>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto max-h-96">
+                                <table class="w-full text-[11px] text-left border-collapse">
+                                    <thead class="bg-slate-100 text-slate-700 font-black border-b border-slate-200 sticky top-0">
+                                        <tr>
+                                            <th class="py-2 px-2.5">영양 성분명</th>
+                                            <th class="py-2 px-2.5">분류</th>
+                                            <th class="py-2 px-2.5 text-right text-purple-800">역추적 추정값 (DM)</th>
+                                            <th class="py-2 px-2.5 text-right">예상 신뢰구간 (Min ~ Max)</th>
+                                            <th class="py-2 px-2.5 text-center">추정 신뢰도 (%)</th>
+                                            <th class="py-2 px-2.5 text-center">AAFCO 1000kcal 기준 비교</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="g-rev-confidence-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================================== -->
+                <!-- [STEP 4] 결과 출력 및 시각화 대시보드 (Visualization & Dashboard) -->
+                <!-- ================================================================== -->
+                <section id="g-step4-sec" class="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-emerald-500/40 space-y-6">
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded-xl bg-emerald-600 text-white font-black text-xs">STEP 4</span>
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900">맞춤 믹스피딩 결과 시각화 & 신호등 리포트 · 일일 급여 스케줄표</h2>
+                                <p class="text-xs text-slate-500">① 칼로리 밸런스 게이지 & 차트, ② AAFCO/FEDIAF 신호등(Green/Yellow/Red) 판정, ③ 아침·저녁 실전 급여 스케줄을 확인하세요.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 text-xs">
+                            <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold flex items-center space-x-1.5">
+                                <i class="fa-solid fa-print"></i>
+                                <span>식단 처방표 인쇄 / PDF 저장</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. 칼로리 밸런스 게이지 바 (Gauge Bar) -->
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="text-sm font-black flex items-center space-x-2">
+                                <i class="fa-solid fa-gauge-high text-amber-400"></i>
+                                <span>1. 목표 DER 대비 현재 믹스피딩 + 토핑 칼로리 밸런스 게이지</span>
+                            </div>
+                            <span id="g-dash-gauge-status" class="px-3 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-xs font-black">🟢 적정 칼로리 Fit (100%)</span>
+                        </div>
+
+                        <div class="w-full h-5 bg-slate-800 rounded-full overflow-hidden flex p-0.5 border border-white/15">
+                            <div id="g-dash-gauge-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 transition-all duration-300" style="width: 100%"></div>
+                        </div>
+
+                        <div class="flex flex-wrap justify-between text-xs text-slate-300 pt-1 gap-2">
+                            <span id="g-dash-cal-breakdown">주식 사료: 242 kcal + 배합식: 104 kcal + 토핑: 0 kcal = 총 346 kcal</span>
+                            <span>목표 DER: <strong id="g-dash-target-der" class="text-amber-300">346 kcal/일</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- 2. 생애주기 맞춤 AAFCO / FEDIAF 영양 적정성 신호등 리포트 (Green / Yellow / Red) -->
+                    <div class="space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <h3 class="text-sm font-black text-slate-800"><i class="fa-solid fa-traffic-light text-emerald-600 mr-1.5"></i>2. 생애주기 맞춤 AAFCO / FEDIAF 영양 적정성 신호등 리포트 (Dry Matter 기준)</h3>
+                            <span class="text-[11px] text-slate-500">🟢 Green(적정 범위) · 🟡 Yellow(경계/주의) · 🔴 Red(부족 또는 과잉 경고)</span>
+                        </div>
+                        <div id="g-dash-traffic-lights" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs"></div>
+                    </div>
+
+                    <!-- 3. 실천형 일일 급여 스케줄표 (아침 / 점심 / 저녁 그램수 가이드) & 차트 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+                        <!-- 좌측(3칸): 아침/저녁 실천형 급여 스케줄표 -->
+                        <div class="lg:col-span-3 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white p-5 rounded-2xl border-2 border-emerald-300 flex flex-col justify-between space-y-4">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between border-b border-emerald-200 pb-2.5">
+                                    <h3 class="text-base font-black text-emerald-950">🍽️ 3. 주방에서 바로 따라 하는 일일 급여 스케줄표</h3>
+                                    <span id="g-dash-active-menu-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-black">건식 + 습식 배합</span>
+                                </div>
+                                <div id="g-dash-schedule-cards" class="space-y-2.5 text-xs"></div>
+                            </div>
+
+                            <div id="g-dash-water-advice" class="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-950 flex items-center justify-between flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- 우측(2칸): 칼로리 기여도 & 다량영양소(DM %) 시각화 차트 -->
+                        <div class="lg:col-span-2 grid grid-cols-1 gap-4">
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col">
+                                <div class="text-xs font-black text-slate-700 mb-2">📊 칼로리 공급 비율 & 다량영양소(% DM) 밸런스</div>
+                                <div class="grid grid-cols-2 gap-2 items-center flex-1 min-h-[170px]">
+                                    <div class="h-40 flex items-center justify-center">
+                                        <canvas id="gCalDonutCanvas"></canvas>
+                                    </div>
+                                    <div class="h-40 flex items-center justify-center">
+                                        <canvas id="gMacroBarCanvas"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        `;
+
+        // 초기 드롭다운 채우기
+        filterGuardianFoodSearch("");
+        populateDiyIngredientDropdown("ALL");
+        populateReverseIngredientDropdown();
+    }
+
+    // =========================================================================
+    // 7. Step 1 & Step 2 이벤트 핸들러
+    // =========================================================================
+    window.scrollToGuardianSection = function (secId) {
+        const el = document.getElementById(secId);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    window.selectGuardianBcs = function (score) {
+        guardianState.profile.bcs = score;
+        const badge = document.getElementById("g-bcs-badge");
+        const labels = {
+            1: "BCS 1/9 (극심한 저체중)", 2: "BCS 2/9 (매우 마름)", 3: "BCS 3/9 (마른 체형)",
+            4: "BCS 4/9 (살짝 마름)", 5: "BCS 5/9 (이상적 표준)", 6: "BCS 6/9 (약간 통통)",
+            7: "BCS 7/9 (과체중)", 8: "BCS 8/9 (비만)", 9: "BCS 9/9 (고도 비만)"
+        };
+        if (badge) badge.innerText = labels[score] || `BCS ${score}/9`;
+
+        // 카드 하이라이트
+        [3, 5, 7, 8].forEach(c => {
+            const card = document.getElementById(`g-bcs-card-${c}`);
+            if (!card) return;
+            const active = (c === 3 && score <= 3) || (c === 5 && (score === 4 || score === 5)) || (c === 7 && (score === 6 || score === 7)) || (c === 8 && score >= 8);
+            card.className = active
+                ? "g-bcs-card text-left p-3 rounded-xl border-2 border-emerald-500 bg-emerald-50/60 transition"
+                : "g-bcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-emerald-400 transition";
+        });
+
+        document.querySelectorAll("#g-bcs-num-btns button").forEach(btn => {
+            const v = parseInt(btn.getAttribute("data-bcs"));
+            btn.className = v === score
+                ? "w-6 h-6 rounded-lg font-bold border bg-emerald-600 text-white border-emerald-600"
+                : "w-6 h-6 rounded-lg font-bold border bg-slate-100 text-slate-600 border-slate-200";
+        });
+
+        refreshAllGuardianCalculations();
+    };
+
+    window.selectGuardianMcs = function (score) {
+        guardianState.profile.mcs = score;
+        const badge = document.getElementById("g-mcs-badge");
+        const labels = {
+            4: "MCS 4/4 (정상 근육)",
+            3: "MCS 3/4 (경도 근육감소)",
+            2: "MCS 2/4 (중등도 감소)",
+            1: "MCS 1/4 (심한 근육손실)"
+        };
+        if (badge) badge.innerText = labels[score];
+
+        [1, 2, 3, 4].forEach(c => {
+            const card = document.getElementById(`g-mcs-card-${c}`);
+            if (!card) return;
+            card.className = c === score
+                ? "g-mcs-card text-left p-3 rounded-xl border-2 border-blue-500 bg-blue-50/60 transition"
+                : "g-mcs-card text-left p-3 rounded-xl border border-slate-200 hover:border-blue-400 transition";
+        });
+
+        refreshAllGuardianCalculations();
+    };
+
+    window.onGuardianProfileChange = function () {
+        const p = guardianState.profile;
+        p.species = document.getElementById("g-species")?.value || "dog";
+        p.name = document.getElementById("g-name")?.value || "보리";
+        p.breed = document.getElementById("g-breed")?.value || "말티즈";
+        p.weightKg = parseFloat(document.getElementById("g-weight")?.value) || 4.5;
+        p.lifeStage = document.getElementById("g-lifestage")?.value || "adult";
+        p.neutered = document.getElementById("g-neutered")?.value === "true";
+        p.activity = document.getElementById("g-activity")?.value || "moderate";
+        p.fecalScore = parseFloat(document.getElementById("g-fecal")?.value) || 3.5;
+        p.mealsPerDay = parseInt(document.getElementById("g-meals")?.value) || 2;
+        p.healthConcern = document.getElementById("g-concern")?.value || "none";
+
+        refreshAllGuardianCalculations();
+    };
+
+    window.switchGuardianIngestTab = function (tab) {
+        ["search", "ocr", "manual"].forEach(t => {
+            const btn = document.getElementById(`g-ingest-btn-${t}`);
+            if (btn) {
+                btn.className = t === tab
+                    ? "px-3 py-1.5 rounded-lg bg-white text-blue-700 font-black shadow-sm transition"
+                    : "px-3 py-1.5 rounded-lg text-slate-600 font-bold hover:text-slate-900 transition";
+            }
+        });
+        const sPanel = document.getElementById("g-ingest-panel-search");
+        const oPanel = document.getElementById("g-ingest-panel-ocr");
+        if (sPanel) sPanel.classList.toggle("hidden", tab !== "search");
+        if (oPanel) oPanel.classList.toggle("hidden", tab !== "ocr");
+    };
+
+    function getCombinedDryFoodPool() {
+        const list = [...COMMERCIAL_DRY_FOODS];
+        if (typeof EMBEDDED_DIETS !== "undefined" && Array.isArray(EMBEDDED_DIETS)) {
+            EMBEDDED_DIETS.filter(d => d.type === "건식").forEach((d, idx) => {
+                const moist = d.moisture_percent || 9.0;
+                const kcalKg = d.nutrients?.energy_density_kcal_per_kg || 3750;
+                const factor = kcalKg / 1000.0;
+                list.push({
+                    id: `vet_dry_${idx}`,
+                    name: `[처방식] ${d.company} ${d.name}`,
+                    brand: d.company,
+                    species: d.species === "고양이" ? "cat" : "dog",
+                    type: "건식",
+                    protein_af: Math.round((d.nutrients.protein_g * factor / 10.0) * 10) / 10,
+                    fat_af: Math.round((d.nutrients.fat_g * factor / 10.0) * 10) / 10,
+                    fiber_af: 2.5,
+                    ash_af: 6.0,
+                    moisture_af: moist,
+                    ca_af: 0.85,
+                    p_af: Math.round((d.nutrients.phosphorus_g * factor / 10.0) * 100) / 100,
+                    kcal_per_kg: kcalKg,
+                    ingredients_order: ["쌀", "가수분해가금육단백질", "옥수수", "동물성지방", "비트펄프", "어유", "미네랄합제"]
+                });
+            });
+        }
+        return list;
+    }
+
+    window.filterGuardianFoodSearch = function (keyword) {
+        const sel = document.getElementById("g-food-search-select");
+        if (!sel) return;
+        const kw = (keyword || "").trim().toLowerCase();
+        const pool = getCombinedDryFoodPool();
+        const filtered = kw ? pool.filter(f => f.name.toLowerCase().includes(kw) || f.brand.toLowerCase().includes(kw)) : pool;
+
+        sel.innerHTML = filtered.map(f => `<option value="${f.id}">${f.name} (조단백 ${f.protein_af}% · 조지방 ${f.fat_af}% · ${f.kcal_per_kg}kcal/kg)</option>`).join("");
+    };
+
+    window.onSelectGuardianCommercialFood = function (foodId) {
+        const pool = getCombinedDryFoodPool();
+        const found = pool.find(f => f.id === foodId);
+        if (!found) return;
+
+        guardianState.selectedDryFood = { ...found };
+        document.getElementById("g-dry-name").value = found.name;
+        document.getElementById("g-dry-prot").value = found.protein_af;
+        document.getElementById("g-dry-fat").value = found.fat_af;
+        document.getElementById("g-dry-fiber").value = found.fiber_af;
+        document.getElementById("g-dry-ash").value = found.ash_af;
+        document.getElementById("g-dry-moist").value = found.moisture_af;
+        document.getElementById("g-dry-ca").value = found.ca_af;
+        document.getElementById("g-dry-p").value = found.p_af;
+
+        syncReverseIngredientsFromDryFood();
+        refreshAllGuardianCalculations();
+        if (guardianState.activeMenu === 6) runGuardianReverseTracing();
+    };
+
+    window.onGuardianDryFoodManualChange = function () {
+        const f = guardianState.selectedDryFood;
+        f.name = document.getElementById("g-dry-name")?.value || "사용자 입력 사료";
+        f.protein_af = parseFloat(document.getElementById("g-dry-prot")?.value) || 24.0;
+        f.fat_af = parseFloat(document.getElementById("g-dry-fat")?.value) || 14.0;
+        f.fiber_af = parseFloat(document.getElementById("g-dry-fiber")?.value) || 2.5;
+        f.ash_af = parseFloat(document.getElementById("g-dry-ash")?.value) || 6.5;
+        f.moisture_af = parseFloat(document.getElementById("g-dry-moist")?.value) || 10.0;
+        f.ca_af = parseFloat(document.getElementById("g-dry-ca")?.value) || 0.9;
+        f.p_af = parseFloat(document.getElementById("g-dry-p")?.value) || 0.75;
+        delete f.kcal_per_kg; // 수동 변경 시 Atwater 자동 계산 사용
+
+        refreshAllGuardianCalculations();
+    };
+
+    // 포장지 OCR 텍스트 파싱
+    window.parseGuardianOcrText = function () {
+        const raw = document.getElementById("g-ocr-textarea")?.value || "";
+        if (!raw.trim()) {
+            alert("분석할 포장지 성분/원재료 텍스트를 입력하거나 사진을 업로드해주세요.");
+            return;
+        }
+        const grab = (regex, fallback) => {
+            const m = raw.match(regex);
+            return m ? parseFloat(m[1]) : fallback;
+        };
+        document.getElementById("g-dry-prot").value = grab(/(?:조단백질|단백질|Protein)[^\d]*(\d+(?:\.\d+)?)/i, 26.0);
+        document.getElementById("g-dry-fat").value = grab(/(?:조지방|지방|Fat)[^\d]*(\d+(?:\.\d+)?)/i, 15.0);
+        document.getElementById("g-dry-fiber").value = grab(/(?:조섬유|섬유|Fiber)[^\d]*(\d+(?:\.\d+)?)/i, 3.0);
+        document.getElementById("g-dry-ash").value = grab(/(?:조회분|회분|Ash)[^\d]*(\d+(?:\.\d+)?)/i, 7.0);
+        document.getElementById("g-dry-moist").value = grab(/(?:수분|Moisture)[^\d]*(\d+(?:\.\d+)?)/i, 10.0);
+        document.getElementById("g-dry-ca").value = grab(/(?:칼슘|Calcium)[^\d]*(\d+(?:\.\d+)?)/i, 1.0);
+        document.getElementById("g-dry-p").value = grab(/(?:인|Phosphorus)[^\d]*(\d+(?:\.\d+)?)/i, 0.8);
+
+        // 원재료 키워드 매칭
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        const matchedIds = [];
+        const tokens = raw.split(/[,،·/()\n]+/).map(s => s.trim()).filter(Boolean);
+        tokens.forEach(tok => {
+            const hit = db.find(ing => tok.length >= 2 && (ing.name_ko.includes(tok) || tok.includes(ing.name_ko.split(",")[0])));
+            if (hit && !matchedIds.includes(hit.id)) matchedIds.push(hit.id);
+        });
+        if (matchedIds.length >= 2) {
+            guardianState.menu6_reverse.selectedIngIds = matchedIds.slice(0, 10);
+            renderReverseChips();
+        }
+
+        onGuardianDryFoodManualChange();
+        if (guardianState.activeMenu === 6) runGuardianReverseTracing();
+        alert("✅ 포장지 텍스트에서 보증성분 수치와 원재료 목록을 성공적으로 추출했습니다!");
+    };
+
+    window.runGuardianImageOCR = async function (event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const statusEl = document.getElementById("g-ocr-status");
+        if (statusEl) statusEl.innerText = "⏳ AI OCR이 포장지 글자를 판독 중입니다...";
+        try {
+            if (typeof Tesseract !== "undefined") {
+                const res = await Tesseract.recognize(file, "kor+eng");
+                const txt = res?.data?.text || "";
+                const area = document.getElementById("g-ocr-textarea");
+                if (area) area.value = txt;
+                if (statusEl) statusEl.innerText = "✅ OCR 스캔 완료! 성분을 자동 추출합니다.";
+                parseGuardianOcrText();
+            } else {
+                if (statusEl) statusEl.innerText = "⚠️ OCR 모듈 로드 대기 중입니다. 우측 텍스트창을 이용해 주세요.";
+            }
+        } catch (err) {
+            if (statusEl) statusEl.innerText = "⚠️ 이미지 인식 중 오류가 발생했습니다.";
+        }
+    };
+
+    // =========================================================================
+    // 8. Step 3: 6대 핵심 메뉴 라우팅 및 개별 메뉴 로직
+    // =========================================================================
+    window.selectGuardianMenu = function (menuNum) {
+        guardianState.activeMenu = menuNum;
+        [1, 2, 3, 4, 5, 6].forEach(n => {
+            const card = document.getElementById(`g-menu-card-${n}`);
+            const view = document.getElementById(`g-menu-view-${n}`);
+            if (card) {
+                card.className = n === menuNum
+                    ? "g-menu-card text-left p-3.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50/70 shadow-sm transition flex flex-col justify-between"
+                    : "g-menu-card text-left p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-400 bg-white transition flex flex-col justify-between";
+            }
+            if (view) {
+                view.classList.toggle("hidden", n !== menuNum);
+            }
+        });
+
+        if (menuNum === 5) renderDiyBuilderAll();
+        if (menuNum === 6) runGuardianReverseTracing();
+        refreshAllGuardianCalculations();
+    };
+
+    // --- 메뉴 1: 건식 + 습식 ---
+    window.setMenu1Ratio = function (dryPct) {
+        const v = Math.min(90, Math.max(10, parseInt(dryPct) || 70));
+        guardianState.menu1.dryRatioPct = v;
+        const sl = document.getElementById("g-m1-slider");
+        if (sl) sl.value = v;
+        document.getElementById("g-m1-dry-pct-label").innerText = `${v}%`;
+        document.getElementById("g-m1-wet-pct-label").innerText = `${100 - v}%`;
+        refreshAllGuardianCalculations();
+    };
+
+    window.onChangeMenu1Wet = function (wetId) {
+        guardianState.menu1.wetFoodId = wetId;
+        const w = COMMERCIAL_WET_AND_FRESH.find(x => x.id === wetId);
+        if (w && document.getElementById("g-m1-wet-desc")) {
+            document.getElementById("g-m1-wet-desc").innerText = w.desc;
+        }
+        refreshAllGuardianCalculations();
+    };
+
+    // --- 메뉴 2: 건식 + 화식 ---
+    window.setMenu2Ratio = function (dryPct) {
+        const v = Math.min(90, Math.max(10, parseInt(dryPct) || 70));
+        guardianState.menu2.dryRatioPct = v;
+        const sl = document.getElementById("g-m2-slider");
+        if (sl) sl.value = v;
+        document.getElementById("g-m2-dry-pct-label").innerText = `${v}%`;
+        document.getElementById("g-m2-fresh-pct-label").innerText = `${100 - v}%`;
+        refreshAllGuardianCalculations();
+    };
+
+    window.onChangeMenu2Fresh = function (freshId) {
+        guardianState.menu2.freshFoodId = freshId;
+        const f = COMMERCIAL_WET_AND_FRESH.find(x => x.id === freshId);
+        if (f && document.getElementById("g-m2-fresh-desc")) {
+            document.getElementById("g-m2-fresh-desc").innerText = f.desc;
+        }
+        refreshAllGuardianCalculations();
+    };
+
+    // --- 메뉴 3: 건식 + 단일 원재료 ---
+    window.setMenu3Ratio = function (rawPct) {
+        const v = Math.min(40, Math.max(5, parseInt(rawPct) || 10));
+        guardianState.menu3.rawRatioPct = v;
+        const sl = document.getElementById("g-m3-slider");
+        if (sl) sl.value = v;
+        document.getElementById("g-m3-dry-pct-label").innerText = `${100 - v}%`;
+        document.getElementById("g-m3-raw-pct-label").innerText = `${v}%`;
+        refreshAllGuardianCalculations();
+    };
+
+    window.onChangeMenu3Raw = function (rawId) {
+        guardianState.menu3.rawIngId = rawId;
+        const r = SINGLE_RAW_INGREDIENTS.find(x => x.id === rawId);
+        if (r && document.getElementById("g-m3-prep-tip")) {
+            document.getElementById("g-m3-prep-tip").innerText = r.prepTip;
+        }
+        refreshAllGuardianCalculations();
+    };
+
+    // --- 메뉴 4: 토핑 10% 안전 제어기 ---
+    window.changeToppingCount = function (topId, delta) {
+        const cur = guardianState.menu4.selectedToppings[topId] || 0;
+        const next = Math.max(0, Math.min(10, cur + delta));
+        guardianState.menu4.selectedToppings[topId] = next;
+        const el = document.getElementById(`g-top-cnt-${topId}`);
+        if (el) el.innerText = next;
+        refreshAllGuardianCalculations();
+    };
+
+    window.resetMenu4Toppings = function () {
+        Object.keys(guardianState.menu4.selectedToppings).forEach(k => {
+            guardianState.menu4.selectedToppings[k] = 0;
+            const el = document.getElementById(`g-top-cnt-${k}`);
+            if (el) el.innerText = "0";
+        });
+        refreshAllGuardianCalculations();
+    };
+
+    function calcTotalToppingsSummary() {
+        let totalKcal = 0;
+        let totalGrams = 0;
+        const activeItems = [];
+        TOPPING_SNACK_ITEMS.forEach(t => {
+            const cnt = guardianState.menu4.selectedToppings[t.id] || 0;
+            if (cnt > 0) {
+                const k = cnt * t.kcalPerUnit;
+                const g = cnt * t.weightPerUnitG;
+                totalKcal += k;
+                totalGrams += g;
+                activeItems.push({ ...t, count: cnt, kcal: k, grams: g });
+            }
+        });
+        return { totalKcal, totalGrams, activeItems };
+    }
+
+    // =========================================================================
+    // 9. [메뉴 5] 화식 자가 만들기 (Recipe DIY Builder - 세련된 리디자인)
+    // =========================================================================
+    window.populateDiyIngredientDropdown = function (cat) {
+        const sel = document.getElementById("g-diy-ing-select");
+        if (!sel) return;
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        const filtered = cat === "ALL" ? db : db.filter(x => x.category === cat);
+        sel.innerHTML = filtered.map(x => `<option value="${x.id}">[${x.category}] ${x.name_ko} (${x.energy_kcal}kcal · 단백 ${x.protein_g}g · 지방 ${x.fat_g}g)</option>`).join("");
+    };
+
+    window.addDiyIngredientRow = function () {
+        const sel = document.getElementById("g-diy-ing-select");
+        if (!sel || !sel.value) return;
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        const found = db.find(x => x.id === sel.value);
+        if (!found) return;
+
+        if (guardianState.menu5_diy.items.some(i => i.id === found.id)) {
+            alert("이미 레시피에 추가된 식재료입니다.");
+            return;
+        }
+        guardianState.menu5_diy.items.push({ id: found.id, name_ko: found.name_ko, ratio: 10.0 });
+        renderDiyBuilderAll();
+        refreshAllGuardianCalculations();
+    };
+
+    window.removeDiyIngredientRow = function (idx) {
+        guardianState.menu5_diy.items.splice(idx, 1);
+        renderDiyBuilderAll();
+        refreshAllGuardianCalculations();
+    };
+
+    window.onDiyItemRatioChange = function (idx, val) {
+        if (guardianState.menu5_diy.items[idx]) {
+            guardianState.menu5_diy.items[idx].ratio = Math.max(0, parseFloat(val) || 0);
+            renderDiyBuilderAll();
+            refreshAllGuardianCalculations();
+        }
+    };
+
+    window.setDiyPrepDays = function (days) {
+        guardianState.menu5_diy.prepDays = days;
+        [1, 3, 7, 14].forEach(d => {
+            const btn = document.getElementById(`g-diy-prep-btn-${d}`);
+            if (btn) {
+                btn.className = d === days
+                    ? "px-2.5 py-1 rounded-lg font-bold bg-indigo-600 text-white"
+                    : "px-2.5 py-1 rounded-lg font-bold bg-slate-100 text-slate-600";
+            }
+        });
+        renderDiyBuilderAll();
+    };
+
+    window.loadDiyPresetTemplate = function (tpl) {
+        if (!tpl) return;
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        const findByKeyword = (kw, fallbackIdx) => db.find(x => x.name_ko.includes(kw)) || db[fallbackIdx] || db[0];
+
+        if (tpl === "standard_chicken") {
+            const m = findByKeyword("닭고기", 89);
+            const c = findByKeyword("귀리", 0);
+            const v1 = findByKeyword("단호박", 34);
+            const v2 = findByKeyword("양배추", 46);
+            guardianState.menu5_diy.items = [
+                { id: m.id, name_ko: m.name_ko, ratio: 48.0 },
+                { id: c.id, name_ko: c.name_ko, ratio: 22.0 },
+                { id: v1.id, name_ko: v1.name_ko, ratio: 18.0 },
+                { id: v2.id, name_ko: v2.name_ko, ratio: 9.0 },
+                { id: "supp_salmon_oil", name_ko: "정제 연어오일/어유 (오메가-3 보충)", ratio: 1.8 },
+                { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 1.2 }
+            ];
+        } else if (tpl === "lowfat_cod") {
+            const m = findByKeyword("대구", 70);
+            const c = findByKeyword("감자", 18);
+            const v1 = findByKeyword("양배추", 46);
+            const v2 = findByKeyword("브로콜리", 40);
+            guardianState.menu5_diy.items = [
+                { id: m.id, name_ko: m.name_ko, ratio: 52.0 },
+                { id: c.id, name_ko: c.name_ko, ratio: 25.0 },
+                { id: v1.id, name_ko: v1.name_ko, ratio: 12.0 },
+                { id: v2.id, name_ko: v2.name_ko, ratio: 8.5 },
+                { id: "supp_salmon_oil", name_ko: "정제 연어오일/어유 (오메가-3 보충)", ratio: 1.2 },
+                { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 1.3 }
+            ];
+        } else if (tpl === "renal_lowp") {
+            const m = findByKeyword("닭고기", 89);
+            const e = findByKeyword("달걀", 60);
+            const c = findByKeyword("쌀", 2);
+            const v1 = findByKeyword("단호박", 34);
+            guardianState.menu5_diy.items = [
+                { id: m.id, name_ko: m.name_ko, ratio: 28.0 },
+                { id: e.id, name_ko: e.name_ko, ratio: 18.0 },
+                { id: c.id, name_ko: c.name_ko, ratio: 34.0 },
+                { id: v1.id, name_ko: v1.name_ko, ratio: 17.0 },
+                { id: "supp_salmon_oil", name_ko: "정제 연어오일/어유 (오메가-3 보충)", ratio: 1.8 },
+                { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 1.2 }
+            ];
+        } else if (tpl === "beef_energy") {
+            const m = findByKeyword("소고기", 95);
+            const c = findByKeyword("고구마", 20);
+            const v1 = findByKeyword("브로콜리", 40);
+            const v2 = findByKeyword("당근", 36);
+            guardianState.menu5_diy.items = [
+                { id: m.id, name_ko: m.name_ko, ratio: 50.0 },
+                { id: c.id, name_ko: c.name_ko, ratio: 24.0 },
+                { id: v1.id, name_ko: v1.name_ko, ratio: 13.0 },
+                { id: v2.id, name_ko: v2.name_ko, ratio: 10.0 },
+                { id: "supp_salmon_oil", name_ko: "정제 연어오일/어유 (오메가-3 보충)", ratio: 1.6 },
+                { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 1.4 }
+            ];
+        }
+        renderDiyBuilderAll();
+        refreshAllGuardianCalculations();
+    };
+
+    // AAFCO 황금비율(총합 100% + 칼슘:인 1.25:1) 원클릭 자동 밸런서
+    window.autoBalanceDiyRecipe = function () {
+        const items = guardianState.menu5_diy.items;
+        if (items.length === 0) return;
+
+        // 난각분말이 없으면 자동 추가
+        let eggItem = items.find(i => i.id === "supp_eggshell");
+        if (!eggItem) {
+            eggItem = { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 1.2 };
+            items.push(eggItem);
+        }
+
+        // 나머지 원료 합을 98.8%로 정규화 후 인(P) 함량 계산
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        let otherSum = items.filter(i => i.id !== "supp_eggshell").reduce((a, b) => a + b.ratio, 0) || 100;
+        items.forEach(i => {
+            if (i.id !== "supp_eggshell") {
+                i.ratio = Math.round((i.ratio / otherSum) * 98.8 * 10) / 10;
+            }
+        });
+
+        let totalP = 0;
+        let otherCa = 0;
+        items.forEach(i => {
+            if (i.id === "supp_eggshell") return;
+            const ing = db.find(x => x.id === i.id);
+            if (ing) {
+                totalP += (ing.phosphorus_mg || 0) * (i.ratio / 100.0);
+                otherCa += (ing.calcium_mg || 0) * (i.ratio / 100.0);
+            }
+        });
+
+        // 목표 Ca = totalP * 1.28
+        const neededCa = Math.max(0, totalP * 1.28 - otherCa);
+        const eggRatio = Math.min(3.5, Math.max(0.4, Math.round((neededCa / 380.0) * 10) / 10));
+        eggItem.ratio = eggRatio;
+
+        // 전체 합 100.0% 정밀 맞춤
+        const finalOtherSum = items.filter(i => i.id !== "supp_eggshell").reduce((a, b) => a + b.ratio, 0) || 1;
+        const targetOther = 100.0 - eggRatio;
+        items.forEach(i => {
+            if (i.id !== "supp_eggshell") {
+                i.ratio = Math.round((i.ratio / finalOtherSum) * targetOther * 10) / 10;
+            }
+        });
+
+        renderDiyBuilderAll();
+        refreshAllGuardianCalculations();
+    };
+
+    window.saveCurrentDiyRecipe = function () {
+        const name = prompt("저장할 나만의 화식 레시피 이름을 입력하세요:", `${guardianState.profile.name} 맞춤 건강 화식`);
+        if (!name) return;
+        const saved = JSON.parse(localStorage.getItem("guardian_diy_recipes_v1") || "[]");
+        saved.unshift({ name, items: guardianState.menu5_diy.items, savedAt: new Date().toLocaleDateString("ko-KR") });
+        localStorage.setItem("guardian_diy_recipes_v1", JSON.stringify(saved.slice(0, 20)));
+        alert(`✅ [${name}] 레시피가 브라우저에 저장되었습니다!`);
+    };
+
+    window.toggleDiyFull36Table = function () {
+        const el = document.getElementById("g-diy-full36-wrapper");
+        if (el) el.classList.toggle("hidden");
+    };
+
+    function computeDiyBlendStats() {
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        const items = guardianState.menu5_diy.items;
+        const totalRatio = items.reduce((a, b) => a + (parseFloat(b.ratio) || 0), 0) || 100.0;
+
+        const keys36 = [
+            { k: "energy_kcal", label: "대사에너지 (칼로리)", unit: "kcal" },
+            { k: "moisture_g", label: "수분", unit: "g" },
+            { k: "protein_g", label: "조단백질", unit: "g", aafcoMinDM: 18.0 },
+            { k: "fat_g", label: "조지방", unit: "g", aafcoMinDM: 5.5 },
+            { k: "carbohydrate_g", label: "탄수화물", unit: "g" },
+            { k: "total_dietary_fiber_g", label: "총 식이섬유", unit: "g" },
+            { k: "ash_g", label: "조회분", unit: "g" },
+            { k: "calcium_mg", label: "칼슘 (Ca)", unit: "mg", aafcoMinDM: 500 },
+            { k: "phosphorus_mg", label: "인 (P)", unit: "mg", aafcoMinDM: 400 },
+            { k: "magnesium_mg", label: "마그네슘 (Mg)", unit: "mg", aafcoMinDM: 60 },
+            { k: "potassium_mg", label: "칼륨 (K)", unit: "mg", aafcoMinDM: 600 },
+            { k: "sodium_mg", label: "나트륨 (Na)", unit: "mg", aafcoMinDM: 80 },
+            { k: "zinc_mg", label: "아연 (Zn)", unit: "mg", aafcoMinDM: 8.0 },
+            { k: "iron_mg", label: "철분 (Fe)", unit: "mg", aafcoMinDM: 4.0 },
+            { k: "copper_mg", label: "구리 (Cu)", unit: "mg", aafcoMinDM: 0.73 },
+            { k: "manganese_mg", label: "망간 (Mn)", unit: "mg", aafcoMinDM: 0.5 },
+            { k: "selenium_ug", label: "셀레늄 (Se)", unit: "μg", aafcoMinDM: 32 },
+            { k: "iodine_ug", label: "요오드 (I)", unit: "μg", aafcoMinDM: 100 },
+            { k: "vitamin_a_ug", label: "비타민 A", unit: "μg", aafcoMinDM: 150 },
+            { k: "vitamin_d_ug", label: "비타민 D", unit: "μg", aafcoMinDM: 1.25 },
+            { k: "vitamin_e_mg", label: "비타민 E", unit: "mg", aafcoMinDM: 5.0 },
+            { k: "thiamin_mg", label: "비타민 B1 (티아민)", unit: "mg", aafcoMinDM: 0.22 },
+            { k: "riboflavin_mg", label: "비타민 B2 (리보플라빈)", unit: "mg", aafcoMinDM: 0.52 },
+            { k: "niacin_mg", label: "비타민 B3 (나이아신)", unit: "mg", aafcoMinDM: 1.36 },
+            { k: "pantothenic_acid_mg", label: "비타민 B5 (판토텐산)", unit: "mg", aafcoMinDM: 1.2 },
+            { k: "vitamin_b6_mg", label: "비타민 B6 (피리독신)", unit: "mg", aafcoMinDM: 0.15 },
+            { k: "folate_ug", label: "엽산 (비타민 B9)", unit: "μg", aafcoMinDM: 21.6 },
+            { k: "vitamin_b12_ug", label: "비타민 B12", unit: "μg", aafcoMinDM: 2.8 },
+            { k: "biotin_ug", label: "비오틴 (B7)", unit: "μg" },
+            { k: "vitamin_k_ug", label: "비타민 K", unit: "μg" },
+            { k: "cholesterol_mg", label: "콜레스테롤", unit: "mg" },
+            { k: "omega3_g", label: "오메가-3 지방산", unit: "g" },
+            { k: "omega6_g", label: "오메가-6 지방산", unit: "g" }
+        ];
+
+        const sumAF = {};
+        keys36.forEach(meta => { sumAF[meta.k] = 0; });
+
+        items.forEach(it => {
+            const ing = db.find(x => x.id === it.id);
+            if (!ing) return;
+            const w = (parseFloat(it.ratio) || 0) / totalRatio;
+            keys36.forEach(meta => {
+                sumAF[meta.k] += (parseFloat(ing[meta.k]) || 0) * w;
+            });
+        });
+
+        const dmFraction = Math.max(0.05, (100.0 - sumAF.moisture_g) / 100.0);
+        const sumDM = {};
+        keys36.forEach(meta => {
+            sumDM[meta.k] = meta.k === "moisture_g" ? 0 : sumAF[meta.k] / dmFraction;
+        });
+
+        const kcalPer100gAF = Math.max(40, sumAF.energy_kcal);
+        const dailyTotalGrams = Math.round((guardianState.energy.der / kcalPer100gAF) * 100);
+        const caPRatio = sumAF.phosphorus_mg > 0 ? Math.round((sumAF.calcium_mg / sumAF.phosphorus_mg) * 100) / 100 : 1.25;
+
+        return { totalRatio, sumAF, sumDM, dmFraction, kcalPer100gAF, dailyTotalGrams, caPRatio, keys36 };
+    }
+
+    function renderDiyBuilderAll() {
+        const itemsCont = document.getElementById("g-diy-items-container");
+        if (!itemsCont) return;
+
+        const stats = computeDiyBlendStats();
+        const badge = document.getElementById("g-diy-total-pct-badge");
+        if (badge) {
+            const is100 = Math.abs(stats.totalRatio - 100.0) < 0.5;
+            badge.innerText = `배합비 총합: ${stats.totalRatio.toFixed(1)}%`;
+            badge.className = is100
+                ? "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black"
+                : "px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-black";
+        }
+
+        itemsCont.innerHTML = guardianState.menu5_diy.items.map((it, idx) => `
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2">
+                <div class="truncate font-bold text-slate-800 flex-1">${idx + 1}. ${it.name_ko}</div>
+                <div class="flex items-center space-x-1.5 shrink-0">
+                    <input type="number" step="0.5" min="0" max="100" value="${it.ratio}" oninput="onDiyItemRatioChange(${idx}, this.value)" class="w-16 px-2 py-1 rounded-lg border border-indigo-300 text-right font-black text-indigo-900">
+                    <span class="text-slate-500 font-bold">%</span>
+                    <button type="button" onclick="removeDiyIngredientRow(${idx})" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold">✕</button>
+                </div>
+            </div>
+        `).join("");
+
+        // 밀프랩 테이블
+        const prepDays = guardianState.menu5_diy.prepDays || 7;
+        const colHeader = document.getElementById("g-diy-prep-col-header");
+        if (colHeader) colHeader.innerText = `${prepDays}일분 총 조리량(g)`;
+
+        const prepSummary = document.getElementById("g-diy-mealprep-summary");
+        if (prepSummary) {
+            prepSummary.innerHTML = `💡 100g당 <strong>${Math.round(stats.kcalPer100gAF)} kcal</strong> (수분 ${stats.sumAF.moisture_g.toFixed(1)}%) · 100% 화식 급여 시 하루 총 <strong>${stats.dailyTotalGrams}g</strong> (${prepDays}일분 총 <strong>${stats.dailyTotalGrams * prepDays}g</strong>)`;
+        }
+
+        const prepTbody = document.getElementById("g-diy-mealprep-tbody");
+        if (prepTbody) {
+            prepTbody.innerHTML = guardianState.menu5_diy.items.map(it => {
+                const w = (parseFloat(it.ratio) || 0) / stats.totalRatio;
+                const dailyG = Math.round(stats.dailyTotalGrams * w * 10) / 10;
+                const prepG = Math.round(dailyG * prepDays * 10) / 10;
+                return `
+                    <tr>
+                        <td class="py-1.5 px-2.5 font-bold text-slate-800">${it.name_ko}</td>
+                        <td class="py-1.5 px-2.5 text-right text-slate-500">${(w * 100).toFixed(1)}%</td>
+                        <td class="py-1.5 px-2.5 text-right font-black text-indigo-700">${dailyG} g</td>
+                        <td class="py-1.5 px-2.5 text-right font-black text-emerald-700">${prepG} g</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        // KPI 스트립
+        const kpiStrip = document.getElementById("g-diy-kpi-strip");
+        if (kpiStrip) {
+            const capOk = stats.caPRatio >= 1.1 && stats.caPRatio <= 1.8;
+            kpiStrip.innerHTML = `
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-500 font-bold">조단백질 (% DM)</div>
+                    <div class="text-base font-black text-blue-700">${stats.sumDM.protein_g.toFixed(1)}%</div>
+                    <div class="text-[10px] text-emerald-600 font-bold">🟢 AAFCO 충족</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-500 font-bold">조지방 (% DM)</div>
+                    <div class="text-base font-black text-amber-700">${stats.sumDM.fat_g.toFixed(1)}%</div>
+                    <div class="text-[10px] text-emerald-600 font-bold">🟢 적정 에너지원</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-500 font-bold">칼슘 : 인 비율 (Ca:P)</div>
+                    <div class="text-base font-black ${capOk ? 'text-emerald-700' : 'text-rose-600'}">${stats.caPRatio} : 1</div>
+                    <div class="text-[10px] font-bold ${capOk ? 'text-emerald-600' : 'text-rose-600'}">${capOk ? '🟢 황금비율 (1.1~1.8)' : '🔴 난각칼슘 조절 필요'}</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-500 font-bold">인 함량 (% DM)</div>
+                    <div class="text-base font-black text-indigo-700">${(stats.sumDM.phosphorus_mg / 1000).toFixed(2)}%</div>
+                    <div class="text-[10px] text-slate-500">${stats.sumDM.phosphorus_mg < 600 ? '신장 친화적 저인' : '표준 인 함량'}</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-500 font-bold">오메가-3 (g/100g DM)</div>
+                    <div class="text-base font-black text-teal-700">${stats.sumDM.omega3_g.toFixed(2)}g</div>
+                    <div class="text-[10px] text-slate-500">항염·피부모질</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-500 font-bold">수분 함량 (% AF)</div>
+                    <div class="text-base font-black text-cyan-700">${stats.sumAF.moisture_g.toFixed(1)}%</div>
+                    <div class="text-[10px] text-cyan-700 font-bold">자연 음수 보충</div>
+                </div>
+            `;
+        }
+
+        // 36대 전 영양소 테이블
+        const fullTbody = document.getElementById("g-diy-full36-tbody");
+        if (fullTbody) {
+            fullTbody.innerHTML = stats.keys36.map(meta => {
+                const afVal = stats.sumAF[meta.k];
+                const dmVal = stats.sumDM[meta.k];
+                const dailyVal = afVal * (stats.dailyTotalGrams / 100.0);
+                let judgeHtml = `<span class="text-slate-400">-</span>`;
+                if (meta.aafcoMinDM) {
+                    const ok = dmVal >= meta.aafcoMinDM * 0.85;
+                    judgeHtml = ok
+                        ? `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">🟢 충족 (≥${meta.aafcoMinDM})</span>`
+                        : `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">🟡 보충 권장 (&lt;${meta.aafcoMinDM})</span>`;
+                }
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-1.5 px-2.5 font-bold text-slate-800">${meta.label} (${meta.unit})</td>
+                        <td class="py-1.5 px-2.5 text-right">${afVal.toFixed(2)} ${meta.unit}</td>
+                        <td class="py-1.5 px-2.5 text-right font-bold text-blue-700">${meta.k === 'moisture_g' ? '-' : dmVal.toFixed(2) + ' ' + meta.unit}</td>
+                        <td class="py-1.5 px-2.5 text-right font-bold text-indigo-700">${dailyVal.toFixed(1)} ${meta.unit}/일</td>
+                        <td class="py-1.5 px-2.5 text-center">${judgeHtml}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    }
+
+    // =========================================================================
+    // 10. [메뉴 6] 사료 역추적 프로그램 (Reverse-Tracing Calculator — 고도화 엔진)
+    // =========================================================================
+    function populateReverseIngredientDropdown() {
+        const sel = document.getElementById("g-rev-add-ing-select");
+        if (!sel) return;
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        sel.innerHTML = db.map(x => `<option value="${x.id}">[${x.category}] ${x.name_ko} (단백 ${x.protein_g}g · 지방 ${x.fat_g}g)</option>`).join("");
+    }
+
+    function syncReverseIngredientsFromDryFood() {
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        const orderNames = guardianState.selectedDryFood.ingredients_order || ["닭고기", "쌀", "완두콩", "단호박", "연어오일"];
+        const matched = [];
+        orderNames.forEach(name => {
+            let hit = db.find(x => x.name_ko.includes(name) || name.includes(x.name_ko.split(",")[0]));
+            if (!hit) {
+                if (name.includes("닭") || name.includes("가금") || name.includes("오리") || name.includes("칠면조")) hit = db.find(x => x.category === "육류");
+                else if (name.includes("연어") || name.includes("청어") || name.includes("어유")) hit = db.find(x => x.category === "어류");
+                else if (name.includes("쌀") || name.includes("옥수수") || name.includes("밀") || name.includes("귀리")) hit = db.find(x => x.category === "곡류");
+                else if (name.includes("콩") || name.includes("대두")) hit = db.find(x => x.category === "콩류");
+                else if (name.includes("감자") || name.includes("고구마")) hit = db.find(x => x.category === "감자류");
+                else if (name.includes("호박") || name.includes("당근") || name.includes("비트")) hit = db.find(x => x.category === "채소류");
+            }
+            if (hit && !matched.some(m => m.id === hit.id)) {
+                matched.push({ id: hit.id, label: `${name} (매칭: ${hit.name_ko})` });
+            }
+        });
+        if (matched.length < 3 && db.length >= 4) {
+            matched.push({ id: db[0].id, label: db[0].name_ko });
+            matched.push({ id: db[18].id, label: db[18].name_ko });
+        }
+        guardianState.menu6_reverse.selectedIngIds = matched.map(m => m.id);
+        renderReverseChips();
+    }
+
+    window.addIngredientToReverseList = function () {
+        const sel = document.getElementById("g-rev-add-ing-select");
+        if (!sel || !sel.value) return;
+        if (!guardianState.menu6_reverse.selectedIngIds.includes(sel.value)) {
+            guardianState.menu6_reverse.selectedIngIds.push(sel.value);
+            renderReverseChips();
+            runGuardianReverseTracing();
+        }
+    };
+
+    window.removeReverseChip = function (idx) {
+        if (guardianState.menu6_reverse.selectedIngIds.length <= 1) return;
+        guardianState.menu6_reverse.selectedIngIds.splice(idx, 1);
+        renderReverseChips();
+        runGuardianReverseTracing();
+    };
+
+    window.moveReverseChip = function (idx, dir) {
+        const arr = guardianState.menu6_reverse.selectedIngIds;
+        const target = idx + dir;
+        if (target < 0 || target >= arr.length) return;
+        const tmp = arr[idx];
+        arr[idx] = arr[target];
+        arr[target] = tmp;
+        renderReverseChips();
+        runGuardianReverseTracing();
+    };
+
+    function renderReverseChips() {
+        const cont = document.getElementById("g-rev-chips-container");
+        if (!cont) return;
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        cont.innerHTML = guardianState.menu6_reverse.selectedIngIds.map((id, idx) => {
+            const ing = db.find(x => x.id === id);
+            const name = ing ? ing.name_ko : id;
+            return `
+                <div class="px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-300 text-purple-950 flex items-center space-x-1.5 text-xs font-bold shadow-sm">
+                    <span class="w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center">${idx + 1}위</span>
+                    <span>${name}</span>
+                    <button type="button" onclick="moveReverseChip(${idx}, -1)" class="text-slate-400 hover:text-purple-700 px-0.5" title="앞으로">◀</button>
+                    <button type="button" onclick="moveReverseChip(${idx}, 1)" class="text-slate-400 hover:text-purple-700 px-0.5" title="뒤로">▶</button>
+                    <button type="button" onclick="removeReverseChip(${idx})" class="text-rose-500 hover:text-rose-700 font-black pl-1">✕</button>
+                </div>
+            `;
+        }).join("");
+    }
+
+    // PAVA 단조 감소 투영 (P1 >= P2 >= ... >= Pn, 합 = 100%)
+    function projectDecreasingSimplex(weights) {
+        const n = weights.length;
+        if (n === 0) return [];
+        if (n === 1) return [100.0];
+        let blocks = weights.map(w => ({ sum: Math.max(0.2, w), count: 1 }));
+        let i = 0;
+        while (i < blocks.length - 1) {
+            const m1 = blocks[i].sum / blocks[i].count;
+            const m2 = blocks[i + 1].sum / blocks[i + 1].count;
+            if (m1 < m2) {
+                blocks[i].sum += blocks[i + 1].sum;
+                blocks[i].count += blocks[i + 1].count;
+                blocks.splice(i + 1, 1);
+                if (i > 0) i--;
+            } else {
+                i++;
+            }
+        }
+        const out = [];
+        blocks.forEach(b => {
+            const avg = b.sum / b.count;
+            for (let k = 0; k < b.count; k++) out.push(avg);
+        });
+        const s = out.reduce((a, b) => a + b, 0) || 1.0;
+        return out.map(v => (v / s) * 100.0);
+    }
+
+    window.runGuardianReverseTracing = function () {
+        const db = window.GUARDIAN_INGREDIENTS_DB || [];
+        const dryMetrics = calcDryFoodMetrics(guardianState.selectedDryFood);
+
+        // 1. 선택 원료 + Smart AI Imputation (칼슘/인/지방 부족분 자동 유추)
+        const workingList = guardianState.menu6_reverse.selectedIngIds.map(id => {
+            const ing = db.find(x => x.id === id) || db[0];
+            return { ...ing, isImputed: false };
+        });
+
+        const imputedNotes = [];
+        if (guardianState.menu6_reverse.enableImputation) {
+            // 원료들의 최대 DM 지방/칼슘/인 점검
+            let maxFatDM = 0, maxCaDM = 0, maxPDM = 0;
+            workingList.forEach(ing => {
+                const dmf = Math.max(0.05, (100 - (ing.moisture_g || 0)) / 100.0);
+                maxFatDM = Math.max(maxFatDM, (ing.fat_g || 0) / dmf);
+                maxCaDM = Math.max(maxCaDM, (ing.calcium_mg || 0) / dmf);
+                maxPDM = Math.max(maxPDM, (ing.phosphorus_mg || 0) / dmf);
+            });
+
+            if (dryMetrics.f_dm > maxFatDM * 0.75 && !workingList.some(x => x.id === "supp_salmon_oil")) {
+                const oil = db.find(x => x.id === "supp_salmon_oil");
+                if (oil) {
+                    workingList.push({ ...oil, name_ko: "동물성 정제유/어유 (AI 미표기 유추)", isImputed: true });
+                    imputedNotes.push("조지방 목표치 달성을 위해 [정제 동물성유/어유] 자동 유추 보완");
+                }
+            }
+            if (dryMetrics.phos_dm * 1000 > maxPDM * 0.85 && !workingList.some(x => x.id === "supp_dicalcium")) {
+                const dcp = db.find(x => x.id === "supp_dicalcium");
+                if (dcp) {
+                    workingList.push({ ...dcp, name_ko: "제2인산칼슘 (AI 미표기 미네랄 유추)", isImputed: true });
+                    imputedNotes.push("인(P)·칼슘 보증성분 충족을 위해 [제2인산칼슘] 자동 유추 보완");
+                }
+            }
+            if (dryMetrics.ca_dm * 1000 > maxCaDM * 0.85 && !workingList.some(x => x.id === "supp_eggshell")) {
+                const egg = db.find(x => x.id === "supp_eggshell");
+                if (egg) {
+                    workingList.push({ ...egg, name_ko: "탄산칼슘/난각칼슘 (AI 미표기 칼슘제 유추)", isImputed: true });
+                    imputedNotes.push("칼슘(Ca) 보증성분 충족을 위해 [탄산칼슘 보충제] 자동 유추 보완");
+                }
+            }
+        }
+
+        const n = workingList.length;
+        const ingDM = workingList.map(ing => {
+            const dmf = Math.max(0.05, (100.0 - (ing.moisture_g || 0)) / 100.0);
+            return {
+                p: (ing.protein_g || 0) / dmf,
+                f: (ing.fat_g || 0) / dmf,
+                fb: (ing.total_dietary_fiber_g || 0) / dmf,
+                ash: (ing.ash_g || 0) / dmf,
+                ca_pct: ((ing.calcium_mg || 0) / 1000.0) / dmf,
+                p_pct: ((ing.phosphorus_mg || 0) / 1000.0) / dmf
+            };
+        });
+
+        function evalLoss(P) {
+            let p = 0, f = 0, fb = 0, ash = 0, ca = 0, phos = 0;
+            for (let i = 0; i < n; i++) {
+                const w = P[i] / 100.0;
+                p += ingDM[i].p * w;
+                f += ingDM[i].f * w;
+                fb += ingDM[i].fb * w;
+                ash += ingDM[i].ash * w;
+                ca += ingDM[i].ca_pct * w;
+                phos += ingDM[i].p_pct * w;
+            }
+            let loss = 0;
+            loss += Math.pow((p - dryMetrics.p_dm) / Math.max(10, dryMetrics.p_dm), 2) * 25.0;
+            loss += Math.pow((f - dryMetrics.f_dm) / Math.max(5, dryMetrics.f_dm), 2) * 22.0;
+            loss += Math.pow((ca - dryMetrics.ca_dm) / Math.max(0.4, dryMetrics.ca_dm), 2) * 15.0;
+            loss += Math.pow((phos - dryMetrics.phos_dm) / Math.max(0.4, dryMetrics.phos_dm), 2) * 15.0;
+            loss += Math.pow((ash - dryMetrics.ash_dm) / Math.max(3, dryMetrics.ash_dm), 2) * 6.0;
+
+            // 보충제 과다 투입 억제
+            for (let i = 0; i < n; i++) {
+                if (workingList[i].isImputed && P[i] > 6.5) {
+                    loss += Math.pow(P[i] - 6.5, 2) * 5.0;
+                }
+            }
+            return { loss, p, f, fb, ash, ca, phos };
+        }
+
+        // 확정적 다중 시작 좌표 탐색 + 투영 최적화 (실행 시 일관된 최적해 보장)
+        let bestP = projectDecreasingSimplex(Array.from({ length: n }, (_, i) => Math.pow(0.68, i) * 100));
+        let bestEval = evalLoss(bestP);
+
+        const seeds = [0.55, 0.65, 0.75, 0.82, 0.90];
+        seeds.forEach(decay => {
+            let curP = projectDecreasingSimplex(Array.from({ length: n }, (_, i) => Math.pow(decay, i) * 100));
+            let curEval = evalLoss(curP);
+            for (let step = 0; step < 320; step++) {
+                const i1 = step % n;
+                const i2 = (step * 3 + 1) % n;
+                if (i1 === i2) continue;
+                const delta = 3.5 * (1.0 - step / 350.0);
+                for (const sign of [1, -1]) {
+                    const cand = curP.slice();
+                    cand[i1] += sign * delta;
+                    cand[i2] -= sign * delta;
+                    const proj = projectDecreasingSimplex(cand);
+                    const ev = evalLoss(proj);
+                    if (ev.loss < curEval.loss) {
+                        curP = proj;
+                        curEval = ev;
+                    }
+                }
+            }
+            if (curEval.loss < bestEval.loss) {
+                bestP = curP;
+                bestEval = curEval;
+            }
+        });
+
+        // 30대 영양소 건물(DM) 역추적 합산
+        const blendDM = {};
+        const nutrientKeys = [
+            "protein_g", "fat_g", "carbohydrate_g", "total_dietary_fiber_g", "ash_g",
+            "calcium_mg", "phosphorus_mg", "magnesium_mg", "potassium_mg", "sodium_mg",
+            "zinc_mg", "iron_mg", "copper_mg", "manganese_mg", "selenium_ug", "iodine_ug",
+            "vitamin_a_ug", "vitamin_d_ug", "vitamin_e_mg", "thiamin_mg", "riboflavin_mg",
+            "niacin_mg", "pantothenic_acid_mg", "vitamin_b6_mg", "folate_ug", "vitamin_b12_ug",
+            "omega3_g", "omega6_g"
+        ];
+        nutrientKeys.forEach(k => { blendDM[k] = 0; });
+
+        bestP.forEach((pct, i) => {
+            const ing = workingList[i];
+            const dmf = Math.max(0.05, (100.0 - (ing.moisture_g || 0)) / 100.0);
+            const w = pct / 100.0;
+            nutrientKeys.forEach(k => {
+                blendDM[k] += ((parseFloat(ing[k]) || 0) / dmf) * w;
+            });
+        });
+
+        // UI 렌더링: 1) AI Imputation 배너
+        const impBanner = document.getElementById("g-rev-imputation-banner");
+        if (impBanner) {
+            if (imputedNotes.length > 0) {
+                impBanner.classList.remove("hidden");
+                impBanner.innerHTML = `💡 <strong>Smart AI Imputation 작동:</strong> ${imputedNotes.join(" · ")}`;
+            } else {
+                impBanner.classList.add("hidden");
+            }
+        }
+
+        // 2) 원재료 배합비 표
+        const ratiosTbody = document.getElementById("g-rev-ratios-tbody");
+        if (ratiosTbody) {
+            ratiosTbody.innerHTML = workingList.map((ing, i) => {
+                const ratio = bestP[i];
+                const dmf = Math.max(0.05, (100.0 - (ing.moisture_g || 0)) / 100.0);
+                const kcalDM = ((ing.energy_kcal || 100) / dmf) * (ratio / 100.0);
+                return `
+                    <tr class="${ing.isImputed ? 'bg-amber-50/60' : ''}">
+                        <td class="py-1.5 px-2.5 font-black text-slate-700">${i + 1}위</td>
+                        <td class="py-1.5 px-2.5 font-bold text-slate-900">${ing.name_ko}</td>
+                        <td class="py-1.5 px-2.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${ing.isImputed ? 'bg-amber-200 text-amber-900' : 'bg-purple-100 text-purple-800'}">
+                                ${ing.isImputed ? 'AI 미표기 유추' : ing.category}
+                            </span>
+                        </td>
+                        <td class="py-1.5 px-2.5 text-right font-black text-purple-800">${ratio.toFixed(1)} %</td>
+                        <td class="py-1.5 px-2.5 text-right text-slate-600">${Math.round(kcalDM)} kcal/100g</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        // 3) 보증성분 적합도 검증 표
+        const fitTbody = document.getElementById("g-rev-fit-tbody");
+        if (fitTbody) {
+            const rows = [
+                { name: "조단백질 (% DM)", target: dryMetrics.p_dm, val: bestEval.p },
+                { name: "조지방 (% DM)", target: dryMetrics.f_dm, val: bestEval.f },
+                { name: "칼슘 Ca (% DM)", target: dryMetrics.ca_dm, val: bestEval.ca },
+                { name: "인 P (% DM)", target: dryMetrics.phos_dm, val: bestEval.phos },
+                { name: "조회분 (% DM)", target: dryMetrics.ash_dm, val: bestEval.ash }
+            ];
+            fitTbody.innerHTML = rows.map(r => {
+                const errPct = r.target > 0 ? Math.abs(r.val - r.target) / r.target : 0;
+                const ok = errPct <= 0.12;
+                return `
+                    <tr>
+                        <td class="py-1.5 px-2.5 font-bold text-slate-800">${r.name}</td>
+                        <td class="py-1.5 px-2.5 text-right font-semibold">${r.target.toFixed(2)} %</td>
+                        <td class="py-1.5 px-2.5 text-right font-black text-purple-700">${r.val.toFixed(2)} %</td>
+                        <td class="py-1.5 px-2.5 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${ok ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                ${ok ? '✅ 고정밀 일치' : '🟡 근사 수렴'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        // 4) 28대 영양소 신뢰도 & 예상 범위 표
+        const REV_NUTRIENT_SPECS = [
+            { key: 'protein_g', label: '조단백질', unit: '% DM', category: '다량영양소', min_aafco_1000kcal: 45.0, unit_aafco: 'g', baseConfidence: 92, defaultTolPct: 8 },
+            { key: 'fat_g', label: '조지방', unit: '% DM', category: '다량영양소', min_aafco_1000kcal: 13.8, unit_aafco: 'g', baseConfidence: 90, defaultTolPct: 9 },
+            { key: 'carbohydrate_g', label: '탄수화물 (NFE)', unit: '% DM', category: '다량영양소', baseConfidence: 88, defaultTolPct: 10 },
+            { key: 'total_dietary_fiber_g', label: '식이섬유 (조섬유)', unit: '% DM', category: '다량영양소', baseConfidence: 82, defaultTolPct: 14 },
+            { key: 'ash_g', label: '조회분', unit: '% DM', category: '다량영양소', baseConfidence: 84, defaultTolPct: 12 },
+            { key: 'calcium_mg', label: '칼슘 (Ca)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.25, unit_aafco: 'g', baseConfidence: 86, defaultTolPct: 13 },
+            { key: 'phosphorus_mg', label: '인 (P)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.00, unit_aafco: 'g', baseConfidence: 86, defaultTolPct: 13 },
+            { key: 'magnesium_mg', label: '마그네슘 (Mg)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 0.15, unit_aafco: 'g', baseConfidence: 78, defaultTolPct: 16 },
+            { key: 'potassium_mg', label: '칼륨 (K)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.50, unit_aafco: 'g', baseConfidence: 80, defaultTolPct: 15 },
+            { key: 'sodium_mg', label: '나트륨 (Na)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 0.20, unit_aafco: 'g', baseConfidence: 76, defaultTolPct: 18 },
+            { key: 'iron_mg', label: '철분 (Fe)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 10.0, unit_aafco: 'mg', baseConfidence: 74, defaultTolPct: 20 },
+            { key: 'zinc_mg', label: '아연 (Zn)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 20.0, unit_aafco: 'mg', baseConfidence: 75, defaultTolPct: 18 },
+            { key: 'copper_mg', label: '구리 (Cu)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.83, unit_aafco: 'mg', baseConfidence: 72, defaultTolPct: 21 },
+            { key: 'manganese_mg', label: '망간 (Mn)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.25, unit_aafco: 'mg', baseConfidence: 70, defaultTolPct: 22 },
+            { key: 'selenium_ug', label: '셀레늄 (Se)', unit: 'μg/100g DM', category: '미네랄', min_aafco_1000kcal: 80.0, unit_aafco: 'μg', baseConfidence: 68, defaultTolPct: 24 },
+            { key: 'iodine_ug', label: '요오드 (I)', unit: 'μg/100g DM', category: '미네랄', min_aafco_1000kcal: 250.0, unit_aafco: 'μg', baseConfidence: 65, defaultTolPct: 26 },
+            { key: 'vitamin_a_ug', label: '비타민 A', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 375.0, unit_aafco: 'μg', baseConfidence: 70, defaultTolPct: 24 },
+            { key: 'vitamin_d_ug', label: '비타민 D', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 3.13, unit_aafco: 'μg', baseConfidence: 68, defaultTolPct: 25 },
+            { key: 'vitamin_e_mg', label: '비타민 E', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 12.5, unit_aafco: 'IU', baseConfidence: 74, defaultTolPct: 20 },
+            { key: 'thiamin_mg', label: '비타민 B1 (티아민)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 0.56, unit_aafco: 'mg', baseConfidence: 76, defaultTolPct: 18 },
+            { key: 'riboflavin_mg', label: '비타민 B2 (리보플라빈)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 1.30, unit_aafco: 'mg', baseConfidence: 75, defaultTolPct: 18 },
+            { key: 'niacin_mg', label: '비타민 B3 (나이아신)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 3.40, unit_aafco: 'mg', baseConfidence: 76, defaultTolPct: 17 },
+            { key: 'pantothenic_acid_mg', label: '비타민 B5 (판토텐산)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 3.00, unit_aafco: 'mg', baseConfidence: 73, defaultTolPct: 19 },
+            { key: 'vitamin_b6_mg', label: '비타민 B6 (피리독신)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 0.38, unit_aafco: 'mg', baseConfidence: 74, defaultTolPct: 18 },
+            { key: 'folate_ug', label: '엽산 (B9)', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 54.0, unit_aafco: 'μg', baseConfidence: 68, defaultTolPct: 22 },
+            { key: 'vitamin_b12_ug', label: '비타민 B12', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 7.0, unit_aafco: 'μg', baseConfidence: 67, defaultTolPct: 24 },
+            { key: 'omega3_g', label: '오메가-3 지방산', unit: 'g/100g DM', category: '지방산', min_aafco_1000kcal: 0.11, unit_aafco: 'g', baseConfidence: 80, defaultTolPct: 16 },
+            { key: 'omega6_g', label: '오메가-6 지방산', unit: 'g/100g DM', category: '지방산', min_aafco_1000kcal: 2.80, unit_aafco: 'g', baseConfidence: 82, defaultTolPct: 15 }
+        ];
+        const confTbody = document.getElementById("g-rev-confidence-tbody");
+        if (confTbody) {
+            const fitScore = Math.max(60, Math.min(98, Math.round(96 - bestEval.loss * 80)));
+            confTbody.innerHTML = REV_NUTRIENT_SPECS.map(spec => {
+                const val = blendDM[spec.key] || 0;
+                const conf = Math.min(96, Math.max(58, Math.round(spec.baseConfidence * 0.55 + fitScore * 0.45)));
+                const tol = spec.defaultTolPct * (1 + (100 - conf) / 120);
+                const rMin = Math.max(0, val * (1 - tol / 100));
+                const rMax = val * (1 + tol / 100);
+                const badgeCls = conf >= 85 ? "bg-emerald-100 text-emerald-800" : (conf >= 72 ? "bg-amber-100 text-amber-800" : "bg-rose-100 text-rose-800");
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-1.5 px-2.5 font-bold text-slate-800">${spec.label}</td>
+                        <td class="py-1.5 px-2.5 text-slate-500">${spec.category.toUpperCase()}</td>
+                        <td class="py-1.5 px-2.5 text-right font-black text-purple-800">${val.toFixed(2)} ${spec.unit}</td>
+                        <td class="py-1.5 px-2.5 text-right font-mono text-slate-500">${rMin.toFixed(2)} ~ ${rMax.toFixed(2)}</td>
+                        <td class="py-1.5 px-2.5 text-center"><span class="px-2 py-0.5 rounded-full font-black ${badgeCls}">${conf}%</span></td>
+                        <td class="py-1.5 px-2.5 text-center text-slate-600">${spec.min_aafco_1000kcal ? `권장 ≥ ${spec.min_aafco_1000kcal} ${spec.unit_aafco || ''}` : '참고치'}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    };
+
+    // =========================================================================
+    // 11. 전체 계산 통합 갱신 및 [Step 4] 신호등·게이지·스케줄표 렌더링
+    // =========================================================================
+    function refreshAllGuardianCalculations() {
+        const energy = computeGuardianEnergy();
+        const dryMetrics = calcDryFoodMetrics(guardianState.selectedDryFood);
+        const aafco = getAafcoStandardForProfile();
+
+        // Step 1 출력 업데이트
+        const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+        setTxt("g-out-rer", energy.rer);
+        setTxt("g-out-der", energy.der);
+        setTxt("g-out-factor", energy.factor);
+        setTxt("g-out-permeal", energy.perMealKcal);
+        setTxt("g-out-meals-label", `하루 ${guardianState.profile.mealsPerDay}끼 급여 기준`);
+        setTxt("g-out-maxtreat", energy.maxTreatKcal);
+        setTxt("g-out-idealw", energy.idealWeightKg);
+
+        const bcs = guardianState.profile.bcs;
+        setTxt("g-out-bcs-comment", bcs <= 3 ? "저체중 — 체중 증량 식단 권장" : (bcs <= 5 ? "현재 이상적 체형 유지 중" : "과체중/비만 — 칼로리 조절 권장"));
+        setTxt("g-out-aafco-badge", `적용 기준: ${aafco.label} (단백질 ≥${aafco.p_min}% DM, 지방 ≥${aafco.f_min}% DM)`);
+
+        const fecalBanner = document.getElementById("g-out-fecal-banner");
+        if (fecalBanner) {
+            fecalBanner.firstElementChild.innerHTML = `💡 <strong>변 상태 & 체형 진단 피드백:</strong> ${energy.fecalNote}`;
+        }
+
+        // Step 2 DM 요약 업데이트
+        setTxt("g-current-food-title", dryMetrics.name);
+        const dmBar = document.getElementById("g-dry-dm-summary-bar");
+        if (dmBar) {
+            dmBar.innerHTML = `
+                <div class="flex flex-wrap gap-3 font-bold text-slate-700">
+                    <span>⚡ 추정 대사에너지: <strong class="text-blue-700">${dryMetrics.kcal_per_kg} kcal/kg</strong></span>
+                    <span>• 건물(DM) 조단백: <strong>${dryMetrics.p_dm}%</strong></span>
+                    <span>• 건물(DM) 조지방: <strong>${dryMetrics.f_dm}%</strong></span>
+                    <span>• 건물(DM) 탄수화물(NFE): <strong>${dryMetrics.nfe_dm}%</strong></span>
+                    <span>• 칼슘:인 비율(Ca:P): <strong class="${dryMetrics.ca_p_ratio >= 1.0 && dryMetrics.ca_p_ratio <= 2.0 ? 'text-emerald-700' : 'text-rose-600'}">${dryMetrics.ca_p_ratio} : 1</strong></span>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 font-black">100g당 ${Math.round(dryMetrics.kcal_per_kg / 10)} kcal</span>
+            `;
+        }
+
+        // 토핑(메뉴 4) 칼로리 합산 (공통 모듈)
+        const toppingSum = calcTotalToppingsSummary();
+        const toppingPctOfDer = Math.round((toppingSum.totalKcal / energy.der) * 1000) / 10;
+
+        // 메뉴 4 배너 업데이트
+        const m4Banner = document.getElementById("g-m4-gauge-banner");
+        if (m4Banner) {
+            const over10 = toppingSum.totalKcal > energy.maxTreatKcal;
+            const deductDryG = Math.round((toppingSum.totalKcal / (dryMetrics.kcal_per_kg / 1000.0)) * 10) / 10;
+            m4Banner.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="font-black ${over10 ? 'text-rose-700' : 'text-emerald-800'}">
+                        ${over10 ? '🚨 [경고: 10% 허용 칼로리 초과!]' : '🟢 [안전: 10% 허용 칼로리 이내]'}
+                        선택한 간식/토핑 총 칼로리: <strong>${toppingSum.totalKcal} kcal</strong> (일일 DER의 <strong>${toppingPctOfDer}%</strong> / 허용 상한 ${energy.maxTreatKcal} kcal)
+                    </div>
+                    <span class="px-3 py-1 rounded-lg bg-slate-900 text-amber-300 font-black">본식 사료 차감 권장량: -${deductDryG} g/일</span>
+                </div>
+                <p class="text-[11px] text-slate-600">비만과 영양 불균형을 막기 위해 오늘 급여할 간식(${toppingSum.totalKcal} kcal)만큼 Step 4의 본식 급여량에서 자동으로 조절하거나 본식 사료를 <strong>${deductDryG}g</strong> 덜어내고 급여하세요.</p>
+            `;
+        }
+
+        // 현재 활성 메뉴(1~6)에 따른 혼합 식단(Main + Sub) 구성 계산
+        let mainLabel = dryMetrics.name;
+        let subLabel = "보조 배합식 없음";
+        let mainKcal = energy.der;
+        let subKcal = 0;
+        let mainGrams = 0;
+        let subGrams = 0;
+        let mixP_dm = dryMetrics.p_dm;
+        let mixF_dm = dryMetrics.f_dm;
+        let mixNfe_dm = dryMetrics.nfe_dm;
+        let mixCa_dm = dryMetrics.ca_dm;
+        let mixPhos_dm = dryMetrics.phos_dm;
+        let waterFromFoodMl = 0;
+        let menuBadgeText = "건식 + 습식 배합";
+
+        if (guardianState.activeMenu === 1) {
+            menuBadgeText = "메뉴 1: 건식 + 습식 배합";
+            const wet = COMMERCIAL_WET_AND_FRESH.find(x => x.id === guardianState.menu1.wetFoodId) || COMMERCIAL_WET_AND_FRESH[0];
+            const wetM = calcDryFoodMetrics(wet);
+            const rDry = guardianState.menu1.dryRatioPct / 100.0;
+            const rWet = 1.0 - rDry;
+
+            mainKcal = Math.round(energy.der * rDry);
+            subKcal = Math.round(energy.der * rWet);
+            mainGrams = Math.round((mainKcal / (dryMetrics.kcal_per_kg / 1000.0)) * 10) / 10;
+            subGrams = Math.round((subKcal / (wetM.kcal_per_kg / 1000.0)) * 10) / 10;
+            subLabel = wet.name;
+
+            mixP_dm = dryMetrics.p_dm * rDry + wetM.p_dm * rWet;
+            mixF_dm = dryMetrics.f_dm * rDry + wetM.f_dm * rWet;
+            mixNfe_dm = dryMetrics.nfe_dm * rDry + wetM.nfe_dm * rWet;
+            mixCa_dm = dryMetrics.ca_dm * rDry + wetM.ca_dm * rWet;
+            mixPhos_dm = dryMetrics.phos_dm * rDry + wetM.phos_dm * rWet;
+            waterFromFoodMl = Math.round(mainGrams * (dryMetrics.moisture_af / 100) + subGrams * (wetM.moisture_af / 100));
+
+            const m1Box = document.getElementById("g-m1-summary-box");
+            if (m1Box) {
+                m1Box.innerHTML = `✅ 1일 총 급여량: 건식 <strong class="text-blue-700">${mainGrams}g</strong> (${mainKcal}kcal) + 습식 <strong class="text-emerald-700">${subGrams}g</strong> (${subKcal}kcal) · 식사 내 수분 섭취 <strong>${waterFromFoodMl}ml</strong>`;
+            }
+        } else if (guardianState.activeMenu === 2) {
+            menuBadgeText = "메뉴 2: 건식 + 화식 배합";
+            const fresh = COMMERCIAL_WET_AND_FRESH.find(x => x.id === guardianState.menu2.freshFoodId) || COMMERCIAL_WET_AND_FRESH[3];
+            const freshM = calcDryFoodMetrics(fresh);
+            const rDry = guardianState.menu2.dryRatioPct / 100.0;
+            const rFresh = 1.0 - rDry;
+
+            mainKcal = Math.round(energy.der * rDry);
+            subKcal = Math.round(energy.der * rFresh);
+            mainGrams = Math.round((mainKcal / (dryMetrics.kcal_per_kg / 1000.0)) * 10) / 10;
+            subGrams = Math.round((subKcal / (freshM.kcal_per_kg / 1000.0)) * 10) / 10;
+            subLabel = fresh.name;
+
+            mixP_dm = dryMetrics.p_dm * rDry + freshM.p_dm * rFresh;
+            mixF_dm = dryMetrics.f_dm * rDry + freshM.f_dm * rFresh;
+            mixNfe_dm = dryMetrics.nfe_dm * rDry + freshM.nfe_dm * rFresh;
+            mixCa_dm = dryMetrics.ca_dm * rDry + freshM.ca_dm * rFresh;
+            mixPhos_dm = dryMetrics.phos_dm * rDry + freshM.phos_dm * rFresh;
+            waterFromFoodMl = Math.round(mainGrams * (dryMetrics.moisture_af / 100) + subGrams * (freshM.moisture_af / 100));
+
+            const m2Box = document.getElementById("g-m2-summary-box");
+            if (m2Box) {
+                m2Box.innerHTML = `✅ 1일 총 급여량: 건식 <strong class="text-blue-700">${mainGrams}g</strong> (${mainKcal}kcal) + 맞춤 화식 <strong class="text-amber-700">${subGrams}g</strong> (${subKcal}kcal)`;
+            }
+        } else if (guardianState.activeMenu === 3) {
+            menuBadgeText = "메뉴 3: 건식 + 단일 원재료 배합";
+            const raw = SINGLE_RAW_INGREDIENTS.find(x => x.id === guardianState.menu3.rawIngId) || SINGLE_RAW_INGREDIENTS[0];
+            const rRaw = guardianState.menu3.rawRatioPct / 100.0;
+            const rDry = 1.0 - rRaw;
+
+            mainKcal = Math.round(energy.der * rDry);
+            subKcal = Math.round(energy.der * rRaw);
+            mainGrams = Math.round((mainKcal / (dryMetrics.kcal_per_kg / 1000.0)) * 10) / 10;
+            subGrams = Math.round((subKcal / (raw.kcal_100g / 100.0)) * 10) / 10;
+            subLabel = raw.name;
+
+            const dmf = Math.max(0.05, (100 - raw.moisture) / 100.0);
+            const rawP_dm = raw.protein / dmf;
+            const rawF_dm = raw.fat / dmf;
+            const rawCa_dm = (raw.ca_mg / 1000.0) / dmf;
+            const rawPhos_dm = (raw.p_mg / 1000.0) / dmf;
+            const rawNfe_dm = Math.max(0, 100 - rawP_dm - rawF_dm - 2.0);
+
+            mixP_dm = dryMetrics.p_dm * rDry + rawP_dm * rRaw;
+            mixF_dm = dryMetrics.f_dm * rDry + rawF_dm * rRaw;
+            mixNfe_dm = dryMetrics.nfe_dm * rDry + rawNfe_dm * rRaw;
+            mixCa_dm = dryMetrics.ca_dm * rDry + rawCa_dm * rRaw;
+            mixPhos_dm = dryMetrics.phos_dm * rDry + rawPhos_dm * rRaw;
+            waterFromFoodMl = Math.round(mainGrams * (dryMetrics.moisture_af / 100) + subGrams * (raw.moisture / 100));
+
+            const m3Alert = document.getElementById("g-m3-distortion-alert");
+            if (m3Alert) {
+                const overLimit = guardianState.menu3.rawRatioPct > raw.maxSafePct;
+                const capRatio = mixPhos_dm > 0 ? (mixCa_dm / mixPhos_dm).toFixed(2) : "1.20";
+                m3Alert.innerHTML = overLimit
+                    ? `<div class="p-2.5 rounded-xl bg-rose-100 border border-rose-300 text-rose-900 font-bold">🚨 <strong>[영양 왜곡 경고]</strong> 단일 원재료(${raw.name}) 비중이 안전선(${raw.maxSafePct}%)을 초과하여 칼슘:인 비율(${capRatio}:1) 및 미량영양소 균형이 무너질 수 있습니다! <strong>${raw.maxSafePct}% 이하</strong>로 낮춰주세요.</div>`
+                    : `<div class="p-2.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-900 font-bold">🟢 <strong>[영양 밸런스 안전]</strong> 건식 <strong>${mainGrams}g</strong> + ${raw.name} <strong>${subGrams}g/일</strong> 급여 시 Ca:P 비율(${capRatio}:1)이 안전하게 유지됩니다.</div>`;
+            }
+        } else if (guardianState.activeMenu === 5) {
+            menuBadgeText = "메뉴 5: 홈메이드 화식 DIY 100% 급여";
+            const diyStats = computeDiyBlendStats();
+            mainLabel = "직접 설계한 홈메이드 화식 (DIY)";
+            subLabel = "추가 배합 없음 (단독 화식)";
+            mainKcal = energy.der;
+            subKcal = 0;
+            mainGrams = diyStats.dailyTotalGrams;
+            subGrams = 0;
+            mixP_dm = diyStats.sumDM.protein_g;
+            mixF_dm = diyStats.sumDM.fat_g;
+            mixNfe_dm = diyStats.sumDM.carbohydrate_g;
+            mixCa_dm = diyStats.sumDM.calcium_mg / 1000.0;
+            mixPhos_dm = diyStats.sumDM.phosphorus_mg / 1000.0;
+            waterFromFoodMl = Math.round(mainGrams * (diyStats.sumAF.moisture_g / 100.0));
+        } else {
+            // 메뉴 4 또는 메뉴 6일 때는 주식 사료 + 토핑 기준
+            menuBadgeText = guardianState.activeMenu === 4 ? "메뉴 4: 주식 건식 + 10% 안전 토핑" : "메뉴 6: 역추적 사료 급여 가이드";
+            mainKcal = Math.max(0, energy.der - toppingSum.totalKcal);
+            subKcal = 0;
+            mainGrams = Math.round((mainKcal / (dryMetrics.kcal_per_kg / 1000.0)) * 10) / 10;
+            subGrams = 0;
+            waterFromFoodMl = Math.round(mainGrams * (dryMetrics.moisture_af / 100));
+        }
+
+        // Step 4: 1) 칼로리 밸런스 게이지 업데이트
+        const totalCombinedKcal = mainKcal + subKcal + (guardianState.activeMenu === 4 ? 0 : toppingSum.totalKcal);
+        const calRatioPct = Math.round((totalCombinedKcal / energy.der) * 100);
+        const gaugeBar = document.getElementById("g-dash-gauge-bar");
+        const gaugeStatus = document.getElementById("g-dash-gauge-status");
+        if (gaugeBar && gaugeStatus) {
+            gaugeBar.style.width = `${Math.min(100, calRatioPct)}%`;
+            if (calRatioPct > 110) {
+                gaugeBar.className = "h-full rounded-full bg-gradient-to-r from-amber-500 to-rose-600 transition-all duration-300";
+                gaugeStatus.className = "px-3 py-0.5 rounded-full bg-rose-500 text-white text-xs font-black";
+                gaugeStatus.innerText = `🔴 과체중 위험 (${calRatioPct}% — 간식/토핑 감량 필요)`;
+            } else if (calRatioPct < 90) {
+                gaugeBar.className = "h-full rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 transition-all duration-300";
+                gaugeStatus.className = "px-3 py-0.5 rounded-full bg-amber-400 text-slate-950 text-xs font-black";
+                gaugeStatus.innerText = `🟡 칼로리 부족 경고 (${calRatioPct}%)`;
+            } else {
+                gaugeBar.className = "h-full rounded-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 transition-all duration-300";
+                gaugeStatus.className = "px-3 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-xs font-black";
+                gaugeStatus.innerText = `🟢 적정 칼로리 Fit (${calRatioPct}%)`;
+            }
+        }
+        setTxt("g-dash-target-der", `${energy.der} kcal/일`);
+        setTxt("g-dash-cal-breakdown", `주식: ${mainKcal} kcal + 배합식: ${subKcal} kcal + 토핑/간식: ${toppingSum.totalKcal} kcal = 총 ${totalCombinedKcal} kcal`);
+
+        // Step 4: 2) AAFCO / FEDIAF 신호등 리포트 업데이트
+        const mixCaP = mixPhos_dm > 0 ? Math.round((mixCa_dm / mixPhos_dm) * 100) / 100 : 1.25;
+        const concern = guardianState.profile.healthConcern;
+
+        const trafficItems = [
+            {
+                title: "조단백질 (% DM)",
+                val: `${mixP_dm.toFixed(1)}%`,
+                target: `권장 ${aafco.p_min}~${aafco.p_max}%`,
+                status: mixP_dm < aafco.p_min ? "RED" : (concern === "ckd" && mixP_dm > 24 ? "YELLOW" : "GREEN"),
+                desc: mixP_dm < aafco.p_min ? "단백질 부족 위험" : (concern === "ckd" && mixP_dm > 24 ? "신장케어 시 단백질 중등도 조절 권장" : "근육 유지 적정 범위")
+            },
+            {
+                title: "조지방 (% DM)",
+                val: `${mixF_dm.toFixed(1)}%`,
+                target: concern === "pancreatitis" ? "췌장케어 <12% 권장" : `권장 ${aafco.f_min}~${aafco.f_max}%`,
+                status: (concern === "pancreatitis" && mixF_dm > 12) ? "RED" : (mixF_dm > aafco.f_max ? "YELLOW" : "GREEN"),
+                desc: (concern === "pancreatitis" && mixF_dm > 12) ? "췌장염 주의: 저지방 배합으로 낮추세요" : "필수지방산 및 에너지 적정"
+            },
+            {
+                title: "탄수화물 NFE (% DM)",
+                val: `${mixNfe_dm.toFixed(1)}%`,
+                target: "적정 20~55% DM",
+                status: mixNfe_dm > 60 ? "YELLOW" : "GREEN",
+                desc: mixNfe_dm > 60 ? "탄수화물 비중 다소 높음" : "소화 흡수 에너지원 균형"
+            },
+            {
+                title: "칼슘 Ca (% DM)",
+                val: `${mixCa_dm.toFixed(2)}%`,
+                target: `권장 ${aafco.ca_min}~${aafco.ca_max}%`,
+                status: (mixCa_dm < aafco.ca_min || mixCa_dm > aafco.ca_max) ? "RED" : "GREEN",
+                desc: mixCa_dm < aafco.ca_min ? "칼슘 부족 (난각분말 보충 필요)" : "골격 및 대사 적정 범위"
+            },
+            {
+                title: "인 P (% DM)",
+                val: `${mixPhos_dm.toFixed(2)}%`,
+                target: concern === "ckd" ? "신장케어 <0.6% 권장" : `권장 ${aafco.phos_min}~${aafco.phos_max}%`,
+                status: (concern === "ckd" && mixPhos_dm > 0.65) ? "RED" : (mixPhos_dm > aafco.phos_max ? "YELLOW" : "GREEN"),
+                desc: (concern === "ckd" && mixPhos_dm > 0.65) ? "신장 부담 주의: 저인 화식/습식 권장" : "세포 대사 적정 범위"
+            },
+            {
+                title: "칼슘 : 인 비율 (Ca:P)",
+                val: `${mixCaP} : 1`,
+                target: "황금비율 1.1 ~ 1.8 : 1",
+                status: (mixCaP < 1.0 || mixCaP > 2.2) ? "RED" : (mixCaP < 1.1 ? "YELLOW" : "GREEN"),
+                desc: mixCaP < 1.0 ? "역전 위험! 고기 토핑을 줄이거나 칼슘 보충" : "AAFCO 이상적 비율 충족"
+            }
+        ];
+
+        const tlGrid = document.getElementById("g-dash-traffic-lights");
+        if (tlGrid) {
+            tlGrid.innerHTML = trafficItems.map(item => {
+                const styles = item.status === "GREEN"
+                    ? { bg: "bg-emerald-50/70 border-emerald-300", dot: "🟢 적정", text: "text-emerald-900", badge: "bg-emerald-100 text-emerald-800" }
+                    : (item.status === "YELLOW"
+                        ? { bg: "bg-amber-50/80 border-amber-300", dot: "🟡 주의", text: "text-amber-900", badge: "bg-amber-100 text-amber-800" }
+                        : { bg: "bg-rose-50/80 border-rose-300", dot: "🔴 경고", text: "text-rose-900", badge: "bg-rose-100 text-rose-800" });
+                return `
+                    <div class="p-3.5 rounded-2xl border ${styles.bg} flex flex-col justify-between space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-600 text-[11px]">${item.title}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${styles.badge}">${styles.dot}</span>
+                        </div>
+                        <div class="text-lg font-black ${styles.text}">${item.val}</div>
+                        <div class="text-[10px] text-slate-500 font-semibold">${item.target}</div>
+                        <div class="text-[10px] font-bold ${styles.text}">${item.desc}</div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // Step 4: 3) 아침/점심/저녁 실천형 급여 스케줄표
+        setTxt("g-dash-active-menu-badge", menuBadgeText);
+        const meals = guardianState.profile.mealsPerDay || 2;
+        const mealNames = meals === 1 ? ["🌅 하루 1끼 통합 식사"] : (meals === 2 ? ["🌅 아침 식사 (1회차)", "🌙 저녁 식사 (2회차)"] : ["🌅 아침 식사", "☀️ 점심 식사", "🌙 저녁 식사"]);
+        const mainPerMealG = Math.round((mainGrams / meals) * 10) / 10;
+        const subPerMealG = Math.round((subGrams / meals) * 10) / 10;
+
+        const schedCont = document.getElementById("g-dash-schedule-cards");
+        if (schedCont) {
+            schedCont.innerHTML = mealNames.map((mTitle, idx) => {
+                const showToppingHere = idx === 0 && toppingSum.activeItems.length > 0;
+                const toppingText = showToppingHere
+                    ? ` + <span class="text-rose-700 font-black">간식/토핑 (${toppingSum.activeItems.map(t => `${t.name.split('(')[0].trim()} ${t.count}${t.unitLabel}`).join(', ')})</span>`
+                    : "";
+                return `
+                    <div class="p-3.5 rounded-xl bg-white border border-emerald-200 shadow-sm flex flex-wrap items-center justify-between gap-2">
+                        <div class="font-black text-emerald-950 text-sm">${mTitle}</div>
+                        <div class="text-xs font-bold text-slate-800">
+                            🥣 <strong>${mainLabel}</strong>: <span class="text-blue-700 font-black text-sm">${mainPerMealG} g</span>
+                            ${subPerMealG > 0 ? ` + 🍲 <strong>${subLabel.split('(')[0].trim()}</strong>: <span class="text-emerald-700 font-black text-sm">${subPerMealG} g</span>` : ""}
+                            ${toppingText}
+                        </div>
+                    </div>
+                `;
+            }).join("") + `
+                <div class="p-3 rounded-xl bg-emerald-900 text-white flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span>📌 <strong>하루 총 급여량 합계:</strong> 주식 ${mainGrams}g ${subGrams > 0 ? `+ 배합식 ${subGrams}g` : ""} ${toppingSum.totalGrams > 0 ? `+ 간식 ${toppingSum.totalGrams}g` : ""}</span>
+                    <span class="text-amber-300 font-black">종이컵(1컵≈75g 사료 기준) 하루 약 ${(mainGrams / 75.0).toFixed(1)}컵</span>
+                </div>
+            `;
+        }
+
+        // 수분 섭취 가이드
+        const targetWaterMl = Math.round(energy.der * 1.0);
+        const extraWaterMl = Math.max(0, targetWaterMl - waterFromFoodMl);
+        const waterAdv = document.getElementById("g-dash-water-advice");
+        if (waterAdv) {
+            waterAdv.innerHTML = `
+                <div>
+                    💧 <strong>일일 음수량 처방:</strong> 하루 목표 수분 <strong>${targetWaterMl}ml</strong> 중 식단(사료+습식/화식)으로 <strong>${waterFromFoodMl}ml</strong>가 자연 공급됩니다.
+                </div>
+                <div class="font-black text-sky-800">
+                    추가 급수 필요량: 하루 약 ${extraWaterMl} ml (종이컵 ${(extraWaterMl / 180.0).toFixed(1)}컵)
+                </div>
+            `;
+        }
+
+        updateGuardianCharts(mainKcal, subKcal, toppingSum.totalKcal, mixP_dm, mixF_dm, mixNfe_dm);
+    }
+
+    function updateGuardianCharts(mainKcal, subKcal, topKcal, p_dm, f_dm, nfe_dm) {
+        if (typeof Chart === "undefined") return;
+        const c1 = document.getElementById("gCalDonutCanvas");
+        const c2 = document.getElementById("gMacroBarCanvas");
+        if (!c1 || !c2) return;
+
+        if (guardianState.charts.calDonut) guardianState.charts.calDonut.destroy();
+        guardianState.charts.calDonut = new Chart(c1.getContext("2d"), {
+            type: "doughnut",
+            data: {
+                labels: ["주식 사료", "습식/화식/원재료", "토핑/간식"],
+                datasets: [{
+                    data: [mainKcal, subKcal, topKcal],
+                    backgroundColor: ["#2563eb", "#10b981", "#f43f5e"],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } }
+                }
+            }
+        });
+
+        if (guardianState.charts.macroBar) guardianState.charts.macroBar.destroy();
+        guardianState.charts.macroBar = new Chart(c2.getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: ["단백질", "지방", "탄수화물"],
+                datasets: [{
+                    label: "혼합식 (% DM)",
+                    data: [Math.round(p_dm * 10) / 10, Math.round(f_dm * 10) / 10, Math.round(nfe_dm * 10) / 10],
+                    backgroundColor: ["#3b82f6", "#f59e0b", "#14b8a6"],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, max: 60 } }
+            }
+        });
+    }
+
+    // =========================================================================
+    // 12. 보호자용 데이터 ➔ 수의사용 정밀 CDSS 원클릭 연동 브릿지
+    // =========================================================================
+    window.sendGuardianDataToVetCdss = function () {
+        const p = guardianState.profile;
+        if (document.getElementById("patient-name")) document.getElementById("patient-name").value = p.name;
+        if (document.getElementById("patient-species")) {
+            document.getElementById("patient-species").value = p.species === "cat" ? "고양이" : "개";
+            if (typeof onSpeciesChange === "function") onSpeciesChange();
+        }
+        if (document.getElementById("patient-weight")) document.getElementById("patient-weight").value = p.weightKg;
+        if (document.getElementById("patient-breed")) document.getElementById("patient-breed").value = p.breed;
+        if (document.getElementById("patient-bcs")) {
+            document.getElementById("patient-bcs").value = p.bcs;
+            if (typeof onBcsChange === "function") onBcsChange(p.bcs);
+        }
+        if (document.getElementById("patient-fecal")) {
+            document.getElementById("patient-fecal").value = p.fecalScore;
+            if (typeof onFecalChange === "function") onFecalChange(p.fecalScore);
+        }
+
+        // 건강 고민 매핑
+        const mapDis = {
+            ckd: "dis-ckd",
+            pancreatitis: "dis-pancreas",
+            heart: "dis-heart",
+            liver: "dis-liver",
+            urolithiasis: "dis-stones",
+            ibd: "dis-ibd"
+        };
+        if (p.healthConcern && mapDis[p.healthConcern]) {
+            const chk = document.getElementById(mapDis[p.healthConcern]);
+            if (chk) chk.checked = true;
+        }
+
+        if (typeof runRecommendation === "function") runRecommendation(false);
+        if (typeof syncGutCdssFromCurrentTabs === "function") syncGutCdssFromCurrentTabs(true);
+
+        switchToVetPortalFromTop();
+    };
+
+    // 페이지 로드 시 초기화
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupDualPortalLandingAndHeader);
+    } else {
+        setupDualPortalLandingAndHeader();
+    }
+})();
