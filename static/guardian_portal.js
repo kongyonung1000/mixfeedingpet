@@ -272,6 +272,20 @@
             enableImputation: true,
             lastResult: null
         },
+        fecalKit: {
+            preset: "normal",
+            phLevel: "normal",      // normal (6.4) | acidic (5.4) | alkaline (7.6)
+            phValue: 6.4,
+            ammonia: "normal",      // normal | warn | high
+            indole: "normal",       // normal | warn | high
+            undigestedFat: "neg",   // neg | trace | pos
+            reducingSugar: "normal",// normal | warn | high
+            mucosalInflam: "neg",   // neg | trace | pos
+            stoolOdor: "mild",      // mild | sour | foul
+            mucusSeen: "no",        // no | sometimes | yes
+            estimatedAbsorption: 93.0,
+            applyAbsorptionToDiet: false
+        },
         charts: {
             calDonut: null,
             macroBar: null
@@ -342,7 +356,7 @@
         else if (p.activity === "high") factor = Math.round((factor + 0.2) * 10) / 10;
         else if (p.activity === "very_high") factor = Math.round((factor + 0.5) * 10) / 10;
 
-        // 변 상태(흡수율) 보정
+        // 변 상태(흡수율) 및 Step 5 분변키트 흡수율 보정
         let fecalNote = "정상 소화 흡수율 (92~95%)";
         if (p.fecalScore >= 6.0) {
             fecalNote = "수양성/설사 변 상태 감지 — 소화 부담 완화를 위해 저지방·고소화성 배합 권장";
@@ -350,7 +364,14 @@
             fecalNote = "무른 변 상태 감지 — 간식/토핑을 5% 이내로 줄이고 식이섬유 밸런스 조절 권장";
         }
 
-        const der = Math.round(rer * factor);
+        let der = Math.round(rer * factor);
+        if (guardianState.fecalKit && guardianState.fecalKit.applyAbsorptionToDiet) {
+            const abs = Math.max(60, Math.min(98, parseFloat(guardianState.fecalKit.estimatedAbsorption) || 93.0));
+            const absRatio = 90.0 / abs; // 정상 흡수율(90%) 대비 보정
+            der = Math.round(der * Math.min(1.18, Math.max(0.88, absRatio)));
+            fecalNote = `[Step 5 분변키트 연동됨] 추정 소화 흡수율 ${abs.toFixed(1)}% 반영 (목표 열량 자동 보정)`;
+        }
+
         const maxTreatKcal = Math.round(der * 0.10 * 10) / 10;
         const meals = parseInt(p.mealsPerDay) || 2;
         const perMealKcal = Math.round(der / meals);
@@ -424,7 +445,8 @@
                                         <li style="margin-bottom: 5px;">✅ <strong>[Step 1]</strong> 신상 · 체형(BCS/MCS) 쉬운 Q&A & RER·DER 산출</li>
                                         <li style="margin-bottom: 5px;">✅ <strong>[Step 2]</strong> 사료 DB 검색 · 포장지 AI OCR 스캔 · 직접 입력</li>
                                         <li style="margin-bottom: 5px;">✅ <strong>[Step 3]</strong> 6대 메뉴 (건+습 / 건+화 / 건+원재료 / 10%토핑 / 화식DIY / 사료역추적)</li>
-                                        <li>✅ <strong>[Step 4]</strong> 칼로리 게이지 · AAFCO 신호등 리포트 · 아침/저녁 급여표</li>
+                                        <li style="margin-bottom: 5px;">✅ <strong>[Step 4]</strong> 칼로리 게이지 · AAFCO 신호등 리포트 · 아침/저녁 급여표</li>
+                                        <li>✅ <strong>[Step 5]</strong> 분변키트 검사 결과 폼 & 장내 환경 쉬운 분석/해설</li>
                                     </ul>
                                 </div>
                                 <button type="button" onclick="event.stopPropagation(); enterGuardianPortal();" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 12px; font-size: 14.5px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 16px -4px rgba(16,185,129,0.4);">
@@ -660,9 +682,9 @@
                     </div>
                 </div>
 
-                <!-- 4단계 스텝 바로가기 바 -->
+                <!-- 5단계 스텝 바로가기 바 -->
                 <div class="bg-emerald-950/40 border-t border-white/15">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
                         <button type="button" onclick="scrollToGuardianSection('g-step1-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
                             <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">1</span>
                             <div>
@@ -689,6 +711,13 @@
                             <div>
                                 <div class="font-black text-white">[Step 4] 신호등 리포트 & 급여표</div>
                                 <div class="text-[11px] text-emerald-200">칼로리 게이지 · 아침/저녁 스케줄</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="scrollToGuardianSection('g-step5-sec')" class="p-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/35 border border-amber-300/40 text-left transition flex items-center space-x-2.5 col-span-2 lg:col-span-1">
+                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">5</span>
+                            <div>
+                                <div class="font-black text-amber-200">[Step 5] 분변키트 & 장내환경</div>
+                                <div class="text-[11px] text-emerald-100">키트 결과 입력 · 장내환경 쉬운 해설</div>
                             </div>
                         </button>
                     </div>
@@ -1507,6 +1536,200 @@
                     </div>
                 </section>
 
+                <!-- ================================================================== -->
+                <!-- [STEP 5] 분변키트 검사 결과 폼 & 장내 환경 쉬운 분석/해설 (Guardian Fecal Kit) -->
+                <!-- ================================================================== -->
+                <section id="g-step5-sec" class="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-teal-300 space-y-6">
+                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 rounded-full bg-teal-600 text-white text-xs font-black">STEP 5</span>
+                            <div>
+                                <h2 class="text-xl font-black text-slate-900">🧪 분변키트 검사 결과 입력 & 우리 아이 장내 환경 쉬운 해설</h2>
+                                <p class="text-xs text-slate-500">아직 키트가 없어도 상단 <strong class="text-teal-700">[체험 시나리오 버튼]</strong>을 눌러 장내 환경 분석과 맞춤 유산균·식단 코칭을 미리 체험해 보세요!</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[11px] font-bold text-slate-500">키트 결과 미리 체험하기:</span>
+                            <button type="button" onclick="loadGuardianKitPreset('normal')" id="g-kit-preset-normal" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-black shadow-sm transition">
+                                🟢 정상 황금변 체험
+                            </button>
+                            <button type="button" onclick="loadGuardianKitPreset('protein_putrefaction')" id="g-kit-preset-protein_putrefaction" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-amber-50 text-slate-700 border border-slate-200 text-xs font-bold transition">
+                                🟡 고기·간식 과다 (독소 주의)
+                            </button>
+                            <button type="button" onclick="loadGuardianKitPreset('carb_ferment')" id="g-kit-preset-carb_ferment" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-orange-50 text-slate-700 border border-slate-200 text-xs font-bold transition">
+                                🟠 탄수화물 과발효 (산성·가스)
+                            </button>
+                            <button type="button" onclick="loadGuardianKitPreset('fat_mucosal')" id="g-kit-preset-fat_mucosal" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 border border-slate-200 text-xs font-bold transition">
+                                🔴 지방 소화불량 & 장점막 민감
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                        <!-- 좌측(5칸): 보호자용 분변키트 간편 결과 입력 폼 -->
+                        <div class="lg:col-span-5 bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm font-black text-slate-800">📋 분변키트 스트립 색상 / 결과 선택</div>
+                                <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-bold text-[11px]">보호자 간편 입력 모드</span>
+                            </div>
+
+                            <!-- 1. 장내 산도 (pH) -->
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="font-black text-slate-800">① 장내 산도 (분변 pH 패드)</span>
+                                    <span id="g-kit-ph-badge" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[11px]">pH 6.4 (정상 약산성)</span>
+                                </div>
+                                <select id="g-kit-ph-level" onchange="onGuardianKitFormChange('phLevel')" class="w-full p-2 rounded-lg border border-slate-300 text-xs font-bold bg-white">
+                                    <option value="normal" selected>🟢 정상 약산성 (pH 6.0 ~ 7.0) — 유익균이 살기 좋은 환경</option>
+                                    <option value="acidic">🟡 산성 변 (pH 5.5 이하) — 탄수화물/전분 과발효 신호</option>
+                                    <option value="alkaline">🔴 알칼리성 변 (pH 7.3 이상) — 단백질 부패·유해균 증식 신호</option>
+                                </select>
+                                <div class="flex items-center space-x-2 text-[11px] text-slate-500">
+                                    <span>세부 pH 수치:</span>
+                                    <input type="range" id="g-kit-ph-slider" min="4.8" max="8.5" step="0.1" value="6.4" oninput="onGuardianKitPhSlider(this.value)" class="flex-1 accent-teal-600 cursor-pointer">
+                                    <span id="g-kit-ph-val-txt" class="font-black text-teal-700 w-10 text-right">6.4</span>
+                                </div>
+                            </div>
+
+                            <!-- 2. 암모니아 & 3. 인돌 (단백질 부패 / 장내 유해균 독소) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5">
+                                    <label class="block text-xs font-black text-slate-800">② 암모니아 (단백질 부패)</label>
+                                    <p class="text-[11px] text-slate-500">소화 못 된 고기·간식 독소</p>
+                                    <select id="g-kit-ammonia" onchange="onGuardianKitFormChange()" class="w-full p-2 rounded-lg border border-slate-300 text-xs font-bold bg-white">
+                                        <option value="normal" selected>🟢 정상 (단백질 소화 양호)</option>
+                                        <option value="warn">🟡 주의 (고기·간식 약간 과다)</option>
+                                        <option value="high">🔴 높음 (부패 독소·악취 심함)</option>
+                                    </select>
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5">
+                                    <label class="block text-xs font-black text-slate-800">③ 인돌 (유익균·유해균 균형)</label>
+                                    <p class="text-[11px] text-slate-500">장내 미생물 생태계 지표</p>
+                                    <select id="g-kit-indole" onchange="onGuardianKitFormChange()" class="w-full p-2 rounded-lg border border-slate-300 text-xs font-bold bg-white">
+                                        <option value="normal" selected>🟢 정상 (유익균 우세)</option>
+                                        <option value="warn">🟡 경계 (미생물 불균형 시작)</option>
+                                        <option value="high">🔴 높음 (유해균 증식·유산균 필수)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- 4. 미소화 지방 & 5. 환원당/젖산 (소화 효소 흡수력) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5">
+                                    <label class="block text-xs font-black text-slate-800">④ 미소화 지방 (지방변)</label>
+                                    <p class="text-[11px] text-slate-500">기름기·췌장/담즙 소화력</p>
+                                    <select id="g-kit-fat" onchange="onGuardianKitFormChange()" class="w-full p-2 rounded-lg border border-slate-300 text-xs font-bold bg-white">
+                                        <option value="neg" selected>🟢 음성 (지방 소화 우수)</option>
+                                        <option value="trace">🟡 미량 검출 (기름진 음식 주의)</option>
+                                        <option value="pos">🔴 양성 (지방 소화불량·저지방 필수)</option>
+                                    </select>
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-1.5">
+                                    <label class="block text-xs font-black text-slate-800">⑤ 환원당·젖산 (탄수화물)</label>
+                                    <p class="text-[11px] text-slate-500">전분·당류 소화 및 가스</p>
+                                    <select id="g-kit-sugar" onchange="onGuardianKitFormChange()" class="w-full p-2 rounded-lg border border-slate-300 text-xs font-bold bg-white">
+                                        <option value="normal" selected>🟢 정상 (탄수화물 흡수 양호)</option>
+                                        <option value="warn">🟡 주의 (전분 발효·가스/꾸르륵)</option>
+                                        <option value="high">🔴 높음 (탄수화물 소화불량)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- 6. 장 점막 염증 · 잠혈 & 육안 변 냄새/점액 체크 -->
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+                                <div>
+                                    <label class="block text-xs font-black text-slate-800 mb-1">⑥ 장 점막 자극 · 잠혈 패드 (칼프로텍틴/잠혈)</label>
+                                    <select id="g-kit-mucosal" onchange="onGuardianKitFormChange()" class="w-full p-2 rounded-lg border border-slate-300 text-xs font-bold bg-white">
+                                        <option value="neg" selected>🟢 음성 (장 점막 장벽 튼튼함)</option>
+                                        <option value="trace">🟡 미량 반응 (식이 민감성 · 점막 가벼운 자극)</option>
+                                        <option value="pos">🔴 양성 반응 (장 점막 손상 의심 · 수의사 상담 권장)</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-600 mb-1">보호자 관찰: 변 냄새</label>
+                                        <select id="g-kit-odor" onchange="onGuardianKitFormChange()" class="w-full p-1.5 rounded-lg border border-slate-200 text-xs font-semibold bg-slate-50">
+                                            <option value="mild" selected>😊 보통 (건강한 냄새)</option>
+                                            <option value="sour">🍋 시큼한 냄새 (발효)</option>
+                                            <option value="foul">🤢 심한 악취/계란썩는내</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-bold text-slate-600 mb-1">보호자 관찰: 코 같은 점액변</label>
+                                        <select id="g-kit-mucus" onchange="onGuardianKitFormChange()" class="w-full p-1.5 rounded-lg border border-slate-200 text-xs font-semibold bg-slate-50">
+                                            <option value="no" selected>✨ 없음 (깔끔한 변)</option>
+                                            <option value="sometimes">💧 가끔 반짝이는 점액</option>
+                                            <option value="yes">⚠️ 젤리 같은 점액 자주 보임</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 우측(7칸): 장내 환경 쉬운 분석 & 맞춤 식단·유산균 리포트 -->
+                        <div class="lg:col-span-7 space-y-4">
+                            <!-- 상단 종합 점수 & 장내 미생물 밸런스 게이지 -->
+                            <div class="bg-gradient-to-r from-teal-900 via-emerald-900 to-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
+                                <div class="flex flex-wrap items-center justify-between gap-4">
+                                    <div>
+                                        <span id="g-kit-status-pill" class="px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black">🟢 황금 장내 환경</span>
+                                        <h3 id="g-kit-headline" class="text-lg font-black mt-1">유익균이 활발하고 소화 흡수력이 매우 훌륭해요!</h3>
+                                        <p id="g-kit-subline" class="text-xs text-emerald-200 mt-0.5">현재 식단과 장내 미생물 생태계가 좋은 균형을 이루고 있습니다.</p>
+                                    </div>
+                                    <div class="flex items-center space-x-3 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15">
+                                        <div class="text-center">
+                                            <div class="text-[10px] text-emerald-200 font-bold">장내 환경 점수</div>
+                                            <div class="text-2xl font-black text-amber-300"><span id="g-kit-score-num">94</span><span class="text-xs font-normal text-white">/100</span></div>
+                                        </div>
+                                        <div class="h-8 w-px bg-white/20"></div>
+                                        <div class="text-center">
+                                            <div class="text-[10px] text-emerald-200 font-bold">추정 소화 흡수율</div>
+                                            <div class="text-2xl font-black text-emerald-300"><span id="g-kit-abs-num">93.0</span><span class="text-xs font-normal text-white">%</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 유익균 vs 유해균 장내 생태계 밸런스 바 -->
+                                <div class="space-y-1.5">
+                                    <div class="flex justify-between text-[11px] font-bold">
+                                        <span class="text-emerald-300">🌱 유익균 (유산균·비피더스균) <span id="g-kit-good-pct">78%</span></span>
+                                        <span class="text-rose-300">🦠 부패·유해균 및 독소 부담 <span id="g-kit-bad-pct">22%</span></span>
+                                    </div>
+                                    <div class="w-full h-3.5 bg-rose-500/40 rounded-full overflow-hidden flex border border-white/20">
+                                        <div id="g-kit-good-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-300" style="width: 78%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4대 장내 환경 항목별 쉬운 해설 카드 그리드 -->
+                            <div>
+                                <div class="text-xs font-black text-slate-700 mb-2">🔍 우리 아이 배 속에서 지금 어떤 일이 일어나고 있을까요? (항목별 쉬운 해설)</div>
+                                <div id="g-kit-explanation-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"></div>
+                            </div>
+
+                            <!-- 맞춤 식단 & 유산균·보조제 홈케어 가이드 -->
+                            <div class="bg-amber-50/90 border-2 border-amber-200 rounded-2xl p-4 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-sm font-black text-amber-950">💊 분변키트 결과 기반 맞춤 식단 & 유산균 홈케어 처방</div>
+                                    <span class="text-[11px] font-bold text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded-lg">맞춤 액션 플랜</span>
+                                </div>
+                                <div id="g-kit-care-guide" class="space-y-2 text-xs text-slate-800"></div>
+
+                                <div class="pt-2 border-t border-amber-200/80 flex flex-wrap items-center justify-between gap-2">
+                                    <button type="button" onclick="toggleApplyKitAbsorptionToDiet()" id="g-kit-apply-abs-btn" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-black shadow-sm transition flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-bolt"></i>
+                                        <span>⚡ 추정 소화 흡수율을 Step 1·4 하루 사료 급여량에 반영하기</span>
+                                    </button>
+                                    <button type="button" onclick="sendGuardianDataToVetCdss()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-sm transition flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-user-doctor"></i>
+                                        <span>🩺 이 분변키트 결과를 수의사용 정밀 CDSS로 보내기</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         `;
 
@@ -1514,6 +1737,7 @@
         filterGuardianFoodSearch("");
         populateDiyIngredientDropdown("ALL");
         populateReverseIngredientDropdown();
+        evaluateGuardianFecalKit();
     }
 
     // =========================================================================
@@ -2963,7 +3187,351 @@
     }
 
     // =========================================================================
-    // 12. 보호자용 데이터 ➔ 수의사용 정밀 CDSS 원클릭 연동 브릿지
+    // 12. [Step 5] 분변키트 검사 결과 폼 & 장내 환경 쉬운 분석/해설
+    // =========================================================================
+    window.loadGuardianKitPreset = function (presetKey) {
+        const fk = guardianState.fecalKit;
+        fk.preset = presetKey;
+
+        const presets = {
+            normal: {
+                phLevel: "normal", phValue: 6.4,
+                ammonia: "normal", indole: "normal",
+                undigestedFat: "neg", reducingSugar: "normal",
+                mucosalInflam: "neg", stoolOdor: "mild", mucusSeen: "no"
+            },
+            protein_putrefaction: {
+                phLevel: "alkaline", phValue: 7.5,
+                ammonia: "high", indole: "warn",
+                undigestedFat: "neg", reducingSugar: "normal",
+                mucosalInflam: "neg", stoolOdor: "foul", mucusSeen: "no"
+            },
+            carb_ferment: {
+                phLevel: "acidic", phValue: 5.3,
+                ammonia: "normal", indole: "warn",
+                undigestedFat: "neg", reducingSugar: "high",
+                mucosalInflam: "trace", stoolOdor: "sour", mucusSeen: "sometimes"
+            },
+            fat_mucosal: {
+                phLevel: "alkaline", phValue: 7.3,
+                ammonia: "warn", indole: "high",
+                undigestedFat: "pos", reducingSugar: "warn",
+                mucosalInflam: "pos", stoolOdor: "foul", mucusSeen: "yes"
+            }
+        };
+
+        const sel = presets[presetKey] || presets.normal;
+        Object.assign(fk, sel);
+
+        // UI 폼 동기화
+        if (document.getElementById("g-kit-ph-level")) document.getElementById("g-kit-ph-level").value = fk.phLevel;
+        if (document.getElementById("g-kit-ph-slider")) document.getElementById("g-kit-ph-slider").value = fk.phValue;
+        if (document.getElementById("g-kit-ph-val-txt")) document.getElementById("g-kit-ph-val-txt").innerText = fk.phValue.toFixed(1);
+        if (document.getElementById("g-kit-ammonia")) document.getElementById("g-kit-ammonia").value = fk.ammonia;
+        if (document.getElementById("g-kit-indole")) document.getElementById("g-kit-indole").value = fk.indole;
+        if (document.getElementById("g-kit-fat")) document.getElementById("g-kit-fat").value = fk.undigestedFat;
+        if (document.getElementById("g-kit-sugar")) document.getElementById("g-kit-sugar").value = fk.reducingSugar;
+        if (document.getElementById("g-kit-mucosal")) document.getElementById("g-kit-mucosal").value = fk.mucosalInflam;
+        if (document.getElementById("g-kit-odor")) document.getElementById("g-kit-odor").value = fk.stoolOdor;
+        if (document.getElementById("g-kit-mucus")) document.getElementById("g-kit-mucus").value = fk.mucusSeen;
+
+        // 프리셋 버튼 강조 스타일
+        ["normal", "protein_putrefaction", "carb_ferment", "fat_mucosal"].forEach(k => {
+            const btn = document.getElementById(`g-kit-preset-${k}`);
+            if (!btn) return;
+            if (k === presetKey) {
+                btn.className = "px-3 py-1.5 rounded-xl bg-teal-600 text-white text-xs font-black shadow-sm transition";
+            } else {
+                btn.className = "px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-teal-50 text-slate-700 border border-slate-200 text-xs font-bold transition";
+            }
+        });
+
+        evaluateGuardianFecalKit();
+    };
+
+    window.onGuardianKitPhSlider = function (val) {
+        const num = parseFloat(val) || 6.4;
+        guardianState.fecalKit.phValue = num;
+        if (document.getElementById("g-kit-ph-val-txt")) {
+            document.getElementById("g-kit-ph-val-txt").innerText = num.toFixed(1);
+        }
+        const phSel = document.getElementById("g-kit-ph-level");
+        if (phSel) {
+            if (num <= 5.8) phSel.value = "acidic";
+            else if (num >= 7.2) phSel.value = "alkaline";
+            else phSel.value = "normal";
+            guardianState.fecalKit.phLevel = phSel.value;
+        }
+        evaluateGuardianFecalKit();
+    };
+
+    window.onGuardianKitFormChange = function (changedField) {
+        const fk = guardianState.fecalKit;
+        const phSel = document.getElementById("g-kit-ph-level");
+        if (phSel) {
+            fk.phLevel = phSel.value;
+            if (changedField === "phLevel") {
+                if (fk.phLevel === "acidic") fk.phValue = 5.4;
+                else if (fk.phLevel === "alkaline") fk.phValue = 7.5;
+                else fk.phValue = 6.4;
+                if (document.getElementById("g-kit-ph-slider")) document.getElementById("g-kit-ph-slider").value = fk.phValue;
+                if (document.getElementById("g-kit-ph-val-txt")) document.getElementById("g-kit-ph-val-txt").innerText = fk.phValue.toFixed(1);
+            }
+        }
+        if (document.getElementById("g-kit-ammonia")) fk.ammonia = document.getElementById("g-kit-ammonia").value;
+        if (document.getElementById("g-kit-indole")) fk.indole = document.getElementById("g-kit-indole").value;
+        if (document.getElementById("g-kit-fat")) fk.undigestedFat = document.getElementById("g-kit-fat").value;
+        if (document.getElementById("g-kit-sugar")) fk.reducingSugar = document.getElementById("g-kit-sugar").value;
+        if (document.getElementById("g-kit-mucosal")) fk.mucosalInflam = document.getElementById("g-kit-mucosal").value;
+        if (document.getElementById("g-kit-odor")) fk.stoolOdor = document.getElementById("g-kit-odor").value;
+        if (document.getElementById("g-kit-mucus")) fk.mucusSeen = document.getElementById("g-kit-mucus").value;
+
+        evaluateGuardianFecalKit();
+    };
+
+    window.toggleApplyKitAbsorptionToDiet = function () {
+        guardianState.fecalKit.applyAbsorptionToDiet = !guardianState.fecalKit.applyAbsorptionToDiet;
+        const btn = document.getElementById("g-kit-apply-abs-btn");
+        if (btn) {
+            if (guardianState.fecalKit.applyAbsorptionToDiet) {
+                btn.className = "px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-sm transition flex items-center space-x-1.5";
+                btn.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>✅ 추정 소화 흡수율(${guardianState.fecalKit.estimatedAbsorption.toFixed(1)}%)이 하루 급여량에 반영됨 (클릭 시 해제)</span>`;
+            } else {
+                btn.className = "px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-black shadow-sm transition flex items-center space-x-1.5";
+                btn.innerHTML = `<i class="fa-solid fa-bolt"></i><span>⚡ 추정 소화 흡수율을 Step 1·4 하루 사료 급여량에 반영하기</span>`;
+            }
+        }
+        refreshAllGuardianCalculations();
+    };
+
+    function evaluateGuardianFecalKit() {
+        const fk = guardianState.fecalKit;
+        if (!document.getElementById("g-step5-sec")) return;
+
+        // pH 배지 업데이트
+        const phBadge = document.getElementById("g-kit-ph-badge");
+        if (phBadge) {
+            if (fk.phLevel === "normal") {
+                phBadge.className = "px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-[11px]";
+                phBadge.innerText = `pH ${fk.phValue.toFixed(1)} (정상 약산성)`;
+            } else if (fk.phLevel === "acidic") {
+                phBadge.className = "px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-black text-[11px]";
+                phBadge.innerText = `pH ${fk.phValue.toFixed(1)} (산성 과발효)`;
+            } else {
+                phBadge.className = "px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black text-[11px]";
+                phBadge.innerText = `pH ${fk.phValue.toFixed(1)} (알칼리 부패성)`;
+            }
+        }
+
+        // 점수 및 소화 흡수율 계산
+        let score = 96;
+        let abs = 93.5;
+
+        if (fk.phLevel === "acidic") { score -= 10; abs -= 3.0; }
+        else if (fk.phLevel === "alkaline") { score -= 12; abs -= 3.5; }
+
+        if (fk.ammonia === "warn") { score -= 8; abs -= 2.0; }
+        else if (fk.ammonia === "high") { score -= 18; abs -= 5.0; }
+
+        if (fk.indole === "warn") { score -= 7; abs -= 1.5; }
+        else if (fk.indole === "high") { score -= 16; abs -= 4.0; }
+
+        if (fk.undigestedFat === "trace") { score -= 10; abs -= 3.5; }
+        else if (fk.undigestedFat === "pos") { score -= 22; abs -= 8.0; }
+
+        if (fk.reducingSugar === "warn") { score -= 8; abs -= 2.5; }
+        else if (fk.reducingSugar === "high") { score -= 15; abs -= 5.5; }
+
+        if (fk.mucosalInflam === "trace") { score -= 10; abs -= 2.5; }
+        else if (fk.mucosalInflam === "pos") { score -= 24; abs -= 7.0; }
+
+        if (fk.stoolOdor === "sour") score -= 3;
+        else if (fk.stoolOdor === "foul") score -= 6;
+
+        if (fk.mucusSeen === "sometimes") score -= 4;
+        else if (fk.mucusSeen === "yes") score -= 9;
+
+        score = Math.max(35, Math.min(99, score));
+        abs = Math.max(68.0, Math.min(95.5, Math.round(abs * 10) / 10));
+        fk.estimatedAbsorption = abs;
+
+        // 유익균 비율 추정
+        const goodPct = Math.max(25, Math.min(88, Math.round(score * 0.85)));
+        const badPct = 100 - goodPct;
+
+        if (document.getElementById("g-kit-score-num")) document.getElementById("g-kit-score-num").innerText = score;
+        if (document.getElementById("g-kit-abs-num")) document.getElementById("g-kit-abs-num").innerText = abs.toFixed(1);
+        if (document.getElementById("g-kit-good-pct")) document.getElementById("g-kit-good-pct").innerText = `${goodPct}%`;
+        if (document.getElementById("g-kit-bad-pct")) document.getElementById("g-kit-bad-pct").innerText = `${badPct}%`;
+        if (document.getElementById("g-kit-good-bar")) document.getElementById("g-kit-good-bar").style.width = `${goodPct}%`;
+
+        // 상단 헤드라인 요약
+        const pill = document.getElementById("g-kit-status-pill");
+        const head = document.getElementById("g-kit-headline");
+        const sub = document.getElementById("g-kit-subline");
+
+        if (score >= 85) {
+            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🟢 황금 장내 환경"; }
+            if (head) head.innerText = "유익균이 활발하고 소화 흡수력이 매우 훌륭해요!";
+            if (sub) sub.innerText = "장내 산도(약산성)와 소화 효소 기능이 균형을 이루어 영양소가 알차게 흡수되고 있습니다.";
+        } else if (score >= 68) {
+            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🟡 장내 불균형 주의 단계"; }
+            if (head) head.innerText = "소화되지 않은 영양소가 장내 가스와 독소를 만들고 있어요.";
+            if (sub) sub.innerText = "간식·육류 비율이나 전분/지방 소화 부담을 조절하고 맞춤 유산균 급여를 시작해 주세요.";
+        } else {
+            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-rose-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🔴 집중 장 케어 & 식단 교정 필요"; }
+            if (head) head.innerText = "소화 흡수력이 떨어지고 장 점막과 유익균이 지쳐 있어요!";
+            if (sub) sub.innerText = "저지방·고소화성 화식/습식 배합으로 장 부담을 줄이고, 점막 자극이 지속되면 수의사 상담을 권장합니다.";
+        }
+
+        // 4대 장내 환경 항목별 쉬운 해설 카드 생성
+        const cardsEl = document.getElementById("g-kit-explanation-cards");
+        if (cardsEl) {
+            // 1) 장내 산도(pH) 해설
+            let phCard = {
+                title: "① 장내 산도(pH)와 유익균 터전",
+                badge: "🟢 약산성 최적",
+                badgeCls: "bg-emerald-100 text-emerald-800",
+                borderCls: "border-emerald-200 bg-emerald-50/40",
+                desc: `현재 분변 산도(pH ${fk.phValue.toFixed(1)})는 <strong>약산성</strong>으로, 유산균·비피더스균 같은 유익균이 단쇄지방산(SCFA)을 잘 만들어내며 나쁜 균의 침입을 막아주는 건강한 상태입니다.`
+            };
+            if (fk.phLevel === "acidic") {
+                phCard = {
+                    title: "① 장내 산도(pH)와 유익균 터전",
+                    badge: "🟡 산성 과발효",
+                    badgeCls: "bg-amber-100 text-amber-800",
+                    borderCls: "border-amber-200 bg-amber-50/50",
+                    desc: `산도(pH ${fk.phValue.toFixed(1)})가 <strong>산성</strong>으로 기울어 있어요. 소장에서 다 흡수되지 못한 탄수화물(전분·당류)이 대장에서 과하게 발효되면서 젖산과 가스가 차고 시큼한 무른 변이 나올 수 있습니다.`
+                };
+            } else if (fk.phLevel === "alkaline") {
+                phCard = {
+                    title: "① 장내 산도(pH)와 유익균 터전",
+                    badge: "🔴 알칼리성 부패",
+                    badgeCls: "bg-rose-100 text-rose-800",
+                    borderCls: "border-rose-200 bg-rose-50/50",
+                    desc: `산도(pH ${fk.phValue.toFixed(1)})가 <strong>알칼리성</strong>으로 높아졌어요. 단백질이 대장에서 부패하면서 암모니아가 생성되면 장내 환경이 알칼리화되어 유익균이 줄고 유해균이 쉽게 증식합니다.`
+                };
+            }
+
+            // 2) 단백질 부패 독소 (암모니아 & 인돌) 해설
+            let protCard = {
+                title: "② 단백질 소화 & 부패 가스(암모니아·인돌)",
+                badge: "🟢 독소 안전",
+                badgeCls: "bg-emerald-100 text-emerald-800",
+                borderCls: "border-emerald-200 bg-emerald-50/40",
+                desc: `먹은 사료와 고기 단백질이 소장에서 깔끔하게 아미노산으로 흡수되어, 대장 내 부패 독소(암모니아·인돌) 생성이 적고 변 냄새도 양호합니다.`
+            };
+            if (fk.ammonia === "high" || fk.indole === "high") {
+                protCard = {
+                    title: "② 단백질 소화 & 부패 가스(암모니아·인돌)",
+                    badge: "🔴 부패 독소 높음",
+                    badgeCls: "bg-rose-100 text-rose-800",
+                    borderCls: "border-rose-200 bg-rose-50/50",
+                    desc: `소화 능력을 넘긴 <strong>과도한 고단백 사료나 육류 간식(육포·건조간식)</strong>이 대장으로 내려가 유해균의 먹이가 되고 있어요! 이 과정에서 암모니아·인돌 독소가 생겨 방귀/변 냄새가 심해지고 간·신장에도 부담을 줍니다.`
+                };
+            } else if (fk.ammonia === "warn" || fk.indole === "warn") {
+                protCard = {
+                    title: "② 단백질 소화 & 부패 가스(암모니아·인돌)",
+                    badge: "🟡 경계 (간식 조절)",
+                    badgeCls: "bg-amber-100 text-amber-800",
+                    borderCls: "border-amber-200 bg-amber-50/50",
+                    desc: `단백질 부패 지표(암모니아·인돌)가 살짝 올라가 있습니다. 육류 토핑이나 간식이 하루 권장량(10%)을 넘지 않는지 점검하고 소화 잘되는 단백질로 바꿔주세요.`
+                };
+            }
+
+            // 3) 지방 & 탄수화물 소화 효소 흡수력 해설
+            let digCard = {
+                title: "③ 지방 · 탄수화물 소화 흡수력",
+                badge: "🟢 소화효소 우수",
+                badgeCls: "bg-emerald-100 text-emerald-800",
+                borderCls: "border-emerald-200 bg-emerald-50/40",
+                desc: `췌장 소화효소(리파아제·아밀라아제)와 담즙이 원활하게 작동하여 지방과 탄수화물이 남김없이 에너지로 흡수되고 있습니다.`
+            };
+            if (fk.undigestedFat === "pos" || fk.reducingSugar === "high") {
+                digCard = {
+                    title: "③ 지방 · 탄수화물 소화 흡수력",
+                    badge: "🔴 소화불량 감지",
+                    badgeCls: "bg-rose-100 text-rose-800",
+                    borderCls: "border-rose-200 bg-rose-50/50",
+                    desc: `${fk.undigestedFat === "pos" ? "<strong>미소화 지방(기름기)</strong>이 변으로 배출되고 있어 췌장·담즙 소화력에 부담이 큰 상태입니다. " : ""}${fk.reducingSugar === "high" ? "<strong>탄수화물(환원당)</strong>이 다 흡수되지 못해 장으로 수분을 끌어당겨 무른 변을 유발합니다." : ""}`
+                };
+            } else if (fk.undigestedFat === "trace" || fk.reducingSugar === "warn") {
+                digCard = {
+                    title: "③ 지방 · 탄수화물 소화 흡수력",
+                    badge: "🟡 소화력 경계",
+                    badgeCls: "bg-amber-100 text-amber-800",
+                    borderCls: "border-amber-200 bg-amber-50/50",
+                    desc: `기름진 음식이나 전분이 많은 간식을 먹었을 때 소화 효소가 조금 버거워하고 있어요. 저지방 화식(닭안심·흰살생선 등)을 섞어주면 소화 흡수율이 훨씬 높아집니다.`
+                };
+            }
+
+            // 4) 장 점막 장벽 & 점액변 해설
+            let mucCard = {
+                title: "④ 장 점막 장벽 & 면역 건강",
+                badge: "🟢 장벽 튼튼",
+                badgeCls: "bg-emerald-100 text-emerald-800",
+                borderCls: "border-emerald-200 bg-emerald-50/40",
+                desc: `장 점막 세포들이 빈틈없이 튼튼하게 연결되어 있어, 염증 반응이나 잠혈·점액변 없이 건강한 장 장벽을 유지하고 있습니다.`
+            };
+            if (fk.mucosalInflam === "pos" || fk.mucusSeen === "yes") {
+                mucCard = {
+                    title: "④ 장 점막 장벽 & 면역 건강",
+                    badge: "🔴 점막 보호 시급",
+                    badgeCls: "bg-rose-100 text-rose-800",
+                    borderCls: "border-rose-200 bg-rose-50/50",
+                    desc: `장 점막이 자극받아 <strong>염증 마커(칼프로텍틴/잠혈) 또는 코 같은 점액변</strong>이 관찰됩니다. 대장 점막이 스스로를 보호하려고 점액을 뿜어내는 신호이므로 자극적인 간식을 끊고 수의사 상담을 받아보세요.`
+                };
+            } else if (fk.mucosalInflam === "trace" || fk.mucusSeen === "sometimes") {
+                mucCard = {
+                    title: "④ 장 점막 장벽 & 면역 건강",
+                    badge: "🟡 점막 예민함",
+                    badgeCls: "bg-amber-100 text-amber-800",
+                    borderCls: "border-amber-200 bg-amber-50/50",
+                    desc: `특정 사료 원료에 식이 민감성이 있거나 가벼운 장 점막 자극이 있습니다. 단일 단백질(오리·양·가수분해 등) 식단과 오메가-3·유산균 급여가 점막 진정에 도움을 줍니다.`
+                };
+            }
+
+            cardsEl.innerHTML = [phCard, protCard, digCard, mucCard].map(c => `
+                <div class="p-3.5 rounded-2xl border ${c.borderCls} space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-black text-slate-900">${c.title}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${c.badgeCls}">${c.badge}</span>
+                    </div>
+                    <p class="text-[11.5px] text-slate-700 leading-relaxed">${c.desc}</p>
+                </div>
+            `).join("");
+        }
+
+        // 맞춤 식단 & 유산균·보조제 홈케어 처방 가이드 생성
+        const careEl = document.getElementById("g-kit-care-guide");
+        if (careEl) {
+            const tips = [];
+            if (fk.ammonia !== "normal" || fk.indole !== "normal" || fk.phLevel === "alkaline") {
+                tips.push(`🥩 <strong>단백질 부패·악취 케어 식단:</strong> 육포·건조 고기 간식을 즉시 줄이고(Step 3의 4번 토핑 제어기 5% 이내), 유익균의 먹이가 되는 <strong>수용성 식이섬유(찐 단호박·양배추)</strong>와 <strong>고농도 프로바이오틱스(유산균)</strong>를 급여해 장내 pH를 약산성으로 낮춰주세요.`);
+            }
+            if (fk.undigestedFat !== "neg") {
+                tips.push(`🍗 <strong>지방 소화불량 케어 식단:</strong> 기름기가 많은 사료나 간식은 췌장과 담낭에 무리를 줍니다. 위 Step 3에서 <strong>[2. 건식+화식 (슬림 닭안심 저지방 화식)]</strong>을 50:50으로 배합하거나 <strong>소화효소(리파아제 포함)</strong> 보조제를 함께 급여해 보세요.`);
+            }
+            if (fk.reducingSugar !== "normal" || fk.phLevel === "acidic") {
+                tips.push(`🌾 <strong>탄수화물 과발효·가스 케어:</strong> 고구마·빵·과일 간식이나 곡물 함량이 너무 높은 사료가 장내 가스를 만들고 있어요. 소화가 잘되는 백미·귀리 죽 형태나 수분 함량이 높은 습식 파우치 배합을 추천합니다.`);
+            }
+            if (fk.mucosalInflam !== "neg" || fk.mucusSeen !== "no") {
+                tips.push(`🛡️ <strong>장 점막 진정 & 면역 케어:</strong> 장 점막 세포의 회복을 돕는 <strong>L-글루타민, 정제 오메가-3(EPA/DHA), 장 점막 보호 유산균(S. boulardii 등)</strong>을 챙겨주시고, 양성 반응이 지속되면 오른쪽 아래 버튼으로 <strong>수의사용 정밀 CDSS</strong>에 데이터를 보내 진료를 받아보세요.`);
+            }
+            if (tips.length === 0) {
+                tips.push(`✨ <strong>황금 장내 환경 유지 팁:</strong> 현재 식단의 소화 흡수율(${abs.toFixed(1)}%)과 유익균 밸런스가 매우 이상적입니다! 지금 급여 중인 주식+습식/화식 비율을 유지하시고, 데일리 유산균과 충분한 음수량만 꾸준히 챙겨주세요.`);
+            }
+            careEl.innerHTML = tips.map(t => `<div class="p-2.5 rounded-xl bg-white border border-amber-200/80 leading-relaxed">${t}</div>`).join("");
+        }
+
+        // 만약 이미 흡수율 반영 토글이 켜져 있다면 급여량도 실시간 재계산
+        if (fk.applyAbsorptionToDiet) {
+            refreshAllGuardianCalculations();
+        }
+    }
+
+    // =========================================================================
+    // 13. 보호자용 데이터 ➔ 수의사용 정밀 CDSS 원클릭 연동 브릿지 (Step 1~5 통합 연동)
     // =========================================================================
     window.sendGuardianDataToVetCdss = function () {
         const p = guardianState.profile;
@@ -2997,8 +3565,39 @@
             if (chk) chk.checked = true;
         }
 
+        // [Step 5] 분변키트 검사 결과 ➔ 수의사용 Tab 4 (장내환경 9대 마커 CDSS) 자동 매핑
+        const fk = guardianState.fecalKit;
+        if (fk) {
+            if (document.getElementById("m9-ph")) document.getElementById("m9-ph").value = fk.phValue;
+            if (document.getElementById("m9-ammonia")) {
+                document.getElementById("m9-ammonia").value = fk.ammonia === "high" ? 85 : (fk.ammonia === "warn" ? 48 : 22);
+            }
+            if (document.getElementById("m9-indole")) {
+                document.getElementById("m9-indole").value = fk.indole === "high" ? 72 : (fk.indole === "warn" ? 42 : 18);
+            }
+            if (document.getElementById("m9-fat")) {
+                document.getElementById("m9-fat").value = fk.undigestedFat === "pos" ? "pos" : (fk.undigestedFat === "trace" ? "trace" : "neg");
+            }
+            if (document.getElementById("m9-sugar")) {
+                document.getElementById("m9-sugar").value = fk.reducingSugar === "high" ? 1.2 : (fk.reducingSugar === "warn" ? 0.6 : 0.15);
+            }
+            if (document.getElementById("m9-lactate")) {
+                document.getElementById("m9-lactate").value = fk.phLevel === "acidic" ? 28 : 10;
+            }
+            if (document.getElementById("m9-calprotectin")) {
+                document.getElementById("m9-calprotectin").value = fk.mucosalInflam === "pos" ? 160 : (fk.mucosalInflam === "trace" ? 75 : 20);
+            }
+            if (document.getElementById("m9-blood")) {
+                document.getElementById("m9-blood").value = fk.mucosalInflam === "pos" ? "pos" : (fk.mucosalInflam === "trace" ? "trace" : "neg");
+            }
+            if (document.getElementById("m9-absorption")) {
+                document.getElementById("m9-absorption").value = fk.estimatedAbsorption;
+            }
+        }
+
         if (typeof runRecommendation === "function") runRecommendation(false);
-        if (typeof syncGutCdssFromCurrentTabs === "function") syncGutCdssFromCurrentTabs(true);
+        if (typeof syncGutCdssFromCurrentTabs === "function") syncGutCdssFromCurrentTabs(false);
+        if (typeof evaluateMarkers9AndLabCDSS === "function") evaluateMarkers9AndLabCDSS();
 
         switchToVetPortalFromTop();
     };
