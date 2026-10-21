@@ -514,9 +514,9 @@
                             <i class="fa-solid fa-user-doctor"></i>
                             <span>🩺 수의사용 PRO 포털 (임상 CDSS)</span>
                         </button>
-                        <button type="button" onclick="jumpToUnifiedDashboardAndSchema()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/50 font-black transition flex items-center space-x-1 shadow">
-                            <i class="fa-solid fa-chart-pie"></i>
-                            <span>📊 통합 대시보드 & 데이터 스키마</span>
+                        <button type="button" onclick="openAdminSchemaDashboardModal()" id="top-admin-schema-btn" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 font-black transition flex items-center space-x-1 shadow">
+                            <i class="fa-solid fa-lock"></i>
+                            <span>🔒 관리자 대시보드 & 데이터 스키마</span>
                         </button>
                         <button type="button" onclick="openDualLandingModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold transition">
                             <i class="fa-solid fa-house"></i> 포털 선택창
@@ -613,11 +613,18 @@
         }
     };
 
-    // 수의사 로그인 성공 시 자동으로 수의사용 포털 뷰 활성화
+    // 수의사/관리자 로그인 성공 시 자동으로 수의사용 포털 뷰 또는 예약된 관리자 스키마 모달 활성화
     const origOnVetSwitched = window.onVetAccountSwitched;
     window.onVetAccountSwitched = function (userProfile) {
         if (typeof origOnVetSwitched === "function") origOnVetSwitched(userProfile);
-        enterVetPortalDirect();
+        if (guardianState.pendingAdminSchemaOpen) {
+            guardianState.pendingAdminSchemaOpen = false;
+            const shield = document.getElementById("private-gate-shield");
+            if (shield) shield.style.setProperty("display", "none", "important");
+            openAdminSchemaDashboardModal();
+        } else {
+            enterVetPortalDirect();
+        }
     };
 
     // =========================================================================
@@ -688,9 +695,9 @@
                     </div>
                 </div>
 
-                <!-- 6단계 스텝 & 통합 대시보드 바로가기 바 -->
+                <!-- 5단계 스텝 바로가기 바 (보호자 전용 클린 뷰) -->
                 <div class="bg-emerald-950/40 border-t border-white/15">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-6 gap-2 text-xs">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
                         <button type="button" onclick="scrollToGuardianSection('g-step1-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
                             <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">1</span>
                             <div>
@@ -719,18 +726,11 @@
                                 <div class="text-[11px] text-emerald-200">칼로리 게이지 · 아침/저녁 스케줄</div>
                             </div>
                         </button>
-                        <button type="button" onclick="scrollToGuardianSection('g-step5-sec')" class="p-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/35 border border-amber-300/40 text-left transition flex items-center space-x-2.5">
+                        <button type="button" onclick="scrollToGuardianSection('g-step5-sec')" class="p-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/35 border border-amber-300/40 text-left transition flex items-center space-x-2.5 col-span-2 lg:col-span-1">
                             <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">5</span>
                             <div>
                                 <div class="font-black text-amber-200">[Step 5] 분변키트 & 장내환경</div>
                                 <div class="text-[11px] text-emerald-100">키트 결과 입력 · 장내환경 쉬운 해설</div>
-                            </div>
-                        </button>
-                        <button type="button" onclick="scrollToGuardianSection('g-unified-dashboard-sec')" class="p-2 rounded-xl bg-indigo-500/35 hover:bg-indigo-500/50 border border-indigo-300/50 text-left transition flex items-center space-x-2.5">
-                            <span class="w-6 h-6 rounded-full bg-indigo-300 text-slate-950 font-black flex items-center justify-center shrink-0"><i class="fa-solid fa-chart-pie text-[11px]"></i></span>
-                            <div>
-                                <div class="font-black text-indigo-100">📊 통합 대시보드 & 스키마</div>
-                                <div class="text-[11px] text-indigo-200">5축 밸런스 · 6대 DB 스키마 명세</div>
                             </div>
                         </button>
                     </div>
@@ -1744,28 +1744,34 @@
                 </section>
 
                 <!-- ================================================================== -->
-                <!-- [UNIFIED DASHBOARD & SCHEMA] 통합 영양·장내환경 종합 대시보드 & 6대 표준 데이터 스키마 센터 -->
+                <!-- [ADMIN ONLY MODAL] 관리자 전용 통합 대시보드 & 6대 표준 데이터 스키마 센터 (보호자에게는 숨김) -->
                 <!-- ================================================================== -->
-                <section id="g-unified-dashboard-sec" class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-indigo-400/50 space-y-6">
-                    <div class="flex flex-wrap items-center justify-between border-b border-slate-700/80 pb-4 gap-3">
-                        <div class="flex items-center space-x-3">
-                            <span class="px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-black shadow">INTEGRATED DASHBOARD & SCHEMA</span>
-                            <div>
-                                <h2 class="text-xl font-black text-white">📊 통합 영양·장내환경 컨트롤 타워 대시보드 & 6대 표준 데이터 스키마 아키텍처</h2>
-                                <p class="text-xs text-slate-300">Step 1~5에서 분석된 우리 아이의 에너지·영양·토핑·분변키트 장내환경 지표를 한눈에 종합하고, 단일 백엔드(Single Backend)의 6대 표준 데이터 스키마와 실시간 JSON 페이로드를 관리합니다.</p>
+                <div id="admin-schema-dashboard-modal" class="hidden fixed inset-0 z-[80] bg-slate-950/85 backdrop-blur-md overflow-y-auto p-4 sm:p-8">
+                    <div class="max-w-7xl mx-auto">
+                        <section id="g-unified-dashboard-sec" class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-indigo-400/60 space-y-6">
+                            <div class="flex flex-wrap items-center justify-between border-b border-slate-700/80 pb-4 gap-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="px-3 py-1 rounded-full bg-indigo-500 text-white text-xs font-black shadow">🔒 ADMIN & VET PRO ONLY</span>
+                                    <div>
+                                        <h2 class="text-xl font-black text-white">📊 관리자 통합 컨트롤 타워 대시보드 & 6대 표준 데이터 스키마 아키텍처</h2>
+                                        <p class="text-xs text-slate-300">인증된 관리자·수의사 전용 화면입니다. 단일 백엔드(Single Backend)의 6대 표준 데이터 스키마 무결성과 실시간 JSON 페이로드를 관리합니다.</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2 text-xs">
+                                    <button type="button" onclick="copyLiveSchemaJson()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-indigo-200 font-bold transition flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-copy"></i>
+                                        <span id="g-schema-copy-txt">현재 통합 JSON 복사</span>
+                                    </button>
+                                    <button type="button" onclick="downloadLiveSchemaJson()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black shadow transition flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-download"></i>
+                                        <span>통합 스키마 데이터(.json) 다운로드</span>
+                                    </button>
+                                    <button type="button" onclick="closeAdminSchemaDashboardModal()" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black shadow transition flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        <span>대시보드 닫기</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2 text-xs">
-                            <button type="button" onclick="copyLiveSchemaJson()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-indigo-200 font-bold transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-copy"></i>
-                                <span id="g-schema-copy-txt">현재 통합 JSON 복사</span>
-                            </button>
-                            <button type="button" onclick="downloadLiveSchemaJson()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black shadow transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-download"></i>
-                                <span>통합 스키마 데이터(.json) 다운로드</span>
-                            </button>
-                        </div>
-                    </div>
 
                     <!-- 1. 상단 4대 핵심 KPI 요약 카드 -->
                     <div id="g-unified-kpi-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs"></div>
@@ -1848,7 +1854,9 @@
                             </div>
                         </div>
                     </div>
-                </section>
+                        </section>
+                    </div>
+                </div>
 
             </div>
         `;
@@ -4025,14 +4033,51 @@
         renderUnifiedDashboardAndSchemas();
     };
 
-    window.jumpToUnifiedDashboardAndSchema = function () {
-        const gRoot = document.getElementById("guardian-portal-root");
-        if (!gRoot || gRoot.classList.contains("hidden")) {
-            enterGuardianPortal();
+    window.openAdminSchemaDashboardModal = function () {
+        // 관리자/수의사 로그인 세션 검증 (보호자는 열람 불가)
+        const rawSession = sessionStorage.getItem("vet_mix_auth_user");
+        if (!rawSession) {
+            guardianState.pendingAdminSchemaOpen = true;
+            const shield = document.getElementById("private-gate-shield");
+            if (shield) {
+                shield.style.setProperty("display", "flex", "important");
+                showVetLoginFormInGate();
+            }
+            return;
         }
-        setTimeout(() => {
-            scrollToGuardianSection("g-unified-dashboard-sec");
-        }, 120);
+
+        // 아직 보호자 포털 DOM이 초기화되지 않았다면 백그라운드에서 생성
+        let gRoot = document.getElementById("guardian-portal-root");
+        if (!gRoot) {
+            gRoot = document.createElement("div");
+            gRoot.id = "guardian-portal-root";
+            gRoot.className = "hidden min-h-screen bg-slate-50 pb-20";
+            const switcher = document.getElementById("global-portal-switcher-bar");
+            if (switcher && switcher.nextSibling) {
+                document.body.insertBefore(gRoot, switcher.nextSibling);
+            } else {
+                document.body.appendChild(gRoot);
+            }
+            buildGuardianPortalDOM(gRoot);
+            refreshAllGuardianCalculations();
+        }
+
+        // 만약 수의사 뷰에서 열었을 때도 모달이 보이도록 관리자 모달을 body 직속으로 이동 보장
+        const modal = document.getElementById("admin-schema-dashboard-modal");
+        if (modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+            modal.classList.remove("hidden");
+            renderUnifiedDashboardAndSchemas();
+        }
+    };
+
+    window.closeAdminSchemaDashboardModal = function () {
+        const modal = document.getElementById("admin-schema-dashboard-modal");
+        if (modal) {
+            modal.classList.add("hidden");
+        }
     };
 
     window.copyLiveSchemaJson = function () {
