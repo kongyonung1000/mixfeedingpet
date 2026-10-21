@@ -820,6 +820,39 @@
                         </label>
                     </div>
 
+                    <div>
+                        <input type="checkbox" id="dis-hypothyroid" name="disease" value="갑상선기능저하증" class="hidden disease-checkbox">
+                        <label for="dis-hypothyroid" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-teal-600 mt-0.5 text-lg"><i class="fa-solid fa-temperature-arrow-down"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">갑상선기능저하증 (개)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">대사율 저하·체중증가 관리, 저지방·항산화</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" id="dis-addison" name="disease" value="에디슨 (부신피질기능저하)" class="hidden disease-checkbox">
+                        <label for="dis-addison" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-purple-600 mt-0.5 text-lg"><i class="fa-solid fa-bolt-lightning"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">에디슨병 (부신피질기능저하)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">전해질(Na/K) 균형 및 고소화성 위장관 보호</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" id="dis-tumor" name="disease" value="종양 (전신/악성)" class="hidden disease-checkbox">
+                        <label for="dis-tumor" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-rose-600 mt-0.5 text-lg"><i class="fa-solid fa-shield-virus"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">종양 (전신 / 악성암 케어)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">악액질 방지 고단백·고지방·고농도 오메가3</div>
+                            </div>
+                        </label>
+                    </div>
+
                     <div id="cat-hyperthyroid-card" class="hidden">
                         <input type="checkbox" id="dis-hyperthyroid" name="disease" value="갑상선기능항진증 (고양이)" class="hidden disease-checkbox">
                         <label for="dis-hyperthyroid" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
@@ -833,7 +866,7 @@
                 </div>
 
                 <!-- 세부 병기(Stage) 및 담낭/종양 정밀 가중치 연동 옵션 -->
-                <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl text-xs">
+                <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl text-xs">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">심장병 세부 병기 (ACVIM)</label>
                         <select id="cdss-heart-stage" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white outline-none">
@@ -860,8 +893,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">기타 중증/내분비 질환</label>
-                        <select id="cdss-extra-dis" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white outline-none">
+                        <label class="hidden">기타 중증/내분비 질환</label>
+                        <select id="cdss-extra-dis" class="hidden">
                             <option value="없음" selected>해당 없음</option>
                             <option value="갑상선기능저하증">갑상선기능저하증 (개)</option>
                             <option value="에디슨 (부신피질기능저하)">에디슨병 (부신피질저하)</option>
@@ -878,7 +911,7 @@
                         <span class="w-2.5 h-6 bg-emerald-600 rounded-full"></span>
                         <div>
                             <h2 class="text-lg font-bold text-slate-800">복용 중인 약물 & 간식 급여 선택 (Medication & Treat Weight Matrix)</h2>
-                            <p class="text-xs text-slate-500">다중 약물 복용 시 주 요인(100%) + 부차 요인 감쇠 결합($\alpha=0.40$) 수식으로 장내환경 9대 마커 기대 기준치를 자동 보정합니다.</p>
+                            <p class="text-xs text-slate-500">다중 약물 복용 시 주 요인(100%) + 부차 요인 감쇠 결합(감쇠계수 α = 0.40) 수식으로 장내환경 9대 마커 기대 기준치를 자동 보정합니다.</p>
                         </div>
                     </div>
                     <span class="text-xs font-extrabold px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">장내환경 가중치 축 ③ 약물 연동</span>
@@ -986,7 +1019,7 @@
                     <label class="cursor-pointer flex items-center space-x-2 p-2.5 rounded-xl border border-amber-300 bg-amber-50/50 hover:border-amber-500 transition">
                         <input type="checkbox" id="cdss-treat-given" class="accent-amber-600 w-4 h-4">
                         <div>
-                            <div class="font-bold text-amber-900">🍖 일반 간식 (육포/트릿) 급여중</div>
+                            <div class="font-bold text-amber-900">🍖 일반 간식 (육포/트릿/츄르) 급여중</div>
                             <div class="text-[10px] text-amber-700">NH₃ x1.35, 인돌 x1.30, 단백 x1.25</div>
                         </div>
                     </label>
@@ -1049,7 +1082,7 @@
                     <div class="flex flex-wrap gap-2 mt-2 sm:mt-0">
                         <button onclick="setFeedingMode('DRY_WET_FRESH')" id="mode-btn-DRY_WET_FRESH" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-blue-600 bg-blue-50 text-blue-700 transition">건식 + 습식 + 화식</button>
                         <button onclick="setFeedingMode('DRY_WET')" id="mode-btn-DRY_WET" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">건식 + 습식</button>
-                        <button onclick="setFeedingMode('DRY_DRY')" id="mode-btn-DRY_DRY" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">건식 + 건식</button>
+                        <button onclick="setFeedingMode('DRY_DRY')" id="mode-btn-DRY_DRY" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">건식 + 화식</button>
                         <button onclick="setFeedingMode('FRESH_ONLY')" id="mode-btn-FRESH_ONLY" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">화식 단독</button>
                     </div>
                 </div>
@@ -1088,13 +1121,13 @@
                     </div>
 
                     <!-- 슬롯별 사료 직접 선택 드롭다운 바 -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-indigo-100 text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-3.5 rounded-xl border border-indigo-100 text-xs">
                         <div>
-                            <label class="block font-extrabold text-blue-800 mb-1"><i class="fa-solid fa-bone mr-1"></i>주 건식 사료 (Dry Slot 1) 제품 선택</label>
+                            <label class="block font-extrabold text-blue-800 mb-1"><i class="fa-solid fa-bone mr-1"></i>건식 사료 (Dry Slot) 제품 선택</label>
                             <select id="slot-select-dry1" onchange="onDietSlotOverrideChange('dry1', this.value)" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"></select>
                         </div>
-                        <div>
-                            <label class="block font-extrabold text-indigo-800 mb-1"><i class="fa-solid fa-bowl-food mr-1"></i>보조 건식 사료 (Dry Slot 2 · 건식+건식 모드용)</label>
+                        <div class="hidden">
+                            <label class="block font-extrabold text-indigo-800 mb-1"><i class="fa-solid fa-bowl-food mr-1"></i>보조 건식 사료</label>
                             <select id="slot-select-dry2" onchange="onDietSlotOverrideChange('dry2', this.value)" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"></select>
                         </div>
                         <div>
@@ -1242,7 +1275,7 @@
                                         <i class="fa-solid fa-bolt"></i>
                                         <span>주 건식(Dry 1)으로 즉시 믹스피딩 적용 (Tab 2·3·4 연동)</span>
                                     </button>
-                                    <button type="button" onclick="saveAndApplyCustomDiet('dry2')" class="py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow transition flex items-center justify-center space-x-1">
+                                    <button type="button" onclick="saveAndApplyCustomDiet('dry2')" class="hidden">
                                         <span>보조 건식(Dry 2) 적용</span>
                                     </button>
                                     <button type="button" onclick="saveAndApplyCustomDiet('wet1')" class="py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white font-black rounded-xl text-xs shadow transition flex items-center justify-center space-x-1">
@@ -1318,7 +1351,7 @@
                                 <h2 class="text-base font-black text-white">장내환경 9대 분변 마커 환자 맞춤형 사전 추정치 (Expected Baseline)</h2>
                                 <span class="px-2 py-0.5 text-[10px] font-black bg-amber-400 text-slate-950 rounded-full">신규 가중치 수식 적용</span>
                             </div>
-                            <p class="text-xs text-indigo-200 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치($\alpha=0.40$ 감쇠 결합)로 추정한 이 환견의 분변 9대 마커 예상 기준선입니다.</p>
+                            <p class="text-xs text-indigo-200 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치(α = 0.40 감쇠 결합)로 추정한 이 환견의 분변 9대 마커 예상 기준선입니다.</p>
                         </div>
                     </div>
                     <button type="button" onclick="switchTab('monitoring-tab')" class="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black rounded-xl text-xs shadow-lg flex items-center space-x-2 transition transform active:scale-95">
@@ -1463,7 +1496,7 @@
                                 <h2 class="text-lg font-black text-slate-900">장내환경 9대 마커 다차원 가중치 결합 & 원인 분해(Differential Attribution) CDSS</h2>
                                 <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">α=0.40 감쇠결합 수식 탑재</span>
                             </div>
-                            <p class="text-xs text-slate-500 mt-0.5">4대 축(품종/나이 · 식이 믹스피딩 · 약물 15종 · 질병 28종)과 지표별 카테고리 민감도($C_k$)를 결합해 환견 맞춤 기대치를 산출하고, 실측 마커 이상이 <strong>식이/약물/질병/나이/기타</strong> 중 누구의 책임인지 정량 분해합니다.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">4대 축(품종/나이 · 식이 믹스피딩 · 약물 15종 · 질병 28종)과 지표별 카테고리 민감도(Ck)를 결합해 환견 맞춤 기대치를 산출하고, 실측 마커 이상이 <strong>식이/약물/질병/나이/기타</strong> 중 누구의 책임인지 정량 분해합니다.</p>
                         </div>
                     </div>
                 </div>
@@ -1471,18 +1504,18 @@
                 <!-- 원클릭 임상 케이스 프리셋 버튼 바 -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2.5">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xs font-extrabold text-slate-700"><i class="fa-solid fa-flask-vial text-indigo-600 mr-1.5"></i>임상 검증 시뮬레이션 프리셋 (원클릭 자동 세팅 & 즉시 판독)</span>
-                        <span class="text-[11px] text-slate-400">문헌 근거 데이터의 실제 복합질환 케이스를 즉시 재현합니다</span>
+                        <span class="text-xs font-extrabold text-slate-700"><i class="fa-solid fa-rotate text-emerald-600 mr-1.5"></i>현재 Tab 1·2 환자 프로필 & 식단 실시간 동기화</span>
+                        <span class="text-[11px] text-slate-400">Tab 1(환자 신상/질환/약물)과 Tab 2(믹스피딩 비율)를 즉시 반영합니다</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-                        <button type="button" onclick="loadGutCdssPreset('CASE_CKD_PANC')" class="text-left p-3 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/80 transition group">
+                    <div class="grid grid-cols-1 gap-2.5">
+                        <button type="button" onclick="loadGutCdssPreset('CASE_CKD_PANC')" class="hidden">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-black text-indigo-950">🧪 케이스 1: 11세 CKD 3기 + 만성췌장염 복합</span>
                                 <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-600 text-white rounded-full">문헌 대표케이스</span>
                             </div>
                             <p class="text-[11px] text-indigo-800 mt-1">소형 노령견(4.2kg) · 저지방 50% + 신장(k/d) 50% · 신장약+소화제 복용 (미소화지방 9.5% 급등 케이스)</p>
                         </button>
-                        <button type="button" onclick="loadGutCdssPreset('CASE_MMVD_NSAID')" class="text-left p-3 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100/80 transition group">
+                        <button type="button" onclick="loadGutCdssPreset('CASE_MMVD_NSAID')" class="hidden">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-black text-rose-950">🧪 케이스 2: 8세 MMVD Stage C + 관절염 NSAIDs</span>
                                 <span class="text-[10px] font-bold px-2 py-0.5 bg-rose-600 text-white rounded-full">약물·식이 감별</span>
@@ -1518,7 +1551,7 @@
                         <div id="cdss-ctx-diseases" class="font-extrabold text-amber-900 mt-0.5">CKD stage 3, 4 + 만성췌장염</div>
                     </div>
                     <div class="p-3 rounded-xl bg-rose-50/70 border border-rose-200">
-                        <div class="text-[11px] text-rose-600 font-bold">⑤ 혈액검사 중증도 축 ($\Delta W_{\text{Lab}}$)</div>
+                        <div class="text-[11px] text-rose-600 font-bold">⑤ 혈액검사 중증도 축 (ΔW_Lab)</div>
                         <div id="cdss-ctx-lab" class="font-extrabold text-rose-900 mt-0.5">BUN 58 · Cr 2.8 · P 6.4 · cPL 420</div>
                     </div>
                 </div>
@@ -1527,10 +1560,10 @@
                 <div class="bg-rose-50/40 p-4 rounded-2xl border border-rose-200 space-y-3">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center space-x-2">
-                            <span class="px-2 py-0.5 bg-rose-600 text-white rounded-md text-[11px] font-black">축 ⑤ $\Delta W_{\text{Lab}}$</span>
+                            <span class="px-2 py-0.5 bg-rose-600 text-white rounded-md text-[11px] font-black">축 ⑤ 혈액검사 가중치 (ΔW_Lab)</span>
                             <h3 class="text-xs font-extrabold text-rose-950">혈액생화학 검사(Blood Lab) 중증도 가중치 변수 (9대 분변 마커 기대치 연동)</h3>
                         </div>
-                        <span class="text-[11px] text-rose-700 font-medium">혈중 수치(BUN, cPL, Albumin, ALT 등)가 악화될수록 장관 내 요독 유입 및 효소 결핍 가중치($\Delta W_{\text{Lab}}$)가 9대 마커에 자동 가산됩니다.</span>
+                        <span class="text-[11px] text-rose-700 font-medium">혈중 수치(BUN, cPL, Albumin, ALT 등)가 악화될수록 장관 내 요독 유입 및 효소 결핍 가중치(ΔW_Lab)가 9대 마커에 자동 가산됩니다.</span>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2.5">
@@ -1678,7 +1711,7 @@
                             <div>
                                 <div class="flex flex-wrap items-center justify-between mb-2">
                                     <h4 class="text-sm font-black text-slate-800"><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5"></i>장내환경 변화 5대 원인 기여도 분해 (Differential Attribution)</h4>
-                                    <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">혈액검사 가중치($\Delta W_{\text{Lab}}$) 연동 감별</span>
+                                    <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">혈액검사 가중치(ΔW_Lab) 연동 감별</span>
                                 </div>
                                 <p class="text-xs text-slate-500 mb-3">현재 관찰된 분변 마커의 편차와 비보상성 초과분이 <strong>식이(사료/간식), 약물, 질병+혈액검사 중증도, 나이/체급, 기타(효소 한계 초과 등)</strong> 중 어디에서 기인했는지 백분율(%)로 분해합니다.</p>
 
@@ -1699,7 +1732,7 @@
                                 <tr>
                                     <th class="py-3 px-3">분변 마커 (단위)</th>
                                     <th class="py-3 px-3">정상 성견 기준</th>
-                                    <th class="py-3 px-3 text-indigo-700">합산 가중치 ($W_{\text{total}}$)</th>
+                                    <th class="py-3 px-3 text-indigo-700">합산 가중치 (W_total)</th>
                                     <th class="py-3 px-3 text-blue-700">환자 맞춤 기대치 (Expected)</th>
                                     <th class="py-3 px-3 text-slate-900">실제 측정치 (Measured)</th>
                                     <th class="py-3 px-3 text-center">CDSS 판정 상태</th>
@@ -1714,7 +1747,7 @@
                     <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-50 via-blue-50 to-sky-50 border border-indigo-200 space-y-2">
                         <div class="text-sm font-black text-indigo-950 flex items-center space-x-2">
                             <i class="fa-solid fa-robot text-indigo-600"></i>
-                            <span>💡 9대 분변 마커 + 혈액검사 가중치($\Delta W_{\text{Lab}}$) 교차 검증 AI 분석 코멘트</span>
+                            <span>💡 9대 분변 마커 + 혈액검사 가중치(ΔW_Lab) 교차 검증 AI 분석 코멘트</span>
                         </div>
                         <div id="cdss-ai-comments-list" class="space-y-1.5 text-xs text-indigo-900 leading-relaxed pl-1"></div>
                     </div>
@@ -1765,56 +1798,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Symptom Log Entry Form -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                    <div class="flex items-center space-x-3">
-                        <span class="w-2.5 h-6 bg-rose-500 rounded-full"></span>
-                        <h2 class="text-lg font-bold text-slate-800">보호자 일일 증상 모니터링 기록</h2>
-                    </div>
-                    <span class="text-xs text-slate-500">설사, 구토, 잔여 식사량, 체중을 추적 관찰합니다.</span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">체중 (kg)</label>
-                        <input type="number" step="0.1" id="log-weight" value="6.4" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">분변 스코어 (1~7)</label>
-                        <select id="log-fecal" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white outline-none">
-                            <option value="1">1 (딱딱함)</option>
-                            <option value="2">2 (단단함)</option>
-                            <option value="3.5">3.5 (정상변)</option>
-                            <option value="4.0" selected>4.0 (무른변)</option>
-                            <option value="5.5">5.5 (매우묽음)</option>
-                            <option value="6.5">6.5 (설사)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">구토 횟수 (회/일)</label>
-                        <input type="number" id="log-vomit" value="0" min="0" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1">잔여 식사량 (%)</label>
-                        <select id="log-leftover" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white outline-none">
-                            <option value="0" selected>0% (전부 다 먹음)</option>
-                            <option value="20">20% (조금 남김)</option>
-                            <option value="50">50% (절반 남김)</option>
-                            <option value="80">80% (거의 안먹음)</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button type="button" onclick="submitSymptomLog()" class="w-full py-2 px-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2">
-                            <i class="fa-solid fa-plus"></i>
-                            <span>기록 추가 및 평가</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="symptom-alert-box" class="mt-4 p-4 rounded-xl text-xs hidden"></div>
             </div>
 
             <!-- Tab 4 하단: 원클릭 현재 환자 통합 기록 저장 & 비교 바로가기 배너 -->
@@ -2088,11 +2071,11 @@
             } else if (currentFeedingMode === "DRY_DRY") {
                 container.innerHTML = `
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">처방건식 1</span><span id="slider-val-dry1" class="font-extrabold">${currentCustomRatios.dry1 || 50}%</span></div>
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">건식 사료</span><span id="slider-val-dry1" class="font-extrabold">${currentCustomRatios.dry1 || 60}%</span></div>
                         <input type="range" min="0" max="100" value="${currentCustomRatios.dry1 || 50}" oninput="onRatioChange('dry1', this.value)" class="w-full h-2 bg-blue-100 rounded-lg accent-blue-600">
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-indigo-700">처방건식 2</span><span id="slider-val-dry2" class="font-extrabold">${currentCustomRatios.dry2 || 50}%</span></div>
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-amber-700">맞춤 화식</span><span id="slider-val-dry2" class="font-extrabold">${currentCustomRatios.dry2 || 40}%</span></div>
                         <input type="range" min="0" max="100" value="${currentCustomRatios.dry2 || 50}" oninput="onRatioChange('dry2', this.value)" class="w-full h-2 bg-indigo-100 rounded-lg accent-indigo-600">
                     </div>
                 `;
@@ -2210,6 +2193,9 @@
                 if (d.includes("쿠싱")) { fat_max = Math.min(fat_max || (is_dog ? 30 : 35), is_dog ? 30 : 35); clinical_notes.push("[쿠싱증후군] 고지혈증 대비 저지방 및 근감소증 예방 양질 단백질 유지"); }
                 if (d.includes("간")) { cu_max = Math.min(cu_max || 1.2, 1.2); clinical_notes.push("[만성간부전] 구리(Cu) 엄격 제한 (<1.2mg/1000kcal), 비육류 양질 단백질, 아연 보충"); }
                 if (d.includes("IBD")) { fat_max = Math.min(fat_max || 35, 35); clinical_notes.push("[IBD] 단일 신규 단백질 또는 가수분해 단백질 필수"); }
+                if (d.includes("갑상선기능저하")) { fat_max = Math.min(fat_max || 30, 30); clinical_notes.push("[갑상선기능저하증] 대사율 저하 및 고지혈증 예방을 위한 저지방·체중관리 식이"); }
+                if (d.includes("에디슨")) { clinical_notes.push("[에디슨병] 전해질(Na/K) 균형 유지 및 소화 흡수율이 높은 위장관 보호 식이"); }
+                if (d.includes("종양")) { p_min_prot = Math.max(p_min_prot || (is_dog ? 60 : 75), is_dog ? 60 : 75); epa_min = Math.max(epa_min || 1.5, 1.5); clinical_notes.push("[종양 케어] 암성 악액질(Cachexia) 방지를 위한 고단백·고오메가-3(EPA+DHA) 및 저단순당 설계"); }
             });
 
             if (dis_str.includes("신부전") && (dis_str.includes("심장") || mcs.includes("근감소"))) {
@@ -2500,11 +2486,12 @@
 
                 const c_d1 = adjusted_der_kcal * (r_d1 / tot);
                 const g_d1 = Math.round((c_d1 / (bestDry1.nutrients.energy_density_kcal_per_kg || 3800)) * 1000 * 10) / 10;
-                mix_items.push({ name: bestDry1.name, company: bestDry1.company, type: "건식1", ratio_percent: Math.round((r_d1/tot)*100), daily_calories: Math.round(c_d1*10)/10, daily_amount_g: g_d1, water_content_ml: Math.round(g_d1 * 0.10 * 10)/10, nutrients: bestDry1.nutrients });
+                mix_items.push({ name: bestDry1.name, company: bestDry1.company, type: "건식", ratio_percent: Math.round((r_d1/tot)*100), daily_calories: Math.round(c_d1*10)/10, daily_amount_g: g_d1, water_content_ml: Math.round(g_d1 * (bestDry1.moisture_percent/100)*10)/10, nutrients: bestDry1.nutrients });
 
                 const c_d2 = adjusted_der_kcal * (r_d2 / tot);
-                const g_d2 = Math.round((c_d2 / (bestDry2.nutrients.energy_density_kcal_per_kg || 3800)) * 1000 * 10) / 10;
-                mix_items.push({ name: bestDry2.name, company: bestDry2.company, type: "건식2", ratio_percent: Math.round((r_d2/tot)*100), daily_calories: Math.round(c_d2*10)/10, daily_amount_g: g_d2, water_content_ml: Math.round(g_d2 * 0.10 * 10)/10, nutrients: bestDry2.nutrients });
+                const g_d2 = Math.round((c_d2 / 1450) * 1000 * 10) / 10;
+                activeFreshRecipe = buildDetailedFreshRecipe(species, diseases, allergies, g_d2, Math.round(c_d2*10)/10);
+                mix_items.push({ name: activeFreshRecipe.title, company: "수의 맞춤 화식 (조리후 중량)", type: "화식", ratio_percent: Math.round((r_d2/tot)*100), daily_calories: Math.round(c_d2*10)/10, daily_amount_g: g_d2, water_content_ml: Math.round(g_d2 * 0.70 * 10)/10, nutrients: activeFreshRecipe.nutrients, freshIngredients: activeFreshRecipe.ingredients });
             } else {
                 const g_f = Math.round((adjusted_der_kcal / 1450) * 1000 * 10) / 10;
                 activeFreshRecipe = buildDetailedFreshRecipe(species, diseases, allergies, g_f, adjusted_der_kcal);
@@ -3114,7 +3101,7 @@
                     d_lab.indole += Math.max(0.05, extra * 0.9);
                     d_lab.blood += Math.max(0.08, extra);
                     d_lab.ph += 0.02;
-                    labAlerts.push(`🔴 <strong>[중증 고질소혈증 가중치 작동]</strong> BUN(${bun} mg/dL)·Cr(${cr} mg/dL)·SDMA(${sdma} μg/dL) 급상승으로 혈중 요소의 장관 내 역확산(Urea influx)이 가속화되어 암모니아·인돌·잠혈 기대 가중치($\\Delta W_{\\text{Lab}}$)가 상향되었습니다.`);
+                    labAlerts.push(`🔴 <strong>[중증 고질소혈증 가중치 작동]</strong> BUN(${bun} mg/dL)·Cr(${cr} mg/dL)·SDMA(${sdma} μg/dL) 급상승으로 혈중 요소의 장관 내 역확산(Urea influx)이 가속화되어 암모니아·인돌·잠혈 기대 가중치(ΔW_Lab)가 상향되었습니다.`);
                 }
             }
 
@@ -3130,7 +3117,7 @@
                     d_lab.fat += extraFat;
                     d_lab.protein += extraFat * 0.45;
                     d_lab.absorption -= extraFat * 0.30;
-                    labAlerts.push(`🚨 <strong>[췌장염 급성 활성 가중치 작동]</strong> 혈중 cPL(${cpl} μg/L > 350) 급상승으로 내과적 췌장 외분비 부전이 확인되어 미소화 지방($+${extraFat.toFixed(2)}$) 및 흡수율 저하 가중치가 추가 반영되었습니다.`);
+                    labAlerts.push(`🚨 <strong>[췌장염 급성 활성 가중치 작동]</strong> 혈중 cPL(${cpl} μg/L > 350) 급상승으로 내과적 췌장 외분비 부전이 확인되어 미소화 지방(+${extraFat.toFixed(2)}) 및 흡수율 저하 가중치가 추가 반영되었습니다.`);
                 } else {
                     labAlerts.push(`🟠 <strong>[혈액-분변 교차 검증: cPL 경계치(${cpl} μg/L)]</strong> 혈중 cPL이 급성 췌장 괴사 수준(<350)은 아니나 분변 미소화 지방이 높다면, 내과적 악화보다 <strong>식이 지방 과부하(신장사료 지질 함량 등) 및 효소 용량 부족</strong>이 주원인입니다.`);
                 }
@@ -3144,7 +3131,7 @@
                 d_lab.absorption -= hypoAlb * 0.45;
                 labSeverityScore.protein += 0.30;
                 labSeverityScore.absorption += 0.30;
-                labAlerts.push(`🚨 <strong>[저알부민혈증(${alb} g/dL) 경고]</strong> 장 점막 림프관 확장 및 부종(PLE 의심)으로 단백질 유실 가중치($+${hypoAlb.toFixed(2)}$)와 흡수율 페널티가 반영되었습니다.`);
+                labAlerts.push(`🚨 <strong>[저알부민혈증(${alb} g/dL) 경고]</strong> 장 점막 림프관 확장 및 부종(PLE 의심)으로 단백질 유실 가중치(+${hypoAlb.toFixed(2)})와 흡수율 페널티가 반영되었습니다.`);
             }
 
             // 4. 간효소 (ALT) -> 담즙산 합성/배설 저하 -> 미소화 지방/암모니아
@@ -3299,6 +3286,9 @@
             if (document.getElementById('dis-oa').checked) diseases.push("관절염");
             if (document.getElementById('dis-stones').checked) diseases.push("요로결석");
             if (document.getElementById('dis-brain').checked) diseases.push("뇌질환 (뇌수막염/경색 등)");
+            if (document.getElementById('dis-hypothyroid') && document.getElementById('dis-hypothyroid').checked) diseases.push("갑상선기능저하증");
+            if (document.getElementById('dis-addison') && document.getElementById('dis-addison').checked) diseases.push("에디슨 (부신피질기능저하)");
+            if (document.getElementById('dis-tumor') && document.getElementById('dis-tumor').checked) diseases.push("종양 (전신/악성)");
             if (document.getElementById('dis-hyperthyroid') && document.getElementById('dis-hyperthyroid').checked) {
                 diseases.push("갑상선기능항진증");
             }
@@ -3333,7 +3323,7 @@
             }
 
             if (treatGiven) {
-                diet_mix.push({ label: "간식 (육포/트릿)", profile: "간식 (트릿/육포 등)", ratio: 0.25 });
+                diet_mix.push({ label: "간식 (육포/트릿/츄르)", profile: "간식 (트릿/육포 등)", ratio: 0.25 });
             }
 
             if (typeof buildCdssDietMixFromActiveItems === 'function' && hasCustomDietOverrideActive()) {
@@ -3715,7 +3705,7 @@
             }
 
             if (evalMap.blood.meas >= 10.0) {
-                aiComments.push(`• <strong>[약물/점막 요인에 의한 잠혈 검출]</strong> 분변 잠혈이 ${evalMap.blood.meas} ng/mL 검출되었습니다(기대 상한 ${evalMap.blood.expectedUpper} ng/mL). 잠혈 지표는 식이 민감도($C_{\\text{Diet}}=0.5$)보다 약물 민감도($C_{\\text{Drug}}=1.8$)와 질병 민감도($C_{\\text{Dis}}=2.0$)가 압도적으로 높아, 사료 문제가 아닌 <strong>복용 약물(NSAIDs/스테로이드) 또는 요독성/염증성 위장관 미란</strong>이 원인입니다.`);
+                aiComments.push(`• <strong>[약물/점막 요인에 의한 잠혈 검출]</strong> 분변 잠혈이 ${evalMap.blood.meas} ng/mL 검출되었습니다(기대 상한 ${evalMap.blood.expectedUpper} ng/mL). 잠혈 지표는 식이 민감도(C_Diet = 0.5)보다 약물 민감도(C_Drug = 1.8)와 질병 민감도(C_Dis = 2.0)가 압도적으로 높아, 사료 문제가 아닌 <strong>복용 약물(NSAIDs/스테로이드) 또는 요독성/염증성 위장관 미란</strong>이 원인입니다.`);
                 suppActions.push("• <strong>[장점막 복구 보강]</strong> 상피세포 재생 및 치밀이음부(Tight Junction) 복구를 위해 <strong>L-글루타민(L-Glutamine) + 아연-카르노신 + 보스웰리아/초록입홍합(관절케어 오스테오)</strong>로 항염 대체");
                 vetActions.push("• <strong>[약물 변경 및 점막 보호 처치]</strong> NSAIDs 복용 중이라면 즉시 휴약 또는 Coxib 계열/단클론항체 주사제(Librela)로 대체를 검토하고, 위장관 점막보호제(<strong>Sucralfate</strong>) 및 위산억제제(<strong>Omeprazole</strong>)를 병용 처방하십시오.");
             }
