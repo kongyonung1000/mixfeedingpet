@@ -297,6 +297,10 @@
     // =========================================================================
     // 3. 수학 및 임상 영양 코어 연산 함수 (공통 백엔드 로직)
     // =========================================================================
+    function getActiveDryFoodMetrics() {
+        return calcDryFoodMetrics(guardianState.selectedDryFood);
+    }
+
     function calcDryFoodMetrics(food) {
         const moisture = Math.min(88, Math.max(1, parseFloat(food.moisture_af) || 10.0));
         const dmFactor = (100.0 - moisture) / 100.0;
@@ -3188,6 +3192,7 @@
         let subGrams = 0;
         let mixP_dm = dryMetrics.p_dm;
         let mixF_dm = dryMetrics.f_dm;
+        let mixFb_dm = dryMetrics.fb_dm || 2.5;
         let mixNfe_dm = dryMetrics.nfe_dm;
         let mixCa_dm = dryMetrics.ca_dm;
         let mixPhos_dm = dryMetrics.phos_dm;
@@ -3453,7 +3458,7 @@
             mainKcal,
             subKcal,
             toppingKcal: toppingSum.totalKcal,
-            totalSupplyKcal,
+            totalSupplyKcal: totalCombinedKcal,
             mainGrams,
             subGrams,
             mixP_dm,
@@ -4074,6 +4079,10 @@
             }
         }
     };
+
+    function findNaturalIngredientById(id) {
+        return (window.GUARDIAN_NATURAL_INGREDIENTS || []).find(x => x.id === id);
+    }
 
     function buildLiveUnifiedPayload() {
         const p = guardianState.profile;
