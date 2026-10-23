@@ -673,17 +673,67 @@
                     </div>
                 </div>
 
-                <!-- 알러지 -->
-                <div class="mt-6 pt-6 border-t border-slate-100">
-                    <label class="block text-xs font-bold text-slate-700 mb-2">알러지 및 식이 금기 단백질원</label>
-                    <div class="flex flex-wrap gap-2">
-                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="닭고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">닭고기 (Chicken)</span></label>
-                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="소고기" checked class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">소고기 (Beef)</span></label>
-                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="오리고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">오리고기 (Duck)</span></label>
-                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="양고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">양고기 (Lamb)</span></label>
-                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="돼지고기" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">돼지고기 (Pork)</span></label>
-                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="연어" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">연어 / 생선 (Salmon/Fish)</span></label>
-                        <label class="cursor-pointer"><input type="checkbox" name="allergy" value="칠면조" class="hidden peer"><span class="inline-block px-3 py-1.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-medium transition">칠면조 (Turkey)</span></label>
+                <!-- 알러지 (동물성 단백질 / 식물성 알러지원 / 환경알러지원) -->
+                <div class="mt-6 pt-6 border-t border-slate-100 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <label class="block text-xs font-extrabold text-slate-800">알러지 및 식이 금기 단백질 · 식물성 알러지원 · 환경알러지원</label>
+                        <span class="text-[11px] text-slate-500">체크된 식이 알러지원(동물성·식물성)은 처방사료 매칭 및 맞춤 화식 조리법에서 자동 배제됩니다.</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <!-- 1) 동물성 단백질 알러지원 -->
+                        <div class="p-3.5 rounded-xl bg-rose-50/40 border border-rose-200/80 space-y-2">
+                            <div class="text-xs font-extrabold text-rose-800 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-drumstick-bite text-rose-600"></i>
+                                <span>동물성 단백질 알러지원</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="닭고기" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">닭고기 (Chicken)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="소고기" checked class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">소고기 (Beef)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="오리고기" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">오리고기 (Duck)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="양고기" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">양고기 (Lamb)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="돼지고기" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">돼지고기 (Pork)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="연어" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">연어 / 생선 (Salmon/Fish)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="칠면조" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">칠면조 (Turkey)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="계란" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">계란 / 난류 (Egg)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="유제품" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-semibold transition">유제품 / 치즈 (Dairy)</span></label>
+                            </div>
+                        </div>
+
+                        <!-- 2) 식물성 알러지원 -->
+                        <div class="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200/80 space-y-2">
+                            <div class="text-xs font-extrabold text-amber-900 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-carrot text-amber-600"></i>
+                                <span>식물성 알러지원</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="당근" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">당근 (Carrot)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="감자" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">감자 (Potato)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="고구마" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">고구마 (Sweet Potato)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="단호박" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">단호박 (Pumpkin)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="완두콩" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">완두콩 / 대두 (Pea/Soy)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="옥수수" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">옥수수 / 밀 (Corn/Wheat)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="브로콜리" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">브로콜리 / 양배추</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="사과" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-semibold transition">사과 / 과일류</span></label>
+                            </div>
+                        </div>
+
+                        <!-- 3) 환경알러지원 -->
+                        <div class="p-3.5 rounded-xl bg-teal-50/50 border border-teal-200/80 space-y-2">
+                            <div class="text-xs font-extrabold text-teal-900 flex items-center space-x-1.5">
+                                <i class="fa-solid fa-couch text-teal-600"></i>
+                                <span>환경알러지원</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="집먼지 진드기" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-semibold transition">집먼지 진드기</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="털옷" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-semibold transition">털옷 (니트/울 의류)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="털방석" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-semibold transition">털방석 (극세사/퍼 방석)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="집안 카페트" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-semibold transition">집안 카페트 (러그/매트)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="집안 소파" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-semibold transition">집안 소파 (패브릭/가죽)</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="꽃가루" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-semibold transition">꽃가루 / 수목 화분</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" name="allergy" value="실내 곰팡이" class="hidden peer"><span class="inline-block px-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-semibold transition">실내 곰팡이 / 습기</span></label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -750,6 +800,17 @@
                             <div>
                                 <div class="text-sm font-bold text-slate-800">만성간부전 / 간질환</div>
                                 <div class="text-xs text-slate-500 mt-0.5">구리 엄격 제한, 아연 보충, 비육류 양질단백</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <input type="checkbox" id="dis-gallbladder" name="disease" value="담낭질환 (담낭슬러지 / 점액종 / 담석 / 만성담낭염)" class="hidden disease-checkbox">
+                        <label for="dis-gallbladder" class="flex items-start space-x-3 p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:border-blue-300 transition">
+                            <div class="text-lime-600 mt-0.5 text-lg"><i class="fa-solid fa-droplet"></i></div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">담낭질환 (슬러지 / 점액종 / 담석 / 담낭염)</div>
+                                <div class="text-xs text-slate-500 mt-0.5">저지방·고소화성 식단, 담즙 배출 촉진 및 간·담도 보호</div>
                             </div>
                         </label>
                     </div>
@@ -883,7 +944,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">담낭/소화기 동반 병변</label>
+                        <label class="block font-bold text-slate-700 mb-1">담장질환 세부병기</label>
                         <select id="cdss-gb-type" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white outline-none">
                             <option value="없음" selected>해당 없음</option>
                             <option value="담낭슬러지 25%이상">담낭슬러지 25% 이상</option>
@@ -1339,24 +1400,24 @@
                 </div>
             </div>
 
-            <!-- NEW IN TAB 2: 4대 축(나이·식이·약물·질병) 가중치 기반 장내환경 9대 분변 마커 사전 추정치 (Expected Baseline) -->
-            <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 text-white rounded-2xl p-6 shadow-lg border-2 border-indigo-500/40 space-y-4">
-                <div class="flex flex-wrap items-center justify-between border-b border-white/15 pb-3.5 gap-3">
+            <!-- NEW IN TAB 2: 4대 축(나이·식이·약물·질병) 가중치 기반 장내환경 9대 분변 마커 사전 추정치 (Expected Baseline - White Theme) -->
+            <div class="bg-white text-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3.5 gap-3">
                     <div class="flex items-center space-x-3">
-                        <span class="p-2.5 bg-indigo-500 text-white rounded-xl shadow-md">
+                        <span class="p-2.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-xl shadow-sm">
                             <i class="fa-solid fa-microscope text-lg"></i>
                         </span>
                         <div>
                             <div class="flex items-center space-x-2">
-                                <h2 class="text-base font-black text-white">장내환경 9대 분변 마커 환자 맞춤형 사전 추정치 (Expected Baseline)</h2>
-                                <span class="px-2 py-0.5 text-[10px] font-black bg-amber-400 text-slate-950 rounded-full">신규 가중치 수식 적용</span>
+                                <h2 class="text-base font-black text-slate-800">장내환경 9대 분변 마커 환자 맞춤형 사전 추정치 (Expected Baseline)</h2>
+                                <span class="px-2 py-0.5 text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">신규 가중치 수식 적용</span>
                             </div>
-                            <p class="text-xs text-indigo-200 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치(α = 0.40 감쇠 결합)로 추정한 이 환견의 분변 9대 마커 예상 기준선입니다.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치(α = 0.40 감쇠 결합)로 추정한 이 환견의 분변 9대 마커 예상 기준선입니다.</p>
                         </div>
                     </div>
-                    <button type="button" onclick="switchTab('monitoring-tab')" class="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black rounded-xl text-xs shadow-lg flex items-center space-x-2 transition transform active:scale-95">
+                    <button type="button" onclick="switchTab('monitoring-tab')" class="px-4 py-2.5 bg-slate-100 hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 font-black rounded-xl text-xs shadow-sm flex items-center space-x-2 transition transform active:scale-95">
                         <i class="fa-solid fa-magnifying-glass-chart"></i>
-                        <span>실측치 입력 & 식이/약물/질병 원인분해 진단기 열기 (Tab 4)</span>
+                        <span>장내환경 9대 마커 + 혈액 CDSS 열기 (Tab 4)</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
@@ -1610,17 +1671,22 @@
                     </div>
                 </div>
 
-                <!-- 9대 분변 마커 실측치(또는 시뮬레이션 측정치) 입력 그리드 -->
-                <div class="bg-slate-900 text-white p-5 rounded-2xl space-y-4">
-                    <div class="flex flex-wrap items-center justify-between border-b border-white/10 pb-3">
-                        <div class="flex items-center space-x-2">
+                <!-- 9대 분변 마커 실측치 입력 그리드 (기본 접힘: 제목 클릭 시 열림/닫힘 토글) -->
+                <div class="bg-slate-900 text-white px-5 py-3.5 rounded-2xl border border-slate-800">
+                    <div onclick="toggleFecal9MarkerInputPanel()" class="flex flex-wrap items-center justify-between cursor-pointer select-none group">
+                        <div class="flex items-center space-x-2.5">
                             <i class="fa-solid fa-sliders text-amber-400"></i>
-                            <h3 class="text-sm font-extrabold">장내환경 9대 분변 마커 실측값 입력 (Fecal 9-Biomarker Panel)</h3>
+                            <h3 class="text-sm font-extrabold group-hover:text-amber-300 transition">장내환경 9대 분변 마커 실측값 입력 (Fecal 9-Biomarker Panel)</h3>
                         </div>
-                        <span class="text-[11px] text-slate-400">괄호 안은 정상 성견 기준 범위이며, 아래 표에서 <strong>5대 축(연령·식이·약물·질병·혈액검사)이 결합된 환자 맞춤 기대치</strong>와 자동 비교됩니다.</span>
+                        <span id="fecal-9marker-toggle-badge" class="text-[11px] text-slate-300 bg-white/10 group-hover:bg-white/20 px-3 py-1 rounded-lg font-bold transition flex items-center space-x-1.5">
+                            <span>클릭하여 입력창 열기</span>
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </span>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 text-xs">
+                    <div id="fecal-9marker-input-body" class="hidden space-y-4 pt-4 mt-3 border-t border-white/10">
+                        <div class="text-[11px] text-slate-400">괄호 안은 정상 성견 기준 범위이며, 아래 표에서 <strong>5대 축(연령·식이·약물·질병·혈액검사)이 결합된 환자 맞춤 기대치</strong>와 자동 비교됩니다.</div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 text-xs">
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-amber-300">① 분변 pH</label>
                             <div class="text-[10px] text-slate-400 mb-1">정상: 6.0~7.0</div>
@@ -1678,6 +1744,7 @@
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
                             <span>9대 분변 마커 + 혈액검사 가중치 결합 & 원인 분해 진단 실행</span>
                         </button>
+                    </div>
                     </div>
                 </div>
 
@@ -2191,7 +2258,8 @@
                 if (d.includes("신부전")) { p_max = Math.min(p_max || (is_dog ? 0.8 : 0.9), is_dog ? 0.8 : 0.9); p_max_prot = Math.min(p_max_prot || (is_dog ? 55 : 75), is_dog ? 55 : 75); na_max = Math.min(na_max || (is_dog ? 0.9 : 1.0), is_dog ? 0.9 : 1.0); clinical_notes.push("[만성신부전] 인(P) 엄격 제한 (<0.8g/1000kcal), 단계별 단백질 조절 및 음수량 극대화"); }
                 if (d.includes("췌장")) { fat_max = Math.min(fat_max || (is_dog ? 25 : 40), is_dog ? 25 : 40); clinical_notes.push("[췌장염] 극저지방 (<25g/1000kcal, <10% DM) 및 고소화성 탄수화물/단백질 급여"); }
                 if (d.includes("쿠싱")) { fat_max = Math.min(fat_max || (is_dog ? 30 : 35), is_dog ? 30 : 35); clinical_notes.push("[쿠싱증후군] 고지혈증 대비 저지방 및 근감소증 예방 양질 단백질 유지"); }
-                if (d.includes("간")) { cu_max = Math.min(cu_max || 1.2, 1.2); clinical_notes.push("[만성간부전] 구리(Cu) 엄격 제한 (<1.2mg/1000kcal), 비육류 양질 단백질, 아연 보충"); }
+                if (d.includes("간")) { cu_max = Math.min(cu_max || 1.2, 1.2); clinical_notes.push("[만성간부전] 구리(Cu) 엄격 제한 (<1.2mg/1000kcal), 비육류 양질 단백질, 아연 보충"); }
+                if (d.includes("담낭")) { fat_max = Math.min(fat_max || (is_dog ? 26 : 38), is_dog ? 26 : 38); clinical_notes.push("[담낭질환] 담낭점액종·슬러지·담석 악화 방지를 위한 저지방(<26g/1000kcal)·고소화성 식단 및 담즙 배출 촉진"); }
                 if (d.includes("IBD")) { fat_max = Math.min(fat_max || 35, 35); clinical_notes.push("[IBD] 단일 신규 단백질 또는 가수분해 단백질 필수"); }
                 if (d.includes("갑상선기능저하")) { fat_max = Math.min(fat_max || 30, 30); clinical_notes.push("[갑상선기능저하증] 대사율 저하 및 고지혈증 예방을 위한 저지방·체중관리 식이"); }
                 if (d.includes("에디슨")) { clinical_notes.push("[에디슨병] 전해질(Na/K) 균형 유지 및 소화 흡수율이 높은 위장관 보호 식이"); }
@@ -3265,6 +3333,20 @@
             }
         }
 
+        window.toggleFecal9MarkerInputPanel = function() {
+            const body = document.getElementById('fecal-9marker-input-body');
+            const badge = document.getElementById('fecal-9marker-toggle-badge');
+            if (!body) return;
+            const isHidden = body.classList.contains('hidden');
+            if (isHidden) {
+                body.classList.remove('hidden');
+                if (badge) badge.innerHTML = `<span>클릭하여 입력창 접기</span><i class="fa-solid fa-chevron-up text-[10px]"></i>`;
+            } else {
+                body.classList.add('hidden');
+                if (badge) badge.innerHTML = `<span>클릭하여 입력창 열기</span><i class="fa-solid fa-chevron-down text-[10px]"></i>`;
+            }
+        };
+
         function syncGutCdssFromCurrentTabs(runAfter = true) {
             const age_years = parseFloat(document.getElementById('patient-age').value) || 11.0;
             const weight_kg = parseFloat(document.getElementById('patient-weight').value) || 5.0;
@@ -3293,8 +3375,13 @@
                 diseases.push("갑상선기능항진증");
             }
 
+            const gbChecked = document.getElementById('dis-gallbladder') && document.getElementById('dis-gallbladder').checked;
             const gb = document.getElementById('cdss-gb-type').value;
-            if (gb && gb !== "없음") diseases.push(gb);
+            if (gb && gb !== "없음") {
+                diseases.push(gb);
+            } else if (gbChecked) {
+                diseases.push("담낭슬러지 25%이상");
+            }
             const exDis = document.getElementById('cdss-extra-dis').value;
             if (exDis && exDis !== "없음") diseases.push(exDis);
 
@@ -3586,15 +3673,15 @@
                     const info = CDSS_MARKER_INFO[m];
                     const ev = evalMap[m];
                     const expStr = m === 'blood' ? `< ${ev.expectedUpper}` : `${ev.expected}`;
-                    const wColor = ev.w_total > 1.15 ? 'text-amber-300' : (ev.w_total < 0.90 ? 'text-sky-300' : 'text-emerald-300');
+                    const wColor = ev.w_total > 1.15 ? 'text-amber-600' : (ev.w_total < 0.90 ? 'text-sky-600' : 'text-emerald-600');
                     return `
-                        <div class="bg-white/10 backdrop-blur-sm p-2.5 rounded-xl border border-white/15 flex flex-col justify-between">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between">
                             <div>
-                                <div class="text-[11px] font-extrabold text-indigo-200 truncate">${info.name}</div>
+                                <div class="text-[11px] font-extrabold text-slate-700 truncate">${info.name}</div>
                                 <div class="text-[10px] text-slate-400">정상: ${m==='blood'?'<10':`${info.min}~${info.max}`}</div>
                             </div>
-                            <div class="mt-2 pt-1.5 border-t border-white/10">
-                                <div class="text-sm font-black text-white">${expStr} <span class="text-[10px] font-normal text-slate-300">${info.unit !== '-' ? info.unit : ''}</span></div>
+                            <div class="mt-2 pt-1.5 border-t border-slate-200">
+                                <div class="text-sm font-black text-slate-900">${expStr} <span class="text-[10px] font-normal text-slate-500">${info.unit !== '-' ? info.unit : ''}</span></div>
                                 <div class="text-[10px] font-bold ${wColor}">가중치 x${ev.w_total.toFixed(2)}</div>
                             </div>
                         </div>
