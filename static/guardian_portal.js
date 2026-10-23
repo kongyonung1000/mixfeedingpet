@@ -899,17 +899,91 @@
                                 <option value="1">하루 1끼 급여</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block font-black text-slate-700 mb-1">🩺 Q4-4. 특별히 관리 중인 건강 고민</label>
-                            <select id="g-concern" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
-                                <option value="none" selected>없음 (일반 건강 유지 · AAFCO 기준)</option>
-                                <option value="obesity">🎈 체중 감량 / 다이어트 관리</option>
-                                <option value="ckd">💧 신장 케어 (만성신부전 · 저인 식단)</option>
-                                <option value="pancreatitis">🥦 췌장/소화기 케어 (저지방 식단)</option>
-                                <option value="heart">❤️ 심장/혈압 케어 (저나트륨 식단)</option>
-                                <option value="liver">🍀 간 건강 케어</option>
-                                <option value="urolithiasis">💎 요로결석 예방 (수분 극대화)</option>
+                                                <div>
+                            <label class="block font-black text-slate-700 mb-1">🩺 Q4-4. 특별히 관리 중인 건강 고민 (수의사 17대 복합질환 연동)</label>
+                            <select id="g-concern" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 font-bold text-xs bg-white text-slate-900">
+                                <option value="none" selected>없음 (일반 건강 유지 · AAFCO 성견/성묘 기준)</option>
+                                <option value="heart">❤️ 심장병 (심부전 · 저나트륨 · 타우린 보강)</option>
+                                <option value="ckd">💧 만성신부전 (CKD · 저단백 · 초저인 식단)</option>
+                                <option value="pancreatitis">🥦 췌장염 (급성/만성 · 엄격한 초저지방 식단)</option>
+                                <option value="cushing">⚡ 쿠싱증후군 (부신피질항진증 · 고섬유 · 중등도 단백)</option>
+                                <option value="liver">🍀 간질환 (간염 · 간경화 · 간성뇌증 예방)</option>
+                                <option value="gallbladder">🍈 담낭질환 (담낭점액종 · 담낭염 · 초저지방 식단)</option>
+                                <option value="ibd">🌿 염증성 장질환 (IBD · 만성장염 · 장점막 보호)</option>
+                                <option value="diabetes">🩸 당뇨병 (혈당 스파이크 방지 · 복합 탄수화물/고단백)</option>
+                                <option value="urolithiasis">💎 요로결석 (스트루바이트/옥살레이트 요pH 조절)</option>
+                                <option value="cognitive">🧠 인지장애증후군 (치매 · 뇌신경 영양 · 항산화)</option>
+                                <option value="obesity">🎈 비만증 (과체중 · 체중 감량 다이어트 식단)</option>
+                                <option value="osteoarthritis">🦴 골관절염 (관절염 · 슬개골 탈구 · 오메가3)</option>
+                                <option value="hypothyroid">🦋 갑상선기능저하증 / 항진증 (호르몬 대사 균형)</option>
+                                <option value="addison">🛡️ 부신피질기능저하증 (에디슨병 · 전해질 균형)</option>
+                                <option value="oncology">🧬 종양 / 암 환자 (악액질 방지 · 고열량/고단백/저탄수)</option>
+                                <option value="atopy">🌸 아토피 / 알러지성 피부염 (가수분해 · 단일단백질)</option>
+                                <option value="hypertension">🩺 고혈압 / 단백뇨 (신장-심장 보호 식단)</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- 보호자용 Q4-5 알러지 및 식이 금기 (동물성 단백질 / 식물성 알러지원 / 환경알러지원 - 수의사용 1:1 완벽 연동) -->
+                    <div class="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <label class="block text-xs font-black text-slate-800">
+                                🚫 Q4-5. 알러지 및 식이 금기 단백질 · 식물성 알러지원 · 환경알러지원
+                            </label>
+                            <span class="text-[11px] text-slate-500">체크된 식이 알러지원(동물성·식물성)은 처방사료 매칭 및 맞춤 화식 조리법에서 자동 배제됩니다.</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <!-- 1) 동물성 단백질 -->
+                            <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200/80 space-y-1.5">
+                                <div class="text-xs font-black text-rose-800 flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-drumstick-bite text-rose-600"></i>
+                                    <span>동물성 단백질 알러지원</span>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="닭고기" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">닭고기</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="소고기" checked onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">소고기</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="오리고기" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">오리고기</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="양고기" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">양고기</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="돼지고기" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">돼지고기</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="연어" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">연어/생선</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="칠면조" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">칠면조</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="계란" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">계란/난류</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="유제품" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-600 font-bold transition">유제품/치즈</span></label>
+                                </div>
+                            </div>
+                            <!-- 2) 식물성 알러지원 -->
+                            <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1.5">
+                                <div class="text-xs font-black text-amber-900 flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-carrot text-amber-600"></i>
+                                    <span>식물성 알러지원</span>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="당근" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">당근</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="감자" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">감자</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="고구마" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">고구마</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="단호박" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">단호박</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="완두콩" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">완두콩/대두</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="옥수수" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">옥수수/밀</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="브로콜리" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">브로콜리/양배추</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="사과" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">사과/과일류</span></label>
+                                </div>
+                            </div>
+                            <!-- 3) 환경알러지원 -->
+                            <div class="p-3 rounded-xl bg-teal-50/60 border border-teal-200/80 space-y-1.5">
+                                <div class="text-xs font-black text-teal-900 flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-couch text-teal-600"></i>
+                                    <span>환경알러지원</span>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="집먼지 진드기" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-bold transition">집먼지 진드기</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="털옷" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-bold transition">털옷 (니트/울)</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="털방석" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-bold transition">털방석 (극세사)</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="집안 카페트" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-bold transition">집안 카페트</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="집안 소파" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-bold transition">집안 소파</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="꽃가루" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-bold transition">꽃가루/화분</span></label>
+                                    <label class="cursor-pointer"><input type="checkbox" name="g-allergy" value="실내 곰팡이" onchange="onGuardianProfileChange()" class="hidden peer"><span class="inline-block px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white peer-checked:bg-teal-100 peer-checked:border-teal-600 peer-checked:text-teal-900 font-bold transition">실내 곰팡이</span></label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -975,9 +1049,21 @@
                                 <label class="block text-xs font-black text-blue-950 mb-1.5"><i class="fa-solid fa-magnifying-glass mr-1"></i>국내외 인기 상용 사료 & 처방사료 키워드 검색</label>
                                 <input type="text" id="g-food-search-input" placeholder="예: 로얄캐닌, 오리젠, 아카나, 나우, 힐스, 지위픽, 더리얼..." oninput="filterGuardianFoodSearch(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-blue-300 bg-white text-xs font-bold outline-none focus:border-blue-600">
                             </div>
-                            <div>
-                                <label class="block text-xs font-black text-blue-950 mb-1.5">검색 결과에서 사료 선택 (클릭 시 성분 & 원재료 자동 입력)</label>
-                                <select id="g-food-search-select" onchange="onSelectGuardianCommercialFood(this.value)" class="w-full px-3.5 py-2.5 rounded-xl border border-blue-300 bg-white text-xs font-extrabold text-slate-800 outline-none">
+                                                        <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="block text-xs font-black text-blue-950">검색 결과에서 사료 선택 (클릭 시 성분 & 원재료 즉시 반영)</label>
+                                    <button type="button" onclick="applyCurrentGuardianFoodSearchSelect()" class="px-2.5 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition">
+                                        <i class="fa-solid fa-check"></i> 선택 적용
+                                    </button>
+                                </div>
+                                <select id="g-food-search-select" onchange="onSelectGuardianCommercialFood(this.value)" class="w-full px-3 py-2 rounded-xl border border-blue-300 font-bold text-xs bg-white text-blue-950 shadow-inner">
+                                    <option value="" disabled>👉 검색된 사료 목록에서 선택하세요</option>
+                                    <option value="rc_mini_adult" selected>로얄캐닌 미니 인도어 어덜트 (소형견 유지용)</option>
+                                    <option value="orijen_original">오리젠 오리지널 독 (고단백 건식)</option>
+                                    <option value="acana_pacifica">아카나 패시피카 독 (단일 어류 단백질)</option>
+                                    <option value="hills_kd">힐스 처방식 k/d (신장 케어 건식)</option>
+                                    <option value="rc_gastro_lowfat">로얄캐닌 처방식 가스트로 로우팻 (췌장/저지방)</option>
+                                    <option value="now_fresh_small">나우 프레시 그레인프리 스몰브리드</option>
                                 </select>
                             </div>
                         </div>
@@ -1051,7 +1137,8 @@
                         <!-- DM 자동 환산 요약 줄 -->
                         <div id="g-dry-dm-summary-bar" class="p-3 rounded-xl bg-white border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
                         </div>
-                    </div>
+                    </div><!-- end of g-kit-report-body -->
+</div>
                 </section>
 
                 <!-- ================================================================== -->
@@ -1579,12 +1666,24 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <!-- 좌측(5칸): 보호자용 분변키트 간편 결과 입력 폼 -->
-                        <div class="lg:col-span-5 bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm font-black text-slate-800">📋 분변키트 스트립 색상 / 결과 선택</div>
-                                <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-bold text-[11px]">보호자 간편 입력 모드</span>
+                        <!-- 좌측(5칸): 보호자용 분변키트 간편 결과 입력 폼 (기본 접힘 아코디언) -->
+                        <div class="lg:col-span-5 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 space-y-3">
+                            <div onclick="toggleGuardianKitStripInput()" class="flex items-center justify-between cursor-pointer select-none p-2.5 rounded-xl bg-white border border-teal-200 hover:bg-teal-50/50 shadow-sm transition">
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-sm font-black text-slate-800 flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-vial-virus text-teal-600"></i>
+                                        <span>📋 분변키트 스트립 색상 / 결과 선택</span>
+                                    </div>
+                                    <span class="text-[11px] text-teal-700 font-bold">(클릭하여 펼치기)</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-bold text-[10px]">체험/입력</span>
+                                    <i id="g-kit-strip-chevron" class="fa-solid fa-chevron-down text-teal-700 text-xs transition-transform duration-200"></i>
+                                </div>
                             </div>
+
+                            <!-- 아코디언 본문 (기본 hidden) -->
+                            <div id="g-kit-strip-body" class="hidden space-y-4 pt-1">
 
                             <!-- 1. 장내 산도 (pH) -->
                             <div class="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2">
@@ -1679,9 +1778,28 @@
                             </div>
                         </div>
 
-                        <!-- 우측(7칸): 장내 환경 쉬운 분석 & 맞춤 식단·유산균 리포트 -->
-                        <div class="lg:col-span-7 space-y-4">
-                            <!-- 상단 종합 점수 & 장내 미생물 밸런스 게이지 -->
+                            </div><!-- end of g-kit-strip-body -->
+                        </div>
+
+                        <!-- 우측(7칸): 장내 환경 쉬운 분석 & 맞춤 식단·유산균 리포트 (기본 접힘 아코디언) -->
+                        <div class="lg:col-span-7 space-y-3">
+                            <div onclick="toggleGuardianKitReport()" class="flex items-center justify-between cursor-pointer select-none p-3 rounded-2xl bg-white border border-teal-200 hover:bg-teal-50/50 shadow-sm transition">
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-sm font-black text-slate-800 flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-chart-pie text-teal-600"></i>
+                                        <span>장내 불균형 주의 단계 및 쉬운 해설 리포트</span>
+                                    </div>
+                                    <span class="text-[11px] text-teal-700 font-bold">(클릭하여 결과 보기)</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span id="g-kit-summary-badge" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">정상 황금변</span>
+                                    <i id="g-kit-report-chevron" class="fa-solid fa-chevron-down text-teal-700 text-xs transition-transform duration-200"></i>
+                                </div>
+                            </div>
+
+                            <!-- 아코디언 본문 (기본 hidden) -->
+                            <div id="g-kit-report-body" class="hidden space-y-4 pt-1">
+                                <!-- 상단 종합 점수 & 장내 미생물 밸런스 게이지 -->
                             <div class="bg-gradient-to-r from-teal-900 via-emerald-900 to-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
                                 <div class="flex flex-wrap items-center justify-between gap-4">
                                     <div>
@@ -1942,6 +2060,9 @@
         p.mealsPerDay = parseInt(document.getElementById("g-meals")?.value) || 2;
         p.healthConcern = document.getElementById("g-concern")?.value || "none";
 
+        // 알러지 3대 카테고리 실시간 수집
+        p.allergies = Array.from(document.querySelectorAll("input[name='g-allergy']:checked")).map(el => el.value);
+
         refreshAllGuardianCalculations();
     };
 
@@ -1995,27 +2116,84 @@
         const pool = getCombinedDryFoodPool();
         const filtered = kw ? pool.filter(f => f.name.toLowerCase().includes(kw) || f.brand.toLowerCase().includes(kw)) : pool;
 
-        sel.innerHTML = filtered.map(f => `<option value="${f.id}">${f.name} (조단백 ${f.protein_af}% · 조지방 ${f.fat_af}% · ${f.kcal_per_kg}kcal/kg)</option>`).join("");
+        if (filtered.length === 0) {
+            sel.innerHTML = `<option value="" disabled selected>❌ '${keyword}' 검색 결과가 없습니다 (직접 입력을 이용해주세요)</option>`;
+            return;
+        }
+
+        sel.innerHTML = `<option value="" disabled selected>👉 사료를 선택해주세요 (총 ${filtered.length}종 검색됨)</option>` +
+            filtered.map(f => `<option value="${f.id}">${f.name} (조단백 ${f.protein_af}% · 조지방 ${f.fat_af}% · ${f.kcal_per_kg}kcal/kg)</option>`).join("");
+    };
+
+    window.applyCurrentGuardianFoodSearchSelect = function () {
+        const sel = document.getElementById("g-food-search-select");
+        if (sel && sel.value) {
+            onSelectGuardianCommercialFood(sel.value);
+        } else {
+            alert("선택할 사료를 드롭다운 목록에서 먼저 지정해주세요.");
+        }
     };
 
     window.onSelectGuardianCommercialFood = function (foodId) {
+        if (!foodId) return;
         const pool = getCombinedDryFoodPool();
         const found = pool.find(f => f.id === foodId);
         if (!found) return;
 
         guardianState.selectedDryFood = { ...found };
-        document.getElementById("g-dry-name").value = found.name;
-        document.getElementById("g-dry-prot").value = found.protein_af;
-        document.getElementById("g-dry-fat").value = found.fat_af;
-        document.getElementById("g-dry-fiber").value = found.fiber_af;
-        document.getElementById("g-dry-ash").value = found.ash_af;
-        document.getElementById("g-dry-moist").value = found.moisture_af;
-        document.getElementById("g-dry-ca").value = found.ca_af;
-        document.getElementById("g-dry-p").value = found.p_af;
 
+        // 1. '현재 선택/입력된 주식 사료' 타이틀 즉각 갱신 및 시각 효과
+        const titleEl = document.getElementById("g-current-food-title");
+        if (titleEl) {
+            titleEl.textContent = found.name;
+            titleEl.className = "text-emerald-700 underline font-black transition-colors duration-300";
+            titleEl.parentElement.style.backgroundColor = "#ecfdf5";
+            setTimeout(() => { if (titleEl.parentElement) titleEl.parentElement.style.backgroundColor = ""; }, 1200);
+        }
+
+        // 2. 수동 수정 입력창 값들 즉시 동기화
+        const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+        setVal("g-dry-name", found.name);
+        setVal("g-dry-prot", found.protein_af);
+        setVal("g-dry-fat", found.fat_af);
+        setVal("g-dry-fiber", found.fiber_af);
+        setVal("g-dry-ash", found.ash_af);
+        setVal("g-dry-moist", found.moisture_af);
+        setVal("g-dry-ca", found.ca_af);
+        setVal("g-dry-p", found.p_af);
+
+        // 3. 역추적 및 전체 계산 동기화
         syncReverseIngredientsFromDryFood();
         refreshAllGuardianCalculations();
         if (guardianState.activeMenu === 6) runGuardianReverseTracing();
+    };
+
+
+    // [Step 5] 분변키트 아코디언 토글 (아직 키트 미출시 상태이므로 기본 접힘)
+    window.toggleGuardianKitStripInput = function (forceOpen) {
+        const body = document.getElementById("g-kit-strip-body");
+        const chevron = document.getElementById("g-kit-strip-chevron");
+        if (!body) return;
+        const shouldOpen = forceOpen !== undefined ? forceOpen : body.classList.contains("hidden");
+        body.classList.toggle("hidden", !shouldOpen);
+        if (chevron) {
+            chevron.className = shouldOpen
+                ? "fa-solid fa-chevron-up text-teal-700 text-xs transition-transform duration-200"
+                : "fa-solid fa-chevron-down text-teal-700 text-xs transition-transform duration-200";
+        }
+    };
+
+    window.toggleGuardianKitReport = function (forceOpen) {
+        const body = document.getElementById("g-kit-report-body");
+        const chevron = document.getElementById("g-kit-report-chevron");
+        if (!body) return;
+        const shouldOpen = forceOpen !== undefined ? forceOpen : body.classList.contains("hidden");
+        body.classList.toggle("hidden", !shouldOpen);
+        if (chevron) {
+            chevron.className = shouldOpen
+                ? "fa-solid fa-chevron-up text-teal-700 text-xs transition-transform duration-200"
+                : "fa-solid fa-chevron-down text-teal-700 text-xs transition-transform duration-200";
+        }
     };
 
     window.onGuardianDryFoodManualChange = function () {
@@ -4275,18 +4453,36 @@
             if (typeof onFecalChange === "function") onFecalChange(p.fecalScore);
         }
 
-        // 건강 고민 매핑
+        // 수의사용 17대 복합질환 1:1 완벽 연동
         const mapDis = {
+            heart: "dis-heart",
             ckd: "dis-ckd",
             pancreatitis: "dis-pancreas",
-            heart: "dis-heart",
+            cushing: "dis-cushing",
             liver: "dis-liver",
+            gallbladder: "dis-gallbladder",
+            ibd: "dis-ibd",
+            diabetes: "dis-diabetes",
             urolithiasis: "dis-stones",
-            ibd: "dis-ibd"
+            cognitive: "dis-cognitive",
+            obesity: "dis-obesity",
+            osteoarthritis: "dis-osteoarthritis",
+            hypothyroid: "dis-hypothyroid",
+            addison: "dis-addison",
+            oncology: "dis-oncology",
+            atopy: "dis-atopy",
+            hypertension: "dis-hypertension"
         };
         if (p.healthConcern && mapDis[p.healthConcern]) {
             const chk = document.getElementById(mapDis[p.healthConcern]);
             if (chk) chk.checked = true;
+        }
+
+        // 보호자용 3대 알러지원 (동물성 단백질 / 식물성 / 환경알러지) ➔ 수의사용 환자 프로필 알러지 100% 동기화
+        if (Array.isArray(p.allergies)) {
+            document.querySelectorAll("input[name='allergy']").forEach(chk => {
+                chk.checked = p.allergies.includes(chk.value);
+            });
         }
 
         // [Step 5] 분변키트 검사 결과 ➔ 수의사용 Tab 4 (장내환경 9대 마커 CDSS) 자동 매핑
