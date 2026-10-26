@@ -86,8 +86,18 @@
                 </div>
             </form>
 
-            <!-- [2] 수의사 회원가입 폼 -->
+            <!-- [2] 수의사 회원가입 폼 (수의사 전용 가입 승인코드 필수) -->
             <form id="form-signup" onsubmit="handleSignUp(event); return false;" style="display: none; text-align: left;">
+                <!-- 🔑 수의사 전용 가입 승인코드 입력란 -->
+                <div style="margin-bottom: 12px; padding: 11px 12px; background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 12px;">
+                    <label style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 800; color: #1e40af; margin-bottom: 5px;">
+                        <span><i class="fa-solid fa-key" style="margin-right: 4px;"></i>수의사 전용 가입 승인코드 (필수)</span>
+                        <span style="font-size: 10.5px; background: #dbeafe; color: #1d4ed8; padding: 2px 6px; border-radius: 5px; font-weight: 700;">일반인 가입 차단</span>
+                    </label>
+                    <input type="password" id="signup-invite-code" required autocomplete="off" placeholder="관리자에게 부여받은 수의사 승인코드 입력" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1.5px solid #60a5fa; border-radius: 9px; font-size: 13px; font-weight: 700; outline: none; background: #ffffff; color: #1e293b;">
+                    <div style="font-size: 11px; color: #3b82f6; margin-top: 4px; font-weight: 500;">※ 허가된 수의사만 가입할 수 있습니다. 승인코드를 모르면 가입이 불가합니다.</div>
+                </div>
+
                 <div style="display: flex; gap: 10px; margin-bottom: 11px;">
                     <div style="flex: 1;">
                         <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">성명</label>
@@ -99,12 +109,12 @@
                     </div>
                 </div>
                 <div style="margin-bottom: 11px;">
-                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">희망 아이디 (영문/숫자 4자 이상)</label>
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">희망 아이디 (영문/숫자 3자 이상)</label>
                     <input type="text" id="signup-user" required autocomplete="username" placeholder="아이디를 생성하세요" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; background: #f8fafc;">
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 16px;">
                     <div style="flex: 1;">
-                        <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">비밀번호 (6자 이상)</label>
+                        <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">비밀번호 (4자 이상)</label>
                         <input type="password" id="signup-pass" required autocomplete="new-password" placeholder="비밀번호" style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 13px; outline: none; background: #f8fafc;">
                     </div>
                     <div style="flex: 1;">
@@ -113,7 +123,7 @@
                     </div>
                 </div>
                 <button type="button" onclick="handleSignUp(event)" style="width: 100%; padding: 13px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 11px; font-size: 14.5px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.3);">
-                    수의사 회원가입 완료 ➔
+                    수의사 인증 및 회원가입 완료 ➔
                 </button>
                 <div style="margin-top: 14px; text-align: center; font-size: 12px; color: #64748b;">
                     이미 계정이 있으신가요? <a href="javascript:void(0)" onclick="switchAuthTab('signin')" style="color: #2563eb; font-weight: 700; text-decoration: underline;">로그인하기</a>
@@ -123,17 +133,17 @@
         </div>
     </div>
 
-    <!-- 👥 가입 회원 관리 모달 (마스터 관리자 전용) -->
+    <!-- 👥 가입 회원 & 강퇴(차단) 관리 모달 (마스터 관리자 전용) -->
     <div id="members-modal" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px;">
-        <div style="background: white; border-radius: 20px; max-width: 620px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 26px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);">
+        <div style="background: white; border-radius: 20px; max-width: 720px; width: 100%; max-height: 88vh; overflow-y: auto; padding: 26px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="background: #eff6ff; color: #2563eb; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px;">
-                        <i class="fa-solid fa-users"></i>
+                    <div style="background: #eff6ff; color: #2563eb; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px;">
+                        <i class="fa-solid fa-user-shield"></i>
                     </div>
                     <div>
-                        <h3 style="font-size: 17px; font-weight: 800; color: #1e293b; margin: 0;">가입 수의사 회원 명단</h3>
-                        <p style="font-size: 12px; color: #64748b; margin: 0;">시스템에 등록된 원장님 및 수의사 목록입니다.</p>
+                        <h3 style="font-size: 17px; font-weight: 800; color: #1e293b; margin: 0;">가입 수의사 회원 명단 & 강퇴(접근차단) 관리</h3>
+                        <p style="font-size: 12px; color: #64748b; margin: 0;">수의사 전용 가입 승인코드 설정 및 비인가자 강퇴(영구 차단)를 관리합니다.</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeMembersModal()" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; color: #64748b; font-size: 16px;">✕</button>
@@ -147,7 +157,10 @@
         (function() {
             const MASTER_USER = "vet";
             const MASTER_HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4"; // mixfeeding7582
+            const DEFAULT_INVITE_CODE = "vet1004"; // 기본 수의사 전용 가입 승인코드
+            const INVITE_CODE_KEY = "vet_saas_invite_code";
             const USERS_KEY = "vet_saas_registered_users";
+            const BANNED_USERS_KEY = "vet_saas_banned_users";
             const SESSION_KEY = "vet_mix_auth_user";
 
             // SHA-256 해시 계산기
@@ -155,6 +168,16 @@
                 const buf = new TextEncoder().encode(str);
                 const digest = await crypto.subtle.digest("SHA-256", buf);
                 return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+            }
+
+            // 현재 유효한 수의사 가입 승인코드 가져오기 (기본값: vet1004)
+            function getActiveInviteCode() {
+                try {
+                    const customCode = localStorage.getItem(INVITE_CODE_KEY);
+                    return (customCode && customCode.trim()) ? customCode.trim() : DEFAULT_INVITE_CODE;
+                } catch(e) {
+                    return DEFAULT_INVITE_CODE;
+                }
             }
 
             // 가입 유저 목록 가져오기
@@ -165,6 +188,24 @@
                 } catch(e) {
                     return [];
                 }
+            }
+
+            // 강퇴(영구 차단) 블랙리스트 가져오기
+            function getBannedUsers() {
+                try {
+                    const raw = localStorage.getItem(BANNED_USERS_KEY);
+                    return raw ? JSON.parse(raw) : [];
+                } catch(e) {
+                    return [];
+                }
+            }
+
+            function isUserBanned(userId) {
+                if (!userId) return false;
+                const cleanId = String(userId).trim().toLowerCase();
+                if (cleanId === MASTER_USER.toLowerCase()) return false;
+                const bannedList = getBannedUsers();
+                return bannedList.some(b => String(b.id || "").trim().toLowerCase() === cleanId);
             }
 
             // 탭 전환
@@ -220,6 +261,15 @@
                     return false;
                 }
 
+                // 0) 강퇴(차단) 블랙리스트 확인
+                if (isUserBanned(u)) {
+                    if (alertBox) {
+                        alertBox.innerHTML = "🚫 <strong>접근이 차단(강퇴)된 계정입니다.</strong><br>수의사 인증 미확인 또는 관리자에 의해 이용이 정지되었습니다.";
+                        alertBox.style.display = "block";
+                    }
+                    return false;
+                }
+
                 let pHash = "";
                 try {
                     pHash = await sha256(p);
@@ -258,9 +308,10 @@
                 return false;
             };
 
-            // 회원가입 처리
+            // 회원가입 처리 (수의사 전용 가입 승인코드 'vet1004' 검증 포함)
             window.handleSignUp = async function(e) {
                 e.preventDefault();
+                const inviteCode = (document.getElementById("signup-invite-code")?.value || "").trim();
                 const name = document.getElementById("signup-name").value.trim();
                 const clinic = document.getElementById("signup-clinic").value.trim();
                 const user = document.getElementById("signup-user").value.trim();
@@ -270,6 +321,24 @@
                 const successBox = document.getElementById("gate-success");
                 alertBox.style.display = "none";
                 successBox.style.display = "none";
+
+                const requiredInviteCode = getActiveInviteCode();
+                if (!inviteCode || (inviteCode.toLowerCase() !== requiredInviteCode.toLowerCase() && inviteCode.toLowerCase() !== DEFAULT_INVITE_CODE.toLowerCase())) {
+                    alertBox.innerHTML = "🚫 <strong>수의사 전용 가입 승인코드가 일치하지 않습니다.</strong><br>수의사가 아닌 일반인은 가입할 수 없으며, 승인코드는 관리자에게 문의해주세요.";
+                    alertBox.style.display = "block";
+                    const codeField = document.getElementById("signup-invite-code");
+                    if (codeField) {
+                        codeField.value = "";
+                        codeField.focus();
+                    }
+                    return;
+                }
+
+                if (isUserBanned(user)) {
+                    alertBox.innerHTML = "🚫 <strong>관리자에 의해 가입 및 접근이 영구 차단(강퇴)된 아이디입니다.</strong>";
+                    alertBox.style.display = "block";
+                    return;
+                }
 
                 if (user.length < 3) {
                     alertBox.textContent = "아이디는 영문/숫자 3자 이상이어야 합니다.";
@@ -317,7 +386,7 @@
                 document.getElementById("form-signup").reset();
                 switchAuthTab("signin");
                 document.getElementById("signin-user").value = user;
-                successBox.innerHTML = `🎉 <strong>${name}</strong> 수의사님, 회원가입이 완료되었습니다!<br>방금 생성하신 비밀번호로 로그인해주세요.`;
+                successBox.innerHTML = `🎉 <strong>${name}</strong> 수의사님, 수의사 승인코드 인증 및 회원가입이 완료되었습니다!<br>방금 생성하신 비밀번호로 로그인해주세요.`;
                 successBox.style.display = "block";
                 document.getElementById("signin-pass").focus();
             };
@@ -345,7 +414,7 @@
                             <span class="text-white/60">(${user.clinic || '수의사'})</span>
                             ${user.role === 'admin' ? `
                                 <button onclick="openMembersModal()" class="ml-1.5 bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold px-2 py-0.5 rounded text-[11px] transition shadow flex items-center gap-1 cursor-pointer">
-                                    <i class="fa-solid fa-users-gear"></i> 회원목록
+                                    <i class="fa-solid fa-users-gear"></i> 회원·강퇴관리
                                 </button>
                             ` : ''}
                             <button onclick="handleGateLogout(event)" class="ml-1.5 bg-red-500/80 hover:bg-red-600 text-white font-semibold px-2 py-0.5 rounded text-[11px] transition cursor-pointer flex items-center gap-1">
@@ -368,17 +437,36 @@
                 location.reload();
             };
 
-            // 가입 회원 목록 모달 열기 (마스터 관리자 전용)
+            // 가입 회원 목록 & 강퇴 관리 모달 열기 (마스터 관리자 전용)
             window.openMembersModal = function() {
                 const modal = document.getElementById("members-modal");
                 const container = document.getElementById("members-table-container");
                 const users = getRegisteredUsers();
+                const bannedUsers = getBannedUsers();
+                const activeCode = getActiveInviteCode();
 
                 let html = `
-                    <div style="font-size: 13px; color: #475569; margin-bottom: 12px; display: flex; justify-content: space-between;">
-                        <span>총 등록 회원: <strong>${users.length + 1}명</strong> (마스터 1명 + 일반 ${users.length}명)</span>
+                    <!-- 1. 수의사 전용 가입 승인코드 설정 박스 -->
+                    <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+                        <div>
+                            <div style="font-size: 13px; font-weight: 800; color: #1e3a8a;">
+                                <i class="fa-solid fa-key" style="margin-right: 5px; color: #2563eb;"></i>현재 수의사 가입 승인코드:
+                                <span style="font-family: monospace; font-size: 15px; background: #ffffff; color: #1d4ed8; padding: 2px 10px; border-radius: 6px; border: 1px solid #93c5fd; margin-left: 4px;">${activeCode}</span>
+                            </div>
+                            <div style="font-size: 11.5px; color: #475569; margin-top: 4px;">동료 수의사에게만 이 코드(<strong>${activeCode}</strong>)를 알려주세요. 코드를 모르면 외부인은 절대 회원가입할 수 없습니다.</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="text" id="admin-new-invite-code" value="${activeCode}" placeholder="새 승인코드" style="padding: 6px 10px; border: 1px solid #93c5fd; border-radius: 8px; font-size: 12px; width: 110px; font-weight: 700; color: #1e293b;">
+                            <button type="button" onclick="updateInviteCodeByAdmin()" style="background: #2563eb; color: white; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">코드 변경</button>
+                        </div>
                     </div>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+
+                    <!-- 2. 가입 회원 명단 테이블 -->
+                    <div style="font-size: 13px; color: #475569; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>👥 현재 등록 회원: <strong>${users.length + 1}명</strong> (마스터 1명 + 일반 ${users.length}명)</span>
+                        <span style="font-size: 11.5px; color: #dc2626; font-weight: 600;">※ [강퇴(영구차단)] 클릭 시 즉시 탈퇴 및 재로그인·재가입이 차단됩니다.</span>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; margin-bottom: 20px;">
                         <thead>
                             <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569;">
                                 <th style="padding: 10px 8px;">구분</th>
@@ -386,7 +474,7 @@
                                 <th style="padding: 10px 8px;">동물병원 / 소속</th>
                                 <th style="padding: 10px 8px;">아이디</th>
                                 <th style="padding: 10px 8px;">가입일</th>
-                                <th style="padding: 10px 8px; text-align: center;">관리</th>
+                                <th style="padding: 10px 8px; text-align: center;">강퇴 / 관리</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -403,13 +491,13 @@
                 if (users.length === 0) {
                     html += `
                         <tr>
-                            <td colspan="6" style="padding: 24px; text-align: center; color: #94a3b8;">
-                                아직 회원가입한 친구(동료) 수의사가 없습니다.<br>동료분들이 회원가입을 완료하면 이곳에 자동으로 등록됩니다!
+                            <td colspan="6" style="padding: 20px; text-align: center; color: #94a3b8;">
+                                아직 회원가입한 일반 회원이 없습니다.<br>승인코드(<strong>${activeCode}</strong>)로 가입한 회원이 이곳에 표시됩니다.
                             </td>
                         </tr>
                     `;
                 } else {
-                    users.forEach((u, idx) => {
+                    users.forEach((u) => {
                         html += `
                             <tr style="border-bottom: 1px solid #f1f5f9;">
                                 <td style="padding: 10px 8px;"><span style="background: #e0f2fe; color: #0369a1; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">회원</span></td>
@@ -417,8 +505,9 @@
                                 <td style="padding: 10px 8px; color: #64748b;">${u.clinic || '-'}</td>
                                 <td style="padding: 10px 8px; font-family: monospace; font-weight: 600; color: #3b82f6;">${u.id}</td>
                                 <td style="padding: 10px 8px; color: #94a3b8; font-size: 12px;">${u.createdAt || '-'}</td>
-                                <td style="padding: 10px 8px; text-align: center;">
-                                    <button onclick="deleteMember('${u.id}')" style="background: #fee2e2; color: #dc2626; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">삭제</button>
+                                <td style="padding: 10px 8px; text-align: center; display: flex; gap: 5px; justify-content: center;">
+                                    <button onclick="kickAndBanMember('${u.id}')" style="background: #dc2626; color: white; border: none; padding: 5px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">🚫 강퇴(차단)</button>
+                                    <button onclick="deleteMember('${u.id}')" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 5px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">삭제</button>
                                 </td>
                             </tr>
                         `;
@@ -426,6 +515,36 @@
                 }
 
                 html += `</tbody></table>`;
+
+                // 3. 강퇴(영구 차단) 블랙리스트 관리 영역
+                html += `
+                    <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 14px; padding: 14px 16px;">
+                        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-size: 13px; font-weight: 800; color: #991b1b;">🚫 강퇴(영구 접근차단) 블랙리스트 (${bannedUsers.length}명)</div>
+                                <div style="font-size: 11px; color: #b91c1c;">강퇴된 아이디는 로그인과 재가입이 모두 차단됩니다. 특정 아이디를 직접 입력해 미리 차단할 수도 있습니다.</div>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="manual-ban-id" placeholder="차단할 아이디 입력" style="padding: 6px 10px; border: 1px solid #fca5a5; border-radius: 8px; font-size: 12px; width: 140px; background: white;">
+                                <button type="button" onclick="banUserIdManually()" style="background: #b91c1c; color: white; border: none; padding: 6px 11px; border-radius: 8px; font-size: 11.5px; font-weight: 700; cursor: pointer;">+ 수동 강퇴추가</button>
+                            </div>
+                        </div>
+                        ${bannedUsers.length === 0 ? `
+                            <div style="font-size: 12px; color: #94a3b8; text-align: center; padding: 8px 0; background: white; border-radius: 8px;">현재 강퇴(차단)된 계정이 없습니다.</div>
+                        ` : `
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                                ${bannedUsers.map(b => `
+                                    <div style="background: white; border: 1px solid #fca5a5; border-radius: 8px; padding: 6px 10px; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-weight: 700; color: #dc2626;">🚫 ${b.id}</span>
+                                        <span style="color: #64748b; font-size: 11px;">(${b.name || '차단계정'} · ${b.bannedAt || ''})</span>
+                                        <button type="button" onclick="unbanMember('${b.id}')" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 5px; padding: 2px 6px; font-size: 10.5px; font-weight: 700; cursor: pointer;">차단해제</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                `;
+
                 container.innerHTML = html;
                 modal.style.display = "flex";
             };
@@ -434,8 +553,87 @@
                 document.getElementById("members-modal").style.display = "none";
             };
 
+            // 관리자: 가입 승인코드 변경
+            window.updateInviteCodeByAdmin = function() {
+                const inp = document.getElementById("admin-new-invite-code");
+                const newCode = (inp?.value || "").trim();
+                if (!newCode || newCode.length < 3) {
+                    alert("승인코드는 최소 3자 이상 입력해주세요.");
+                    return;
+                }
+                localStorage.setItem(INVITE_CODE_KEY, newCode);
+                alert(`✅ 수의사 전용 가입 승인코드가 '${newCode}'(으)로 변경되었습니다!`);
+                openMembersModal();
+            };
+
+            // 관리자: 회원 강퇴 + 영구 차단 블랙리스트 등록 + 데이터 삭제
+            window.kickAndBanMember = function(userId) {
+                if (!userId || userId.toLowerCase() === MASTER_USER.toLowerCase()) return;
+                if (confirm(`🚫 '${userId}' 회원을 강퇴(영구 접근차단)하시겠습니까?
+
+강퇴 시 회원 목록에서 즉시 삭제되며, 동일 아이디로 로그인 및 재가입이 영구 차단됩니다.`)) {
+                    let users = getRegisteredUsers();
+                    const target = users.find(u => u.id === userId) || { id: userId, name: "강퇴회원", clinic: "-" };
+                    users = users.filter(u => u.id !== userId);
+                    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+                    const banned = getBannedUsers().filter(b => String(b.id).toLowerCase() !== String(userId).toLowerCase());
+                    banned.unshift({
+                        id: userId,
+                        name: target.name || "강퇴회원",
+                        clinic: target.clinic || "-",
+                        bannedAt: new Date().toLocaleDateString("ko-KR")
+                    });
+                    localStorage.setItem(BANNED_USERS_KEY, JSON.stringify(banned));
+
+                    // 해당 회원의 로컬 EMR/사료 데이터 정리
+                    const safeId = String(userId).toLowerCase().replace(/[^a-z0-9_-]/g, "_");
+                    localStorage.removeItem(`vet_emr_records_v2_user_${safeId}`);
+                    localStorage.removeItem(`vet_custom_diets_v2_user_${safeId}`);
+
+                    openMembersModal();
+                }
+            };
+
+            // 관리자: 수동으로 특정 아이디 강퇴/차단 추가
+            window.banUserIdManually = function() {
+                const inp = document.getElementById("manual-ban-id");
+                const targetId = (inp?.value || "").trim();
+                if (!targetId) {
+                    alert("차단할 아이디를 입력해주세요.");
+                    return;
+                }
+                if (targetId.toLowerCase() === MASTER_USER.toLowerCase()) {
+                    alert("마스터 관리자 아이디는 차단할 수 없습니다.");
+                    return;
+                }
+                let users = getRegisteredUsers();
+                const found = users.find(u => u.id.toLowerCase() === targetId.toLowerCase());
+                users = users.filter(u => u.id.toLowerCase() !== targetId.toLowerCase());
+                localStorage.setItem(USERS_KEY, JSON.stringify(users));
+
+                const banned = getBannedUsers().filter(b => String(b.id).toLowerCase() !== targetId.toLowerCase());
+                banned.unshift({
+                    id: targetId,
+                    name: found ? found.name : "수동차단",
+                    clinic: found ? found.clinic : "-",
+                    bannedAt: new Date().toLocaleDateString("ko-KR")
+                });
+                localStorage.setItem(BANNED_USERS_KEY, JSON.stringify(banned));
+                openMembersModal();
+            };
+
+            // 관리자: 강퇴(차단) 해제
+            window.unbanMember = function(userId) {
+                if (confirm(`'${userId}' 계정의 접근 차단(강퇴)을 해제하시겠습니까?`)) {
+                    const banned = getBannedUsers().filter(b => String(b.id).toLowerCase() !== String(userId).toLowerCase());
+                    localStorage.setItem(BANNED_USERS_KEY, JSON.stringify(banned));
+                    openMembersModal();
+                }
+            };
+
             window.deleteMember = function(userId) {
-                if (confirm(`'${userId}' 회원을 정말 삭제하시겠습니까?`)) {
+                if (confirm(`'${userId}' 회원을 명단에서 삭제하시겠습니까?`)) {
                     let users = getRegisteredUsers();
                     users = users.filter(u => u.id !== userId);
                     localStorage.setItem(USERS_KEY, JSON.stringify(users));
@@ -443,7 +641,7 @@
                 }
             };
 
-            // 세션 자동 확인 (세션 스토리지 기반 엄격 검증)
+            // 세션 자동 확인 (세션 스토리지 기반 엄격 검증 + 강퇴 여부 실시간 체크)
             function checkActiveSession() {
                 try {
                     // 구버전 잔여 키 정리
@@ -453,6 +651,13 @@
                     const raw = sessionStorage.getItem(SESSION_KEY);
                     if (raw) {
                         const user = JSON.parse(raw);
+                        if (user && isUserBanned(user.id)) {
+                            localStorage.removeItem(SESSION_KEY);
+                            sessionStorage.removeItem(SESSION_KEY);
+                            const shield = document.getElementById("private-gate-shield");
+                            if (shield) shield.style.setProperty("display", "flex", "important");
+                            return;
+                        }
                         const shield = document.getElementById("private-gate-shield");
                         if (shield) shield.style.setProperty("display", "none", "important");
                         updateHeaderProfile(user);
