@@ -3010,6 +3010,24 @@
     // =========================================================================
     function refreshAllGuardianCalculations(skipStep6Sync) {
         const energy = computeGuardianEnergy();
+        (function () {
+            let b = document.getElementById("g-consult-banner");
+            if (energy.consultVet) {
+                if (!b) {
+                    const anchor = document.getElementById("g-concern");
+                    const grid = anchor ? anchor.closest(".grid") : null;
+                    if (grid) {
+                        b = document.createElement("div");
+                        b.id = "g-consult-banner";
+                        b.className = "p-4 rounded-2xl bg-rose-600 text-white text-center text-lg font-black shadow-lg";
+                        grid.insertAdjacentElement("afterend", b);
+                    }
+                }
+                if (b) b.innerHTML = "?? ???? ?????.<div class='text-xs font-bold mt-1'>?? ?? ??? ???? ??????DER???????????? ??? ???? ????.</div>";
+            } else if (b) {
+                b.remove();
+            }
+        })();
         if (energy.consultVet) {
             const MSG = "???? ?????.";
             const st = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
