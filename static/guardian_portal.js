@@ -334,7 +334,16 @@
         };
     }
 
+    const GUARDIAN_CONSULT_CONCERNS = ["heart","ckd","pancreatitis","cushing","liver","gallbladder","ibd","diabetes","urolithiasis","cognitive","hypothyroid","addison","oncology","hypertension"];
+    function isGuardianConsultVet() {
+        return GUARDIAN_CONSULT_CONCERNS.includes(guardianState.profile.healthConcern);
+    }
+
     function computeGuardianEnergy() {
+        if (isGuardianConsultVet()) {
+            guardianState.energy = { rer: 0, der: 0, idealWeightKg: 0, factor: 0, maxTreatKcal: 0, perMealKcal: 0, consultVet: true, fecalNote: "???? ?????." };
+            return guardianState.energy;
+        }
         const p = guardianState.profile;
         const w = Math.max(0.5, parseFloat(p.weightKg) || 4.5);
         const bcs = parseInt(p.bcs) || 5;
@@ -3001,6 +3010,23 @@
     // =========================================================================
     function refreshAllGuardianCalculations(skipStep6Sync) {
         const energy = computeGuardianEnergy();
+        if (energy.consultVet) {
+            const MSG = "???? ?????.";
+            const st = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+            ["g-out-rer","g-out-der","g-out-permeal","g-out-maxtreat","g-out-idealw"].forEach(id => st(id, 0));
+            st("g-out-factor", 0);
+            st("g-out-bcs-comment", MSG);
+            st("g-dash-target-der", "0 kcal/?");
+            st("g-dash-cal-breakdown", MSG);
+            st("g-dash-active-menu-badge", MSG);
+            const fb = document.getElementById("g-out-fecal-banner");
+            if (fb && fb.firstElementChild) fb.firstElementChild.innerHTML = "?? <strong>" + MSG + "</strong> ???? ??? ?? ????????? ??? ???? ????.";
+            const box = '<div class="col-span-full p-4 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-800 font-black text-sm">?? ' + MSG + ' (DER/MER???????/?? 0)</div>';
+            ["g-dash-schedule-cards","g-dash-traffic-lights","g-dash-water-advice","g-m4-gauge-banner","g-m1-summary-box","g-m2-summary-box"].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = box; });
+            const gb = document.getElementById("g-dash-gauge-bar"); if (gb) gb.style.width = "0%";
+            const gs = document.getElementById("g-dash-gauge-status"); if (gs) gs.innerText = "?? " + MSG;
+            return;
+        }
         if (!skipStep6Sync && typeof window.Step6MultiMixController !== "undefined" && guardianState.initialized) {
             isSyncingStep6 = true;
             window.Step6MultiMixController.syncFromHostEnvironment();
