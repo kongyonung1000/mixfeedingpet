@@ -675,15 +675,15 @@
     </script>
 
     <!-- Header -->
-    <header class="bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-600 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between">
+    <header id="vet-main-header" class="bg-gradient-to-r from-blue-700 via-indigo-700 to-sky-600 text-white shadow-md sticky top-0 z-[54]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center space-x-3">
-                <div class="bg-white text-blue-700 p-2.5 rounded-xl shadow-md flex items-center justify-center">
-                    <i class="fa-solid fa-stethoscope text-2xl"></i>
+                <div class="bg-white text-blue-700 p-2 rounded-xl shadow-md flex items-center justify-center">
+                    <i class="fa-solid fa-stethoscope text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-extrabold tracking-tight">처방사료 복합질환 믹스피딩 & 분변키트 AI 캘리브레이션</h1>
-                    <p class="text-xs text-blue-100 font-medium">Veterinary Clinical Multi-Morbidity Diet Optimization & Bioavailability Error Tuner</p>
+                    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">처방사료 복합질환 믹스피딩 & 분변키트 AI 캘리브레이션</h1>
+                    <p class="text-[11px] text-blue-100 font-medium hidden sm:block">Veterinary Clinical Multi-Morbidity Diet Optimization & Bioavailability Error Tuner</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -701,27 +701,27 @@
         </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="bg-white border-b border-slate-200 sticky top-[68px] z-40 shadow-sm">
+    <!-- Navigation Tabs (상하 스크롤 시에도 항상 상단에 고정되는 핵심 메뉴바) -->
+    <nav id="vet-main-nav" class="bg-white/95 backdrop-blur-md border-b-2 border-indigo-200 sticky top-[68px] z-[55] shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-wrap space-x-3 md:space-x-6">
-                <button onclick="switchTab('profile-tab')" id="btn-profile-tab" class="tab-btn active py-4 px-2 text-sm font-semibold flex items-center space-x-2 border-b-2 border-transparent transition">
+            <div class="flex flex-wrap items-center space-x-2 md:space-x-5 overflow-x-auto">
+                <button onclick="switchTab('profile-tab')" id="btn-profile-tab" class="tab-btn active py-3.5 px-2.5 text-sm font-semibold flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-id-card-clip"></i>
                     <span>1. 환자 신상 · 약물 · 복합 질환</span>
                 </button>
-                <button onclick="switchTab('feeding-tab')" id="btn-feeding-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                <button onclick="switchTab('feeding-tab')" id="btn-feeding-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-bowl-food"></i>
                     <span>2. 최적 믹스피딩 & 화식조리법</span>
                 </button>
-                <button onclick="switchTab('analytics-tab')" id="btn-analytics-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                <button onclick="switchTab('analytics-tab')" id="btn-analytics-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-chart-pie"></i>
                     <span>3. 영양소 & 수분 분석 차트</span>
                 </button>
-                <button onclick="switchTab('monitoring-tab')" id="btn-monitoring-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                <button onclick="switchTab('monitoring-tab')" id="btn-monitoring-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-microscope text-indigo-600"></i>
                     <span>4. 장내환경 9대 마커 + 혈액 CDSS</span>
                 </button>
-                <button onclick="switchTab('records-tab')" id="btn-records-tab" class="tab-btn py-4 px-2 text-sm font-semibold text-slate-500 hover:text-slate-700 flex items-center space-x-2 border-b-2 border-transparent transition">
+                <button onclick="switchTab('records-tab')" id="btn-records-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i>
                     <span>5. 환자별 통합 기록 & 회차 비교</span>
                     <span id="nav-records-count" class="px-1.5 py-0.5 text-[10px] font-black bg-emerald-600 text-white rounded-full">0건</span>
@@ -2859,6 +2859,33 @@
         let currentBaseDerKcal = 350.0;
         let currentBaseTotalG = 200.0;
 
+        window.syncStickyTopBars = function() {
+            const switcher = document.getElementById('global-portal-switcher-bar');
+            const header = document.getElementById('vet-main-header') || document.querySelector('body > header');
+            const nav = document.getElementById('vet-main-nav') || document.querySelector('body > nav');
+            const swH = (switcher && switcher.offsetParent !== null) ? switcher.offsetHeight : 0;
+            if (header && header.style.display !== 'none') {
+                header.style.position = 'sticky';
+                header.style.top = swH + 'px';
+                header.style.zIndex = '54';
+            }
+            const hdH = (header && header.offsetParent !== null && header.style.display !== 'none') ? header.offsetHeight : 0;
+            if (nav && nav.style.display !== 'none') {
+                nav.style.position = 'sticky';
+                nav.style.top = (swH + hdH) + 'px';
+                nav.style.zIndex = '55';
+            }
+            const gStepBar = document.getElementById('guardian-sticky-step-bar');
+            if (gStepBar) {
+                gStepBar.style.position = 'sticky';
+                gStepBar.style.top = swH + 'px';
+                gStepBar.style.zIndex = '55';
+            }
+        };
+
+        window.addEventListener('resize', () => { if (typeof window.syncStickyTopBars === 'function') window.syncStickyTopBars(); });
+        window.addEventListener('scroll', () => { if (typeof window.syncStickyTopBars === 'function') window.syncStickyTopBars(); }, { passive: true });
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(el => {
@@ -2873,6 +2900,12 @@
             if (activeBtn) {
                 activeBtn.classList.add('active', 'text-blue-600', 'border-blue-600');
                 activeBtn.classList.remove('text-slate-500');
+            }
+            if (typeof window.syncStickyTopBars === 'function') {
+                window.syncStickyTopBars();
+            }
+            if (window.scrollY > 140) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
@@ -6229,6 +6262,17 @@
                 seedDemoComparisonRecords(true);
             } else {
                 renderPatientRecordsList();
+            }
+            if (typeof window.syncStickyTopBars === 'function') {
+                window.syncStickyTopBars();
+                setTimeout(window.syncStickyTopBars, 100);
+                if (typeof ResizeObserver !== 'undefined') {
+                    const ro = new ResizeObserver(() => window.syncStickyTopBars());
+                    const sw = document.getElementById('global-portal-switcher-bar');
+                    const hd = document.getElementById('vet-main-header');
+                    if (sw) ro.observe(sw);
+                    if (hd) ro.observe(hd);
+                }
             }
         });
     </script>

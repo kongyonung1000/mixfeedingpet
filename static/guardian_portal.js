@@ -604,7 +604,11 @@
         const gRoot = document.getElementById("guardian-portal-root");
         if (gRoot) gRoot.classList.add("hidden");
 
-        setVetElementsVisibility(true);
+        setVetElementsVisibility(true);
+        if (typeof window.syncStickyTopBars === "function") {
+            window.syncStickyTopBars();
+            setTimeout(window.syncStickyTopBars, 50);
+        }
 
         const ind = document.getElementById("current-portal-indicator");
         if (ind) {
@@ -701,8 +705,10 @@
                     </div>
                 </div>
 
-                <!-- 5단계 스텝 바로가기 바 (보호자 전용 클린 뷰) -->
-                <div class="bg-emerald-950/40 border-t border-white/15">
+            </div>
+            <!-- 5단계 스텝 바로가기 바 (스크롤 시 상단 고정) -->
+            <div id="guardian-sticky-step-bar" class="bg-emerald-900/95 backdrop-blur-md border-b border-emerald-700/60 sticky top-[38px] z-[55] shadow-md">
+                <div>
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
                         <button type="button" onclick="scrollToGuardianSection('g-step1-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
                             <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">1</span>
