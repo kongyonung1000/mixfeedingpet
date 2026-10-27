@@ -2506,52 +2506,60 @@
                     </div>
 
                     <div id="fecal-9marker-input-body" class="hidden space-y-4 pt-4 mt-3 border-t border-white/10">
-                        <div class="text-[11px] text-slate-400">괄호 안은 정상 성견 기준 범위이며, 아래 표에서 <strong>5대 축(연령·식이·약물·질병·혈액검사)이 결합된 환자 맞춤 기대치</strong>와 자동 비교됩니다.</div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                            <div>괄호 안은 정상 생리 기준 범위이며, 직접 수치를 수정하지 않으면 <strong>환자의 5대 축(연령·식이·약물·질병·혈액검사) 임상 가중치</strong>에 맞춰 자동 추정됩니다.</div>
+                            <div class="flex items-center gap-2">
+                                <span id="fecal-input-mode-badge" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold text-[10px]">🔄 5대축 자동연동 모드</span>
+                                <button type="button" onclick="resetFecalInputsToAuto()" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-[10px] transition">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i>자동추정 모드로 복귀
+                                </button>
+                            </div>
+                        </div>
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 text-xs">
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-amber-300">① 분변 pH</label>
                             <div class="text-[10px] text-slate-400 mb-1">정상: 6.0~7.0</div>
-                            <input type="number" step="0.1" id="m9-ph" value="6.8" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-amber-400">
+                            <input type="number" step="0.1" id="m9-ph" value="6.8" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-amber-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-sky-300">② 암모니아</label>
                             <div class="text-[10px] text-slate-400 mb-1">10~30 μmol/g</div>
-                            <input type="number" step="0.5" id="m9-ammonia" value="32.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-sky-400">
+                            <input type="number" step="0.5" id="m9-ammonia" value="32.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-sky-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-indigo-300">③ 인돌 (Indole)</label>
                             <div class="text-[10px] text-slate-400 mb-1">5~25 μg/g</div>
-                            <input type="number" step="0.5" id="m9-indole" value="22.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-indigo-400">
+                            <input type="number" step="0.5" id="m9-indole" value="22.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-indigo-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-emerald-300">④ 젖산 (Lactate)</label>
                             <div class="text-[10px] text-slate-400 mb-1">5~12 mmol/g</div>
-                            <input type="number" step="0.2" id="m9-lactate" value="7.2" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-emerald-400">
+                            <input type="number" step="0.2" id="m9-lactate" value="7.2" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-emerald-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-rose-300">⑤ 잠혈 (Blood)</label>
                             <div class="text-[10px] text-slate-400 mb-1">&lt;10 ng/mL</div>
-                            <input type="number" step="1.0" id="m9-blood" value="5.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-rose-400">
+                            <input type="number" step="1.0" id="m9-blood" value="5.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-rose-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-blue-300">⑥ 미소화 단백질</label>
                             <div class="text-[10px] text-slate-400 mb-1">2.0~8.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-protein" value="7.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-blue-400">
+                            <input type="number" step="0.2" id="m9-protein" value="7.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-blue-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-teal-300">⑦ 미소화 탄수</label>
                             <div class="text-[10px] text-slate-400 mb-1">3.0~10.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-carbo" value="8.5" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-teal-400">
+                            <input type="number" step="0.2" id="m9-carbo" value="8.5" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-teal-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-yellow-300">⑧ 미소화 지방</label>
                             <div class="text-[10px] text-slate-400 mb-1">1.0~7.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-fat" value="9.5" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-yellow-400">
+                            <input type="number" step="0.2" id="m9-fat" value="9.5" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-yellow-400">
                         </div>
                         <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
                             <label class="block text-[11px] font-bold text-purple-300">⑨ 추정 흡수율</label>
                             <div class="text-[10px] text-slate-400 mb-1">80~95 %</div>
-                            <input type="number" step="0.5" id="m9-absorption" value="68.0" oninput="runGutEnvironmentCDSS()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-purple-400">
+                            <input type="number" step="0.5" id="m9-absorption" value="68.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-purple-400">
                         </div>
                     </div>
 
@@ -4371,6 +4379,32 @@
             }
         }
 
+        window._fecalManualOverride = false;
+
+        window.updateFecalModeBadge = function() {
+            const badge = document.getElementById('fecal-input-mode-badge');
+            if (!badge) return;
+            if (window._fecalManualOverride) {
+                badge.className = "px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30 font-bold text-[10px]";
+                badge.innerText = "✍️ 수동 실측치 입력 모드";
+            } else {
+                badge.className = "px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold text-[10px]";
+                badge.innerText = "🔄 5대축 자동연동 모드";
+            }
+        };
+
+        window.onFecalInputManualChange = function() {
+            window._fecalManualOverride = true;
+            window.updateFecalModeBadge();
+            runGutEnvironmentCDSS();
+        };
+
+        window.resetFecalInputsToAuto = function() {
+            window._fecalManualOverride = false;
+            window.updateFecalModeBadge();
+            runGutEnvironmentCDSS();
+        };
+
         window.toggleFecal9MarkerInputPanel = function() {
             const body = document.getElementById('fecal-9marker-input-body');
             const badge = document.getElementById('fecal-9marker-toggle-badge');
@@ -4543,8 +4577,19 @@
                     : "혈액 바이오마커 정상 대조군";
             }
 
-            // 마커별 기대치 및 실측 비교
-            let totalPenalty = 0.0;
+            // 임상적 식이·질병·약물 불일치(Mismatch) 여부 판단 (수동 실측치 미입력 시 자동 추정치에 반영)
+            const hasPancOrBiliary = st.diseases.some(d => d.includes("췌장염") || d.includes("3복강염") || d.includes("담낭") || d.includes("담관") || d.includes("지방간"))
+                || checkedLabItems.some(x => x.includes("cPL") || x.includes("fPL") || x.includes("빌리루빈"));
+            const highFatRenalRatio = st.diet_mix.reduce((acc, it) => {
+                const isHighFatRenal = (it.profile && it.profile.includes("신장처방식")) || (it.label && it.label.includes("신장"));
+                return acc + (isHighFatRenal ? (it.ratio / totRatio) : 0);
+            }, 0);
+            const hasLipidOverload = hasPancOrBiliary && (highFatRenalRatio >= 0.40 || dietW.fat > 0.90);
+            const hasTreatOverload = st.diet_mix.some(it => (it.profile && it.profile.includes("간식")) || (it.label && it.label.includes("간식")));
+            const hasUlcerDrug = st.drugs.some(d => d.includes("NSAIDs") || d.includes("스테로이드") || d.includes("항암제"));
+
+            // 마커별 기대치 및 실측 비교 (5대 축 병태생리 부하 + 정상 생리 기준 이탈 + 기대치 초과 비보상 감점)
+            let rawPenaltySum = 0.0;
             const abnormalTags = [];
             const causeScores = { diet: 0.0, drug: 0.0, disease: 0.0, age_size: 0.0, other_excess: 0.0 };
             const rowsHtml = [];
@@ -4582,14 +4627,38 @@
                 } else if (m === "ammonia" || m === "indole") {
                     const baseExp = Math.round(info.base * w_total * 10) / 10;
                     expectedUpper = Math.round(info.max * (1.0 + Math.max(0.0, w_total - 1.0) * 0.45) * 10) / 10;
-                    expected = Math.max(baseExp, expectedUpper);
+                    expected = w_total > 1.08 ? Math.max(baseExp, expectedUpper) : baseExp;
                 } else if (m === "fat") {
-                    expected = Math.round(info.base * w_total * 1.18 * 10) / 10;
+                    expected = Math.round(info.base * w_total * (w_total > 1.05 ? 1.18 : 1.0) * 10) / 10;
                     expectedUpper = expected;
                 } else {
                     expected = m === "ph" ? Math.round(info.base * w_total * 100) / 100 : Math.round(info.base * w_total * 10) / 10;
                     expectedUpper = Math.round(info.max * w_total * 10) / 10;
                 }
+
+                // 수동 입력 모드가 아닐 경우 환자의 현재 5대 축 상태에 맞춰 실측 추정치(m9-*)를 동적 동기화
+                const measInput = document.getElementById(`m9-${m}`);
+                if (!window._fecalManualOverride && measInput) {
+                    let autoVal = expected;
+                    if (hasLipidOverload) {
+                        if (m === "fat") autoVal = Math.round(Math.max(expected * 1.28, 9.5) * 10) / 10;
+                        else if (m === "absorption") autoVal = Math.round(Math.min(expected - 3.1, 68.0) * 10) / 10;
+                        else if (m === "ammonia") autoVal = Math.round(Math.min(expected, Math.max(info.base, expected * 0.90)) * 10) / 10;
+                        else if (m === "indole") autoVal = Math.round(Math.min(expected, Math.max(info.base, expected * 0.85)) * 10) / 10;
+                    }
+                    if (hasTreatOverload) {
+                        if (m === "ammonia") autoVal = Math.round(expected * 1.18 * 10) / 10;
+                        else if (m === "indole") autoVal = Math.round(expected * 1.16 * 10) / 10;
+                        else if (m === "protein") autoVal = Math.round(expected * 1.20 * 10) / 10;
+                        else if (m === "ph") autoVal = Math.round(Math.max(expected, 7.45) * 100) / 100;
+                    }
+                    if (hasUlcerDrug && m === "blood") {
+                        autoVal = Math.round(Math.max(expectedUpper + 3.0, 18.0) * 10) / 10;
+                    }
+                    measInput.value = autoVal;
+                }
+
+                const meas = measInput && !isNaN(parseFloat(measInput.value)) ? parseFloat(measInput.value) : expected;
 
                 // 카테고리 민감도(C_k)가 반영된 원인 기여 편차 (질병 축에 혈액검사 체크박스 가중치 연동)
                 const ws_age  = (sens.age * Math.abs(raw_age)) + (sens.size * Math.abs(raw_size));
@@ -4597,95 +4666,175 @@
                 const ws_drug = sens.drug * Math.abs(d_drug);
                 const ws_dis  = (sens.disease * Math.abs(d_dis)) + (sens.lab * (Math.abs(d_lab) + labInfo.labSeverityScore[m] * 0.35));
 
-                const measInput = document.getElementById(`m9-${m}`);
-                const meas = measInput ? parseFloat(measInput.value) : expected;
+                // =========================================================
+                // [교정된 2원 감점 알고리즘]
+                // 1) 5대 축 병태생리적 장내 부하 감점 (burdenPenalty: 질병·혈액·약물·식이 악화 부하)
+                // 2) 정상 생리 기준(info.min~info.max) 이탈 감점 (physioPenalty) + 기대치 초과 비보상 감점 (decompPenalty)
+                // => 질병이나 혈액검사 이상이 심할수록 감점이 단조 증가하며 절대 100점이 나오지 않음!
+                // =========================================================
+                let effShift = 0.0;
+                if (m === "absorption") {
+                    const adverseW = Math.max(0.0, 1.0 - w_total);
+                    const rawPatho = Math.max(0.0, -d_dis) * 0.75 + Math.max(0.0, -d_lab) * 0.90 + Math.max(0.0, -d_drug) * 0.55 + Math.max(0.0, -d_diet) * 0.55 + Math.max(0.0, -d_age_size) * 0.22;
+                    effShift = Math.max(adverseW, rawPatho * 0.68);
+                } else if (m === "lactate") {
+                    const adverseW = Math.max(0.0, 1.0 - w_total);
+                    const rawPatho = Math.max(0.0, -d_dis) * 0.75 + Math.max(0.0, -d_lab) * 0.90 + Math.max(0.0, -d_drug) * 0.55 + Math.max(0.0, -d_diet) * 0.45 + Math.max(0.0, -d_age_size) * 0.22;
+                    effShift = Math.max(adverseW, rawPatho * 0.68);
+                } else if (m === "ph") {
+                    const adverseW = Math.abs(w_total - 1.0);
+                    const rawPatho = Math.abs(d_dis) * 0.75 + Math.abs(d_lab) * 0.90 + Math.abs(d_drug) * 0.45 + Math.abs(d_diet) * 0.45;
+                    effShift = Math.max(adverseW, rawPatho * 0.68);
+                } else {
+                    const adverseW = Math.max(0.0, w_total - 1.0);
+                    const rawPatho = Math.max(0.0, d_dis) * 0.75 + Math.max(0.0, d_lab) * 0.90 + Math.max(0.0, d_drug) * 0.60 + Math.max(0.0, d_diet) * 0.60 + Math.max(0.0, d_age_size) * 0.22;
+                    effShift = Math.max(adverseW, rawPatho * 0.68);
+                }
+
+                const burdenPenalty = effShift * 3.2 * info.imp;
+                let physioPenalty = 0.0;
+                let decompPenalty = 0.0;
 
                 let statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">🟢 정상 범위</span>`;
                 let statusCode = "NORMAL";
-                let penalty = 0.0;
                 let interp = "정상 생리 범위 내 안정 유지";
 
                 if (m === "blood") {
-                    if (meas >= 10.0) {
-                        if (meas <= expectedUpper) {
-                            statusCode = "COMPENSATED";
-                            penalty = Math.min(18.0, (meas / 15.0) * 6.0 * info.imp);
-                            statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">🟠 약물/질병 경계내 검출</span>`;
-                            interp = `양성(${meas} ng/mL)이나 약물/질환 기대상한(${expectedUpper}) 이내 — 약물·점막 요인 우세`;
-                        } else {
-                            statusCode = "DECOMPENSATED";
-                            penalty = Math.min(35.0, (meas / 15.0) * 10.0 * info.imp);
-                            statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black animate-pulse">🔴 기대상한 초과 출혈</span>`;
-                            interp = `환자 기대상한(${expectedUpper} ng/mL) 초과! 점막 궤양/출혈 집중 처치 필요`;
-                        }
+                    const effBlood = Math.max(meas, expected);
+                    if (effBlood >= 10.0) {
+                        physioPenalty = Math.min(10.0, ((effBlood - 8.0) / 15.0) * 3.0 * info.imp);
+                    }
+                    if (meas > expectedUpper && meas >= 10.0) {
+                        statusCode = "DECOMPENSATED";
+                        decompPenalty = Math.min(14.0, ((meas - expectedUpper) / 15.0) * 5.0 * info.imp);
+                    } else if (meas >= 10.0 || expected >= 10.0) {
+                        statusCode = "COMPENSATED";
+                    }
+                    const penalty = burdenPenalty + physioPenalty + decompPenalty;
+                    if (statusCode === "DECOMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black animate-pulse">🔴 기대상한 초과 출혈 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `환자 기대상한(${expectedUpper} ng/mL) 초과! 점막 궤양/출혈 집중 처치 필요 (-${penalty.toFixed(1)}점)`;
                         abnormalTags.push("장 점막 손상/미세출혈");
+                    } else if (statusCode === "COMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">🟠 점막출혈 위험/검출 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `잠혈 부하 존재(실측 ${meas} / 기대상한 ${expectedUpper} ng/mL) — 약물·질환 점막 부하 반영 (-${penalty.toFixed(1)}점)`;
+                        abnormalTags.push("장 점막 손상/미세출혈 위험");
                     } else {
-                        interp = `잠혈 음성 (${meas} < 10 ng/mL, 기대상한 ${expectedUpper})`;
+                        interp = penalty >= 1.0
+                            ? `잠혈 음성(${meas} < 10 ng/mL)이나 기저 질환·약물 점막 부하 존재 (-${penalty.toFixed(1)}점)`
+                            : `잠혈 음성 (${meas} < 10 ng/mL, 기대상한 ${expectedUpper})`;
                     }
                 } else if (m === "absorption") {
+                    const effAbs = Math.min(meas, expected);
+                    if (effAbs < info.min) {
+                        physioPenalty = ((info.min - effAbs) / info.min) * 18.0 * info.imp;
+                    }
                     if (meas < expected) {
                         statusCode = "DECOMPENSATED";
-                        const diff = (expected - meas) / Math.max(1.0, expected);
-                        penalty = diff * 115.0 * info.imp;
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 기대치 미달 (흡수부전)</span>`;
+                        decompPenalty = ((expected - meas) / Math.max(1.0, expected)) * 45.0 * info.imp;
+                    } else if (effAbs < info.min) {
+                        statusCode = "COMPENSATED";
+                    }
+                    const penalty = burdenPenalty + physioPenalty + decompPenalty;
+                    if (statusCode === "DECOMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 기대치 미달 흡수부전 (-${penalty.toFixed(1)}점)</span>`;
                         interp = `환자 맞춤 기대치(${expected}%)보다도 추가 하락! 실질 영양 결핍 위험 (-${penalty.toFixed(1)}점)`;
                         abnormalTags.push("영양소 흡수 부전 심화");
-                    } else if (meas < info.min) {
-                        statusCode = "COMPENSATED";
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 기대 범위 내 방어 중</span>`;
-                        interp = `정상 기준(${info.min}%)보단 낮으나 질환/연령/혈액 기대치(${expected}%) 이상 선방 중`;
+                    } else if (statusCode === "COMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 흡수율 저하 관리중 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `정상 하한(${info.min}%) 미달 — 질환/혈액 기대치(${expected}%) 부근이나 흡수 저하 부하 반영 (-${penalty.toFixed(1)}점)`;
+                        abnormalTags.push("장관 영양소 흡수율 저하");
+                    } else if (penalty >= 1.0) {
+                        interp = `정상 범위 유지 중이나 기저 질환·혈액 소화흡수 부하 반영 (-${penalty.toFixed(1)}점)`;
                     }
                 } else if (m === "lactate") {
+                    const effLac = Math.min(meas, expected);
+                    if (effLac < info.min) {
+                        physioPenalty = ((info.min - effLac) / info.min) * 10.0 * info.imp;
+                    }
                     if (meas < expected && meas < info.min) {
                         statusCode = "DECOMPENSATED";
-                        penalty = ((expected - meas) / Math.max(1.0, expected)) * 30.0 * info.imp;
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 유익균 발효능 저하</span>`;
-                        interp = `기대치(${expected}) 미달 — 유익균총 및 단쇄지방산(SCFA) 급감`;
-                        abnormalTags.push("유익균총/발효능 저하");
-                    } else if (meas < info.min) {
+                        decompPenalty = ((expected - meas) / Math.max(1.0, expected)) * 16.0 * info.imp;
+                    } else if (effLac < info.min) {
                         statusCode = "COMPENSATED";
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 기대 범위 내 선방</span>`;
-                        interp = `정상 하한(${info.min}) 미만이나 환자 기대치(${expected}) 부합`;
+                    }
+                    const penalty = burdenPenalty + physioPenalty + decompPenalty;
+                    if (statusCode === "DECOMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 유익균 발효능 저하 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `기대치(${expected}) 미달 — 유익균총 및 단쇄지방산(SCFA) 급감 (-${penalty.toFixed(1)}점)`;
+                        abnormalTags.push("유익균총/발효능 저하");
+                    } else if (statusCode === "COMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 발효능 저하 관리중 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `정상 하한(${info.min}) 미만 — 질환 기대치(${expected}) 수준이나 유익균 감소 부하 반영 (-${penalty.toFixed(1)}점)`;
+                        abnormalTags.push("유익균총/발효능 저하");
+                    } else if (penalty >= 1.0) {
+                        interp = `정상 범위 내이나 기저 질환·약물에 의한 미생물총 부하 반영 (-${penalty.toFixed(1)}점)`;
                     }
                 } else if (m === "ph") {
+                    const effPhHigh = Math.max(meas, expected);
                     if (meas < 5.8) {
                         statusCode = "DECOMPENSATED";
-                        penalty = ((5.8 - meas) / 5.8) * 35.0 * info.imp;
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 산성 과발효 이상</span>`;
-                        interp = `pH ${meas} (<5.8) 탄수화물 미소화 대장 산성 과발효`;
+                        physioPenalty = ((6.0 - meas) / 6.0) * 14.0 * info.imp;
+                        decompPenalty = ((5.8 - meas) / 5.8) * 18.0 * info.imp;
+                    } else if (effPhHigh > 7.0) {
+                        physioPenalty = ((effPhHigh - 7.0) / 7.0) * 14.0 * info.imp;
+                        if (meas > Math.max(7.4, expected + 0.2)) {
+                            statusCode = "DECOMPENSATED";
+                            decompPenalty = ((meas - expected) / expected) * 18.0 * info.imp;
+                        } else {
+                            statusCode = "COMPENSATED";
+                        }
+                    }
+                    const penalty = burdenPenalty + physioPenalty + decompPenalty;
+                    if (statusCode === "DECOMPENSATED" && meas < 5.8) {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 산성 과발효 이상 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `pH ${meas} (<5.8) 탄수화물 미소화 대장 산성 과발효 (-${penalty.toFixed(1)}점)`;
                         abnormalTags.push("탄수화물 과발효/산성변");
-                    } else if (meas > Math.max(7.4, expected + 0.3)) {
-                        statusCode = "DECOMPENSATED";
-                        penalty = ((meas - expected) / expected) * 35.0 * info.imp;
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 알칼리 부패 이상</span>`;
-                        interp = `pH ${meas} 기대치(${expected}) 초과 알칼리화 (단백 부패/암모니아 축적)`;
+                    } else if (statusCode === "DECOMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 알칼리 부패 이상 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `pH ${meas} 기대치(${expected}) 초과 알칼리화 — 단백 부패/암모니아 축적 (-${penalty.toFixed(1)}점)`;
                         abnormalTags.push("단백질 부패 발효/독소 축적");
-                    } else if (meas > 7.0) {
-                        statusCode = "COMPENSATED";
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 기대 범위 내 방어</span>`;
-                        interp = `정상 상한(7.0) 초과이나 질환 기대치(${expected}) 이내 통제 중`;
+                    } else if (statusCode === "COMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 약알칼리 부하 관리 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `정상 상한(7.0) 초과 — 질환 기대치(${expected}) 내 통제 중이나 부패 발효 부하 반영 (-${penalty.toFixed(1)}점)`;
+                    } else if (penalty >= 1.0) {
+                        interp = `정상 pH 범위 유지 중 (질환·식이 대사 부하 -${penalty.toFixed(1)}점 반영)`;
                     }
                 } else {
+                    const effVal = Math.max(meas, expected);
+                    if (effVal > info.max) {
+                        physioPenalty = ((effVal - info.max) / info.max) * 6.5 * info.imp;
+                    }
                     if (meas > expected && meas > info.max) {
                         statusCode = "DECOMPENSATED";
-                        penalty = ((meas - expected) / Math.max(1.0, expected)) * 55.0 * info.imp;
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 기대치마저 초과 (집중교정)</span>`;
-                        interp = `기대치(${expected} ${info.unit}) 돌파! 현재 식이/효소 용량의 소화 한계 초과 (-${penalty.toFixed(1)}점)`;
+                        decompPenalty = ((meas - expected) / Math.max(1.0, expected)) * 22.0 * info.imp;
+                    } else if (effVal > info.max) {
+                        statusCode = "COMPENSATED";
+                    }
+                    const penalty = burdenPenalty + physioPenalty + decompPenalty;
+                    if (statusCode === "DECOMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 기대치마저 초과 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `기대치(${expected} ${info.unit}) 돌파! 현재 식이/효소 용량의 소화·대사 한계 초과 (-${penalty.toFixed(1)}점)`;
                         if (m === "ammonia" || m === "indole") abnormalTags.push("단백질 부패 발효/요독소 과다");
                         if (m === "fat") abnormalTags.push("지방 소화불량/췌장·담즙 한계 초과");
                         if (m === "protein") abnormalTags.push("단백질 소화 흡수 불량");
                         if (m === "carbo") abnormalTags.push("탄수화물 소화 흡수 불량");
-                    } else if (meas > info.max && meas <= expected) {
-                        statusCode = "COMPENSATED";
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 기대치 내 방어 중 (선방!)</span>`;
-                        interp = `정상 상한(${info.max})은 넘었으나 질환/연령/혈액 기대치(${expected}) 이하로 훌륭히 방어 중 (감점 면제)`;
+                    } else if (statusCode === "COMPENSATED") {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 질환 기대치 내 관리 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `정상 상한(${info.max}) 초과 — 질환/혈액 기대치(${expected}) 이내로 방어 중이나 병태생리 부하 존재 (-${penalty.toFixed(1)}점)`;
+                        if (m === "ammonia" || m === "indole") abnormalTags.push("장-신장 요독소(암모니아·인돌) 부하");
+                        if (m === "fat") abnormalTags.push("췌장·담즙 지질 소화 부하");
+                        if (m === "protein") abnormalTags.push("단백질 소화 부하 상승");
+                    } else if (penalty >= 1.0) {
+                        interp = `정상 생리 범위 이내이나 기저 질환·혈액·약물 가중 부하 반영 (-${penalty.toFixed(1)}점)`;
                     }
                 }
 
-                totalPenalty += penalty;
+                const penalty = burdenPenalty + physioPenalty + decompPenalty;
+                rawPenaltySum += penalty;
 
-                if (statusCode === "COMPENSATED" || statusCode === "DECOMPENSATED") {
-                    const wWeight = info.imp * (statusCode === "DECOMPENSATED" ? 1.8 : 0.7);
+                if (statusCode === "COMPENSATED" || statusCode === "DECOMPENSATED" || penalty >= 1.2) {
+                    const wWeight = info.imp * (statusCode === "DECOMPENSATED" ? 1.8 : (statusCode === "COMPENSATED" ? 1.0 : 0.45));
                     let posDiet = Math.max(0.05, ws_diet);
                     let posDrug = Math.max(0.05, ws_drug);
                     let posDis  = Math.max(0.05, ws_dis);
@@ -4735,6 +4884,8 @@
             document.getElementById('cdss-markers-table-body').innerHTML = rowsHtml.join('');
 
             const measAbsPct = Math.max(45.0, Math.min(98.0, evalMap.absorption.meas || 72.0));
+            const absLabelEl = document.getElementById('cdss-meas-abs-label');
+            if (absLabelEl) absLabelEl.innerText = measAbsPct.toFixed(1);
             const baseKcal = typeof currentBaseDerKcal === 'number' && currentBaseDerKcal > 50 ? currentBaseDerKcal : 231.9;
             const baseG = typeof currentBaseTotalG === 'number' && currentBaseTotalG > 10 ? currentBaseTotalG : 95.0;
             const priorAbsPct = (currentPriorBioavailability && currentPriorBioavailability.prior_overall_absorb_pct) ? currentPriorBioavailability.prior_overall_absorb_pct : evalMap.absorption.expected;
@@ -4767,7 +4918,11 @@
                 }).join('');
             }
 
-            const score = Math.max(0.0, Math.round((100.0 - Math.min(75.0, totalPenalty)) * 10) / 10);
+            // 임상 등급 구간(Grade 1~5)에 맞춘 단조 감점 환산
+            const effectivePenalty = rawPenaltySum <= 45.0
+                ? rawPenaltySum
+                : 45.0 + (rawPenaltySum - 45.0) * 0.55;
+            const score = Math.max(12.0, Math.round((100.0 - Math.min(88.0, effectivePenalty)) * 10) / 10);
             let grade = 1, gradeName = "최적 (Optimal)", gradeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-400/40";
             if (score < 40) { grade = 5; gradeName = "위험 (Critical / Leaky Gut)"; gradeColor = "bg-rose-500/30 text-rose-200 border-rose-400/50"; }
             else if (score < 55) { grade = 4; gradeName = "경고 (Severe Dysbiosis)"; gradeColor = "bg-orange-500/30 text-orange-200 border-orange-400/50"; }
@@ -4782,13 +4937,13 @@
             const uniqueTags = [...new Set(abnormalTags)];
             const tagsBox = document.getElementById('cdss-abnormal-tags');
             if (uniqueTags.length === 0) {
-                tagsBox.innerHTML = `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-[11px] font-bold">✅ 모든 마커 환자 기대치 이내 안정</span>`;
+                tagsBox.innerHTML = `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-[11px] font-bold">✅ 모든 마커 정상 생리 범위 내 안정</span>`;
             } else {
                 tagsBox.innerHTML = uniqueTags.map(t => `<span class="px-2.5 py-1 rounded-lg bg-rose-500/25 border border-rose-400/30 text-rose-200 text-[11px] font-bold">⚠️ ${t}</span>`).join('');
             }
 
             const totCause = Object.values(causeScores).reduce((a, b) => a + b, 0);
-            let pcts = { diet: 25, drug: 15, disease: 30, age_size: 20, other_excess: 10 };
+            let pcts = { diet: 20, drug: 10, disease: 35, age_size: 25, other_excess: 10 };
             if (totCause > 0.001) {
                 pcts = {
                     diet: Math.round((causeScores.diet / totCause) * 1000) / 10,
@@ -4849,7 +5004,7 @@
             const vetActions = [];
 
             if (evalMap.ammonia.statusCode === "COMPENSATED" && evalMap.indole.statusCode === "COMPENSATED") {
-                aiComments.push(`• <strong>[단백질 대사 및 요독소 선방]</strong> 정상 기준으로는 암모니아(${evalMap.ammonia.meas} μmol/g)와 인돌(${evalMap.indole.meas} μg/g)이 상승해 있으나, 환자의 질환·연령·혈액 가중치가 반영된 기대 기준치(${evalMap.ammonia.expected} / ${evalMap.indole.expected}) 이내로 훌륭히 통제되고 있습니다.`);
+                aiComments.push(`• <strong>[단백질 대사 및 요독소 선방]</strong> 정상 기준으로는 암모니아(${evalMap.ammonia.meas} μmol/g)와 인돌(${evalMap.indole.meas} μg/g)이 상승해 있으나, 환자의 질환·연령·혈액 가중치가 반영된 기대 기준치(${evalMap.ammonia.expected} / ${evalMap.indole.expected}) 이내로 통제되고 있습니다.`);
             } else if (evalMap.ammonia.statusCode === "DECOMPENSATED" || evalMap.indole.statusCode === "DECOMPENSATED") {
                 aiComments.push(`• <strong>[단백질 부패 발효 및 요독소 초과 경고]</strong> 암모니아(${evalMap.ammonia.meas}) 또는 인돌(${evalMap.indole.meas})이 맞춤 기대치(${evalMap.ammonia.expected} / ${evalMap.indole.expected})마저 초과했습니다.`);
                 dietActions.push("• <strong>[단백질 부하 감량 & 간식 중단]</strong> 육포/트릿/츄르 등 일반 고단백 간식을 즉시 중단하고, 초고소화성 가수분해 사료 또는 저단백 처방식 비율을 +20% 상향하십시오.");
