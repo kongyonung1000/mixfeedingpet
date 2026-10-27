@@ -334,7 +334,7 @@
         };
     }
 
-    const GUARDIAN_CONSULT_CONCERNS = ["heart","ckd","pancreatitis","cushing","liver","gallbladder","ibd","diabetes","urolithiasis","cognitive","hypothyroid","addison","oncology","hypertension"];
+    const GUARDIAN_CONSULT_CONCERNS = ["heart","ckd","pancreatitis","cushing","liver","gallbladder","ibd","diabetes","urolithiasis","cognitive","hypothyroid","addison","oncology","hypertension","obesity","osteoarthritis","atopy"];
     function isGuardianConsultVet() {
         return GUARDIAN_CONSULT_CONCERNS.includes(guardianState.profile.healthConcern);
     }
