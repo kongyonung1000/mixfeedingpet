@@ -259,12 +259,12 @@
             prepDays: 7,
             targetDisease: "none",
             items: [
-                { id: "ing_89", name_ko: "닭고기, 안심, 생것 (삶음)", ratio: 48 },
-                { id: "ing_0", name_ko: "귀리, 겉귀리, 도정, 밥", ratio: 22 },
-                { id: "ing_34", name_ko: "단호박, 찐것", ratio: 18 },
-                { id: "ing_46", name_ko: "양배추, 삶은것", ratio: 9 },
-                { id: "supp_salmon_oil", name_ko: "정제 연어오일/어유 (오메가-3 보충)", ratio: 1.8 },
-                { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 1.2 }
+                { id: "ing_57", name_ko: "닭고기, 가슴, 삶은것", ratio: 48.0 },
+                { id: "ing_0", name_ko: "귀리, 겉귀리, 도정, 밥", ratio: 22.0 },
+                { id: "ing_44", name_ko: "호박, 단호박, 찐것", ratio: 18.0 },
+                { id: "ing_35", name_ko: "양배추, 삶은것", ratio: 9.8 },
+                { id: "supp_salmon_oil", name_ko: "정제 연어오일/어유 (오메가-3 보충)", ratio: 1.6 },
+                { id: "supp_eggshell", name_ko: "난각분말 (계란껍질 칼슘보충제)", ratio: 0.6 }
             ]
         },
         menu6_reverse: {
@@ -293,6 +293,8 @@
         },
         activeSchemaTab: "schema_patient"
     };
+    window.guardianState = guardianState;
+    let isSyncingStep6 = false;
 
     // =========================================================================
     // 3. 수학 및 임상 영양 코어 연산 함수 (공통 백엔드 로직)
@@ -1198,9 +1200,9 @@
                         </button>
                         <button type="button" onclick="selectGuardianMenu(6)" id="g-menu-card-6" class="g-menu-card text-left p-3.5 rounded-2xl border border-slate-200 hover:border-emerald-400 bg-white transition flex flex-col justify-between">
                             <div>
-                                <span class="px-2 py-0.5 rounded-md bg-purple-600 text-white font-black text-[10px]">메뉴 6 · 심화엔진</span>
-                                <div class="font-black text-slate-900 text-sm mt-1.5">🔬 사료 역추적 해부</div>
-                                <p class="text-[11px] text-slate-600 mt-1">포장지 성분·원료 순서로 배합비(%)와 30대 미량영양소 신뢰도 역산</p>
+                                <span class="px-2 py-0.5 rounded-md bg-purple-600 text-white font-black text-[10px]">메뉴 6 · 다중 믹스피딩</span>
+                                <div class="font-black text-slate-900 text-sm mt-1.5">🔬 1~4단계 역추적 & 2·3종 믹스</div>
+                                <p class="text-[11px] text-slate-600 mt-1">사료공학 DB·PAVA·1%앵커·아키타입 역추적 및 2·3종 복합 믹스피딩</p>
                             </div>
                         </button>
                     </div>
@@ -1458,102 +1460,235 @@
                         </div>
                     </div>
 
-                    <!-- ==================== [메뉴 6] 사료 역추적 프로그램 (Reverse-Tracing Calculator - 고도화 엔진) ==================== -->
-                    <div id="g-menu-view-6" class="g-menu-view hidden bg-purple-50/40 p-6 rounded-2xl border border-purple-200 space-y-5">
-                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-purple-200/70 pb-4">
+                    <!-- ==================== [메뉴 6] 1~4단계 사료 역추적 & 2·3종 사료 믹스피딩 시뮬레이터 (step6_multi_mix_feeding 교체 모듈) ==================== -->
+                    <style>
+                        #g-menu-view-6 .btn, #s6ExportPayloadModal .btn {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 6px;
+                            padding: 9px 18px;
+                            font-size: 0.88rem;
+                            font-weight: 700;
+                            border-radius: 8px;
+                            border: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        }
+                        #g-menu-view-6 .btn-primary, #s6ExportPayloadModal .btn-primary {
+                            background: #2563eb;
+                            color: #ffffff;
+                        }
+                        #g-menu-view-6 .btn-primary:hover, #s6ExportPayloadModal .btn-primary:hover {
+                            background: #1d4ed8;
+                        }
+                        #g-menu-view-6 .btn-secondary, #s6ExportPayloadModal .btn-secondary {
+                            background: #f1f5f9;
+                            color: #1e293b;
+                            border: 1px solid #cbd5e1;
+                        }
+                        #g-menu-view-6 .btn-secondary:hover, #s6ExportPayloadModal .btn-secondary:hover {
+                            background: #e2e8f0;
+                        }
+                        #g-menu-view-6 .btn-sm, #s6ExportPayloadModal .btn-sm {
+                            padding: 6px 12px;
+                            font-size: 0.82rem;
+                        }
+                        #g-menu-view-6 .btn.active {
+                            background: #6d28d9 !important;
+                            color: #ffffff !important;
+                            border-color: #6d28d9 !important;
+                        }
+                        #g-menu-view-6 .form-control, #s6ExportPayloadModal .form-control {
+                            width: 100%;
+                            padding: 8px 11px;
+                            border-radius: 8px;
+                            border: 1px solid #cbd5e1;
+                            font-size: 0.88rem;
+                            background-color: #ffffff;
+                        }
+                        #g-menu-view-6 .table-responsive {
+                            width: 100%;
+                            overflow-x: auto;
+                            margin-top: 10px;
+                            border-radius: 8px;
+                            border: 1px solid #e2e8f0;
+                        }
+                        #g-menu-view-6 .table-responsive table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            text-align: left;
+                            font-size: 0.84rem;
+                        }
+                        #g-menu-view-6 .table-responsive th, #g-menu-view-6 .table-responsive td {
+                            padding: 9px 12px;
+                            border-bottom: 1px solid #e2e8f0;
+                        }
+                        #g-menu-view-6 .table-responsive th {
+                            background: #f8fafc;
+                            font-weight: 800;
+                            color: #334155;
+                        }
+                    </style>
+                    <div id="g-menu-view-6" class="g-menu-view hidden bg-purple-50/40 p-6 rounded-2xl border border-purple-200 space-y-5 shadow-sm">
+                        <!-- 상단 헤더 -->
+                        <div class="flex flex-wrap items-start justify-between gap-4 bg-white p-5 rounded-2xl border border-purple-200 shadow-sm">
                             <div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="px-2.5 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-black">고정밀 PAVA + AI Imputation 엔진</span>
-                                    <h3 class="text-base font-black text-purple-950">🔬 [메뉴 6] 사료 영양소 역추적 프로그램 (Reverse-Tracing Calculator)</h3>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="bg-purple-700 text-white text-xs font-black px-3 py-1 rounded-full">
+                                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>GUARDIAN PORTAL · STEP 6 통합 모듈
+                                    </span>
+                                    <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full">
+                                        SCHEMA-05 & Vet CDSS (Per 1,000 kcal ME) 호환
+                                    </span>
                                 </div>
-                                <p class="text-xs text-purple-800 mt-0.5">포장지에 적힌 <strong>보증성분(%)</strong>과 <strong>원재료 표기 순서(P1 ≥ P2 ≥ P3...)</strong>만으로 실제 원료 배합비와 숨은 30대 미량 영양소(DM) 및 신뢰도(%)를 해부합니다.</p>
-                            </div>
-                            <button type="button" onclick="runGuardianReverseTracing()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs shadow-lg flex items-center space-x-1.5">
-                                <i class="fa-solid fa-microchip"></i>
-                                <span>▶ 성분 비율 고정밀 역추적 & 30대 영양소 신뢰도(%) 실행</span>
-                            </button>
-                        </div>
-
-                        <!-- 원재료 순서 칩 편집기 & Smart Imputation 옵션 -->
-                        <div class="bg-white p-4 rounded-2xl border border-purple-200 space-y-3 text-xs">
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                                <div class="font-black text-slate-800">🥣 포장지 원재료 표기 순서 (제1원료 ➔ 마지막 원료 순으로 자동 단조감소 제약 적용)</div>
-                                <label class="flex items-center space-x-1.5 font-bold text-purple-800 cursor-pointer">
-                                    <input type="checkbox" id="g-rev-impute-chk" checked onchange="guardianState.menu6_reverse.enableImputation = this.checked; runGuardianReverseTracing();" class="rounded text-purple-600">
-                                    <span>💡 포장지에 생략된 미량 보충 원료(칼슘제/인산염/정제유) Smart AI 자동 유추</span>
-                                </label>
+                                <h3 class="text-lg md:text-xl font-black text-slate-900 mt-2">
+                                    1~4단계 일반사료 영양소 역추적 & 2·3종 사료 믹스피딩 프로그램
+                                </h3>
+                                <p class="text-xs md:text-sm text-slate-600 mt-1">
+                                    사료 공학 전용 원재료 DB(54종) + 일반 식재료 DB(117종 통합) · PAVA 순서/1% 앵커/수분 손실 페널티 · 3-트랙(아미노산 12종·TDF 식이섬유·미네랄) · 글로벌 18대 아키타입 보정을 통해 사료 성분을 역추적하고, <strong>2종(α·V̂<sub>A</sub> + β·V̂<sub>B</sub>) 또는 3종(α·V̂<sub>A</sub> + β·V̂<sub>B</sub> + γ·V̂<sub>C</sub>)</strong> 사료를 안전 마진 내에서 믹스피딩합니다.
+                                </p>
                             </div>
 
-                            <div class="flex flex-wrap gap-2 items-center">
-                                <select id="g-rev-add-ing-select" class="px-3 py-2 rounded-xl border border-slate-300 font-bold flex-1 min-w-[220px]"></select>
-                                <button type="button" onclick="addIngredientToReverseList()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black">+ 순서 끝에 원료 추가</button>
-                                <button type="button" onclick="syncReverseIngredientsFromDryFood(); runGuardianReverseTracing();" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">🔄 Step 2 사료 기본 원료로 리셋</button>
-                            </div>
-
-                            <div id="g-rev-chips-container" class="flex flex-wrap gap-2 pt-1"></div>
-                        </div>
-
-                        <!-- 역추적 결과: 1) 원료 배합비 추정도 & 2) 보증성분 일치도 검증 -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
-                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                                <h4 class="font-black text-slate-800">📊 1. 역추적된 원재료별 배합 비율 (건물 DM 100% 기준)</h4>
-                                <div id="g-rev-imputation-banner" class="hidden p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold"></div>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left border-collapse">
-                                        <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
-                                            <tr>
-                                                <th class="py-2 px-2.5">순위</th>
-                                                <th class="py-2 px-2.5">원재료명</th>
-                                                <th class="py-2 px-2.5">구분</th>
-                                                <th class="py-2 px-2.5 text-right">추정 배합비 (% DM)</th>
-                                                <th class="py-2 px-2.5 text-right">칼로리 기여도</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="g-rev-ratios-tbody" class="divide-y divide-slate-100"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                                <h4 class="font-black text-slate-800">🎯 2. 포장지 보증성분 vs 역추적 모델 적합도 검증</h4>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left border-collapse">
-                                        <thead class="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
-                                            <tr>
-                                                <th class="py-2 px-2.5">보증 성분</th>
-                                                <th class="py-2 px-2.5 text-right">포장지 목표 (건물 DM 환산)</th>
-                                                <th class="py-2 px-2.5 text-right text-purple-700">역추적 산출값 (% DM)</th>
-                                                <th class="py-2 px-2.5 text-center">일치도 판정</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="g-rev-fit-tbody" class="divide-y divide-slate-100"></tbody>
-                                    </table>
-                                </div>
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                <button type="button" id="s6BtnCount2" class="btn btn-secondary btn-sm" onclick="Step6MultiMixController.setFeedCount(2)">
+                                    <i class="fa-solid fa-layer-group mr-1"></i>2종 사료 믹스 (A + B)
+                                </button>
+                                <button type="button" id="s6BtnCount3" class="btn btn-secondary btn-sm active" onclick="Step6MultiMixController.setFeedCount(3)">
+                                    <i class="fa-solid fa-cubes mr-1"></i>3종 사료 믹스 (A + B + C)
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="Step6MultiMixController.syncSlotAFromHostDryFood(true)" title="Step 2에서 선택/입력한 사료를 사료 A 슬롯에 즉시 반영">
+                                    <i class="fa-solid fa-arrows-rotate mr-1 text-purple-700"></i>Step 2 사료➔슬롯A 반영
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm" style="background:#0f172a;" onclick="Step6MultiMixController.exportGuardianStep6Payload()">
+                                    <i class="fa-solid fa-code mr-1"></i>처방사료 STEP 6 연동 데이터
+                                </button>
                             </div>
                         </div>
 
-                        <!-- 30대 다량·미량 영양소 예상 범위(Min~Max) 및 신뢰도(%) 해부 테이블 -->
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3 text-xs">
-                            <div class="flex flex-wrap items-center justify-between gap-2">
+                        <!-- 환자 프로필 및 임상 질환 가드라인 설정 바 (처방사료데이터 guardianState.profile 자동 연동) -->
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(155px, 1fr)); gap:10px; padding:14px; background:#ffffff; border:1px solid #e2e8f0; border-radius:14px;">
+                            <div>
+                                <label style="font-size:0.75rem; font-weight:800; color:#475569;"><i class="fa-solid fa-paw mr-1 text-purple-600"></i>반려동물 축종</label>
+                                <select id="s6SpeciesSelect" class="form-control" onchange="Step6MultiMixController.onTopProfileChange()">
+                                    <option value="dog">강아지 (Canine)</option>
+                                    <option value="cat">고양이 (Feline)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem; font-weight:800; color:#475569;"><i class="fa-solid fa-weight-scale mr-1 text-purple-600"></i>체중 (kg)</label>
+                                <div style="display:flex; gap:4px;">
+                                    <input type="number" id="s6WeightInput" class="form-control" value="4.5" step="0.1" min="0.5" onchange="Step6MultiMixController.onTopProfileChange()">
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="Step6MultiMixController.autoCalcDERFromWeight()" title="체중으로 DER 자동계산">자동DER</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem; font-weight:800; color:#475569;"><i class="fa-solid fa-fire-flame-curved mr-1 text-orange-500"></i>1일 목표 열량 DER (kcal)</label>
+                                <input type="number" id="s6DerInput" class="form-control" value="346" step="5" min="30" onchange="Step6MultiMixController.onTopProfileChange()">
+                            </div>
+                            <div>
+                                <label style="font-size:0.75rem; font-weight:800; color:#475569;"><i class="fa-solid fa-clock mr-1 text-blue-600"></i>1일 급여 횟수</label>
+                                <select id="s6MealsSelect" class="form-control" onchange="Step6MultiMixController.onTopProfileChange()">
+                                    <option value="2" selected>1일 2회 (아침·저녁)</option>
+                                    <option value="3">1일 3회 (아침·점심·저녁)</option>
+                                    <option value="1">1일 1회</option>
+                                </select>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <label style="font-size:0.75rem; font-weight:800; color:#5b21b6;"><i class="fa-solid fa-shield-heart mr-1 text-purple-700"></i>임상 질환/건강 가드라인 (신뢰도 안전 마진 Min~Max 밴드)</label>
+                                <select id="s6HealthConcernSelect" class="form-control" onchange="Step6MultiMixController.onTopProfileChange()">
+                                    <option value="none">일반 건강 유지 (AAFCO/FEDIAF 성견·성묘 표준)</option>
+                                    <option value="ckd">만성 신부전 / 신장 케어 (CKD - 인·나트륨 제한)</option>
+                                    <option value="pancreatitis">췌장염 / 고지혈증 케어 (엄격 저지방 ≤12% DM)</option>
+                                    <option value="heart">심장 질환 케어 (나트륨 제한 & 타우린 강화)</option>
+                                    <option value="urolithiasis">하부요로계 / 결석 케어 (Ca·P·Mg 정밀 제어)</option>
+                                    <option value="ibd">만성 장염 / IBD / 식이알러지 (소화율 & 수용성 섬유)</option>
+                                    <option value="obesity">비만 / 체중 감량 (고단백·저지방·고식이섬유)</option>
+                                    <option value="liver">간담도계 케어 (적정 단백 & 나트륨 제어)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 2개 또는 3개 사료 슬롯 입력 그리드 -->
+                        <div id="s6SlotsGrid" style="display:grid; gap:14px;"></div>
+
+                        <!-- 칼로리 배합비 컨트롤러 & AI 최적 안전 배합비 추천 배너 -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 class="text-base font-black text-slate-800 mb-2">
+                                <i class="fa-solid fa-sliders mr-1.5 text-purple-700"></i>2·3종 사료 칼로리 배합비(α : β : γ) 조절 & AI 안전 마진 최적화
+                            </h3>
+                            <div id="s6OptimalBanner" style="background:#eef2ff; border:1px solid #c7d2fe; border-radius:10px; padding:12px 14px; margin-bottom:12px;"></div>
+                            <div id="s6RatioSlidersArea" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px;"></div>
+                        </div>
+
+                        <!-- 사료별 1일 / 1회 급여 무게(g) 및 음수량 스케줄 카드 -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 class="text-base font-black text-slate-800 mb-3">
+                                <i class="fa-solid fa-bowl-food mr-1.5 text-emerald-600"></i>사료별 1일 급여량(g/일) · 1끼 급여량(g/회) · 수분 밸런스
+                            </h3>
+                            <div id="s6ScheduleCardsArea" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:12px;"></div>
+                        </div>
+
+                        <!-- 차트 영역 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                                <h4 class="text-sm font-black text-slate-800 mb-2">1. 다중 사료 칼로리 분배 도넛 차트</h4>
+                                <div style="height:240px; position:relative;">
+                                    <canvas id="s6MultiDonutChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                                <h4 class="text-sm font-black text-slate-800 mb-2">2. 사료 A · B · (C) vs 최종 믹스 영양 밸런스 비교</h4>
+                                <div style="height:240px; position:relative;">
+                                    <canvas id="s6MultiBarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 사료 슬롯별 1~4단계 역추적 해부도 -->
+                        <div id="s6ReverseAnatomyBox" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm"></div>
+
+                        <!-- 신뢰도 가중치 기반 Min~Max 안전 밴드 신호등 감사 테이블 -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
                                 <div>
-                                    <h4 class="font-black text-slate-800">📋 3. 포장지에 적혀 있지 않은 28대 다량·미량 영양소 역추적 추정치 & 신뢰도(%) 리포트</h4>
-                                    <p class="text-[11px] text-slate-500">원재료 DB와 배합비 수렴도를 결합하여 미네랄·비타민·오메가 지방산의 건물(DM) 함량과 예측 신뢰구간(Prediction Range)을 해부합니다.</p>
+                                    <h3 class="text-base font-black text-slate-900">
+                                        <i class="fa-solid fa-traffic-light mr-1.5 text-amber-500"></i>신뢰도 가중치(C<sub>k</sub>) 기반 선형 결합 영양소 & Min~Max 안전 마진 신호등 감사표
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        일반 건사료 역추적 추정치(신뢰도 ~75%)와 처방식/화식(신뢰도 ~93%)의 불확실성 오차(Δ<sub>j</sub> = ∑ α<sub>k</sub>·δ<sub>k,j</sub>)가 전파된 최악 구간에서도 질환별 허용 범위를 벗어나지 않는지 검증합니다.
+                                    </p>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    <button type="button" id="s6UnitBtnDM" class="btn btn-secondary btn-sm active" onclick="Step6MultiMixController.setDisplayUnitMode('dm')">건물 기준 (% DM / mg)</button>
+                                    <button type="button" id="s6UnitBtnKcal" class="btn btn-secondary btn-sm" onclick="Step6MultiMixController.setDisplayUnitMode('1000kcal')">수의 임상 기준 (Per 1,000 kcal ME)</button>
                                 </div>
                             </div>
-                            <div class="overflow-x-auto max-h-96">
-                                <table class="w-full text-[11px] text-left border-collapse">
-                                    <thead class="bg-slate-100 text-slate-700 font-black border-b border-slate-200 sticky top-0">
-                                        <tr>
-                                            <th class="py-2 px-2.5">영양 성분명</th>
-                                            <th class="py-2 px-2.5">분류</th>
-                                            <th class="py-2 px-2.5 text-right text-purple-800">역추적 추정값 (DM)</th>
-                                            <th class="py-2 px-2.5 text-right">예상 신뢰구간 (Min ~ Max)</th>
-                                            <th class="py-2 px-2.5 text-center">추정 신뢰도 (%)</th>
-                                            <th class="py-2 px-2.5 text-center">AAFCO 1000kcal 기준 비교</th>
-                                        </tr>
+
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr id="s6AuditTableHeadRow"></tr>
                                     </thead>
-                                    <tbody id="g-rev-confidence-tbody" class="divide-y divide-slate-100"></tbody>
+                                    <tbody id="s6AuditTableBody"></tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal: STEP 6 Guardian & Vet CDSS Payload Exporter -->
+                    <div id="s6ExportPayloadModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+                        <div class="modal-card" style="background:#fff; border-radius:16px; max-width:680px; width:100%; padding:24px;">
+                            <h3 style="font-size:1.15rem; font-weight:800; color:#1e293b; margin-bottom:6px;">
+                                📤 처방사료 데이터 (Guardian Portal STEP 6 & Vet CDSS) 연동 페이로드
+                            </h3>
+                            <p style="font-size:0.82rem; color:#64748b; margin-bottom:10px;">
+                                이 JSON 객체는 <code>처방사료데이터/static/guardian_portal.js</code>의 <code>guardianState.lastMixSummary</code>, <code>SCHEMA-05</code> 및 수의사 CDSS의 <code>1,000 kcal ME</code> 커스텀 식단 규격과 1:1 호환됩니다.
+                            </p>
+                            <textarea id="s6ExportPayloadTextarea" class="form-control" rows="14" readonly style="width:100%; font-family:monospace; font-size:0.78rem; background:#0f172a; color:#38bdf8; padding:12px; border-radius:10px;"></textarea>
+                            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('s6ExportPayloadModal').style.display='none'">닫기</button>
+                                <button type="button" class="btn btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('s6ExportPayloadTextarea').value); alert('클립보드에 복사되었습니다.');">📋 JSON 복사</button>
                             </div>
                         </div>
                     </div>
@@ -2244,7 +2379,6 @@
         });
         if (matchedIds.length >= 2) {
             guardianState.menu6_reverse.selectedIngIds = matchedIds.slice(0, 10);
-            renderReverseChips();
         }
 
         onGuardianDryFoodManualChange();
@@ -2292,8 +2426,20 @@
         });
 
         if (menuNum === 5) renderDiyBuilderAll();
-        if (menuNum === 6) runGuardianReverseTracing();
-        refreshAllGuardianCalculations();
+        if (menuNum === 6 && typeof window.Step6MultiMixController !== "undefined") {
+            isSyncingStep6 = true;
+            window.Step6MultiMixController.syncFromHostEnvironment();
+            window.Step6MultiMixController.recalculateAndRender();
+            isSyncingStep6 = false;
+            setTimeout(() => {
+                if (guardianState.activeMenu === 6 && typeof window.Step6MultiMixController !== "undefined") {
+                    isSyncingStep6 = true;
+                    window.Step6MultiMixController.recalculateAndRender();
+                    isSyncingStep6 = false;
+                }
+            }, 60);
+        }
+        refreshAllGuardianCalculations(true);
     };
 
     // --- 메뉴 1: 건식 + 습식 ---
@@ -2756,374 +2902,107 @@
     }
 
     // =========================================================================
-    // 10. [메뉴 6] 사료 역추적 프로그램 (Reverse-Tracing Calculator — 고도화 엔진)
+    // 10. [메뉴 6] 1~4단계 사료 역추적 & 2·3종 사료 믹스피딩 컨트롤러 브릿지 (중복 제거 및 단일 통합)
     // =========================================================================
+    window.getGuardianMenu5DiySlotPreset = function () {
+        const stats = computeDiyBlendStats();
+        const moist = +(stats.sumAF.moisture_g || 74.0).toFixed(1);
+        const kcal100g = +(stats.kcalPer100gAF || 120.0).toFixed(1);
+        const pDM = +(stats.sumDM.protein_g || 42.0).toFixed(1);
+        const fDM = +(stats.sumDM.fat_g || 15.0).toFixed(1);
+        const fbDM = +(stats.sumDM.total_dietary_fiber_g || 3.5).toFixed(1);
+        const carbsDM = +(stats.sumDM.carbohydrate_g || 28.0).toFixed(1);
+        const ashDM = +(stats.sumDM.ash_g || 6.0).toFixed(1);
+        const caDM = Math.round(stats.sumDM.calcium_mg || 880);
+        const phosDM = Math.round(stats.sumDM.phosphorus_mg || 680);
+        const naDM = Math.round(stats.sumDM.sodium_mg || 210);
+        const mgDM = Math.round(stats.sumDM.magnesium_mg || 95);
+        const kDM = Math.round(stats.sumDM.potassium_mg || 820);
+
+        return {
+            id: "__host_menu5_diy__",
+            name: `[메뉴 5 DIY 연동] ${guardianState.profile.name} 홈메이드 맞춤 화식 (신뢰도 94%)`,
+            brand: "Guardian DIY Builder",
+            feedType: "fresh_wet",
+            mode: "known",
+            fixedConfidence: 94,
+            knownNutrients: {
+                moisture_pct: moist,
+                energy_kcal_per_100g: kcal100g,
+                protein_dm_pct: pDM,
+                fat_dm_pct: fDM,
+                fiber_dm_pct: fbDM,
+                tdf_dm_pct: +(fbDM * 2.1).toFixed(1),
+                carbs_dm_pct: carbsDM,
+                ash_dm_pct: ashDM,
+                calcium_mg: caDM,
+                phosphorus_mg: phosDM,
+                sodium_mg: naDM,
+                magnesium_mg: mgDM,
+                potassium_mg: kDM
+            }
+        };
+    };
+
     function populateReverseIngredientDropdown() {
-        const sel = document.getElementById("g-rev-add-ing-select");
-        if (!sel) return;
-        const db = window.GUARDIAN_INGREDIENTS_DB || [];
-        sel.innerHTML = db.map(x => `<option value="${x.id}">[${x.category}] ${x.name_ko} (단백 ${x.protein_g}g · 지방 ${x.fat_g}g)</option>`).join("");
+        // 호스트 사료 프리셋(COMMERCIAL_DRY_FOODS & COMMERCIAL_WET_AND_FRESH)을 MixFeeder에 중복 없이 등록하고 Step 6 컨트롤러 초기화
+        if (typeof window.MixFeeder !== "undefined" && typeof window.MixFeeder.registerHostPresets === "function") {
+            const mergedIngDB = (typeof window.FeedIngredientDB !== "undefined")
+                ? window.FeedIngredientDB.mergeWithGeneralDB(window.GUARDIAN_INGREDIENTS_DB || [])
+                : null;
+            window.MixFeeder.registerHostPresets(COMMERCIAL_DRY_FOODS, COMMERCIAL_WET_AND_FRESH, mergedIngDB);
+        }
+        if (typeof window.Step6MultiMixController !== "undefined") {
+            isSyncingStep6 = true;
+            window.Step6MultiMixController.init("g-menu-view-6");
+            isSyncingStep6 = false;
+        }
     }
 
     function syncReverseIngredientsFromDryFood() {
-        const db = window.GUARDIAN_INGREDIENTS_DB || [];
-        const orderNames = guardianState.selectedDryFood.ingredients_order || ["닭고기", "쌀", "완두콩", "단호박", "연어오일"];
-        const matched = [];
-        orderNames.forEach(name => {
-            let hit = db.find(x => x.name_ko.includes(name) || name.includes(x.name_ko.split(",")[0]));
-            if (!hit) {
-                if (name.includes("닭") || name.includes("가금") || name.includes("오리") || name.includes("칠면조")) hit = db.find(x => x.category === "육류");
-                else if (name.includes("연어") || name.includes("청어") || name.includes("어유")) hit = db.find(x => x.category === "어류");
-                else if (name.includes("쌀") || name.includes("옥수수") || name.includes("밀") || name.includes("귀리")) hit = db.find(x => x.category === "곡류");
-                else if (name.includes("콩") || name.includes("대두")) hit = db.find(x => x.category === "콩류");
-                else if (name.includes("감자") || name.includes("고구마")) hit = db.find(x => x.category === "감자류");
-                else if (name.includes("호박") || name.includes("당근") || name.includes("비트")) hit = db.find(x => x.category === "채소류");
+        if (typeof window.Step6MultiMixController !== "undefined") {
+            isSyncingStep6 = true;
+            window.Step6MultiMixController.syncFromHostEnvironment();
+            if (typeof window.Step6MultiMixController.syncSlotAFromHostDryFood === "function") {
+                window.Step6MultiMixController.syncSlotAFromHostDryFood(true);
             }
-            if (hit && !matched.some(m => m.id === hit.id)) {
-                matched.push({ id: hit.id, label: `${name} (매칭: ${hit.name_ko})` });
-            }
-        });
-        if (matched.length < 3 && db.length >= 4) {
-            matched.push({ id: db[0].id, label: db[0].name_ko });
-            matched.push({ id: db[18].id, label: db[18].name_ko });
+            isSyncingStep6 = false;
         }
-        guardianState.menu6_reverse.selectedIngIds = matched.map(m => m.id);
-        renderReverseChips();
-    }
-
-    window.addIngredientToReverseList = function () {
-        const sel = document.getElementById("g-rev-add-ing-select");
-        if (!sel || !sel.value) return;
-        if (!guardianState.menu6_reverse.selectedIngIds.includes(sel.value)) {
-            guardianState.menu6_reverse.selectedIngIds.push(sel.value);
-            renderReverseChips();
-            runGuardianReverseTracing();
-        }
-    };
-
-    window.removeReverseChip = function (idx) {
-        if (guardianState.menu6_reverse.selectedIngIds.length <= 1) return;
-        guardianState.menu6_reverse.selectedIngIds.splice(idx, 1);
-        renderReverseChips();
-        runGuardianReverseTracing();
-    };
-
-    window.moveReverseChip = function (idx, dir) {
-        const arr = guardianState.menu6_reverse.selectedIngIds;
-        const target = idx + dir;
-        if (target < 0 || target >= arr.length) return;
-        const tmp = arr[idx];
-        arr[idx] = arr[target];
-        arr[target] = tmp;
-        renderReverseChips();
-        runGuardianReverseTracing();
-    };
-
-    function renderReverseChips() {
-        const cont = document.getElementById("g-rev-chips-container");
-        if (!cont) return;
-        const db = window.GUARDIAN_INGREDIENTS_DB || [];
-        cont.innerHTML = guardianState.menu6_reverse.selectedIngIds.map((id, idx) => {
-            const ing = db.find(x => x.id === id);
-            const name = ing ? ing.name_ko : id;
-            return `
-                <div class="px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-300 text-purple-950 flex items-center space-x-1.5 text-xs font-bold shadow-sm">
-                    <span class="w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center">${idx + 1}위</span>
-                    <span>${name}</span>
-                    <button type="button" onclick="moveReverseChip(${idx}, -1)" class="text-slate-400 hover:text-purple-700 px-0.5" title="앞으로">◀</button>
-                    <button type="button" onclick="moveReverseChip(${idx}, 1)" class="text-slate-400 hover:text-purple-700 px-0.5" title="뒤로">▶</button>
-                    <button type="button" onclick="removeReverseChip(${idx})" class="text-rose-500 hover:text-rose-700 font-black pl-1">✕</button>
-                </div>
-            `;
-        }).join("");
-    }
-
-    // PAVA 단조 감소 투영 (P1 >= P2 >= ... >= Pn, 합 = 100%)
-    function projectDecreasingSimplex(weights) {
-        const n = weights.length;
-        if (n === 0) return [];
-        if (n === 1) return [100.0];
-        let blocks = weights.map(w => ({ sum: Math.max(0.2, w), count: 1 }));
-        let i = 0;
-        while (i < blocks.length - 1) {
-            const m1 = blocks[i].sum / blocks[i].count;
-            const m2 = blocks[i + 1].sum / blocks[i + 1].count;
-            if (m1 < m2) {
-                blocks[i].sum += blocks[i + 1].sum;
-                blocks[i].count += blocks[i + 1].count;
-                blocks.splice(i + 1, 1);
-                if (i > 0) i--;
-            } else {
-                i++;
-            }
-        }
-        const out = [];
-        blocks.forEach(b => {
-            const avg = b.sum / b.count;
-            for (let k = 0; k < b.count; k++) out.push(avg);
-        });
-        const s = out.reduce((a, b) => a + b, 0) || 1.0;
-        return out.map(v => (v / s) * 100.0);
     }
 
     window.runGuardianReverseTracing = function () {
-        const db = window.GUARDIAN_INGREDIENTS_DB || [];
-        const dryMetrics = calcDryFoodMetrics(guardianState.selectedDryFood);
-
-        // 1. 선택 원료 + Smart AI Imputation (칼슘/인/지방 부족분 자동 유추)
-        const workingList = guardianState.menu6_reverse.selectedIngIds.map(id => {
-            const ing = db.find(x => x.id === id) || db[0];
-            return { ...ing, isImputed: false };
-        });
-
-        const imputedNotes = [];
-        if (guardianState.menu6_reverse.enableImputation) {
-            // 원료들의 최대 DM 지방/칼슘/인 점검
-            let maxFatDM = 0, maxCaDM = 0, maxPDM = 0;
-            workingList.forEach(ing => {
-                const dmf = Math.max(0.05, (100 - (ing.moisture_g || 0)) / 100.0);
-                maxFatDM = Math.max(maxFatDM, (ing.fat_g || 0) / dmf);
-                maxCaDM = Math.max(maxCaDM, (ing.calcium_mg || 0) / dmf);
-                maxPDM = Math.max(maxPDM, (ing.phosphorus_mg || 0) / dmf);
-            });
-
-            if (dryMetrics.f_dm > maxFatDM * 0.75 && !workingList.some(x => x.id === "supp_salmon_oil")) {
-                const oil = db.find(x => x.id === "supp_salmon_oil");
-                if (oil) {
-                    workingList.push({ ...oil, name_ko: "동물성 정제유/어유 (AI 미표기 유추)", isImputed: true });
-                    imputedNotes.push("조지방 목표치 달성을 위해 [정제 동물성유/어유] 자동 유추 보완");
-                }
-            }
-            if (dryMetrics.phos_dm * 1000 > maxPDM * 0.85 && !workingList.some(x => x.id === "supp_dicalcium")) {
-                const dcp = db.find(x => x.id === "supp_dicalcium");
-                if (dcp) {
-                    workingList.push({ ...dcp, name_ko: "제2인산칼슘 (AI 미표기 미네랄 유추)", isImputed: true });
-                    imputedNotes.push("인(P)·칼슘 보증성분 충족을 위해 [제2인산칼슘] 자동 유추 보완");
-                }
-            }
-            if (dryMetrics.ca_dm * 1000 > maxCaDM * 0.85 && !workingList.some(x => x.id === "supp_eggshell")) {
-                const egg = db.find(x => x.id === "supp_eggshell");
-                if (egg) {
-                    workingList.push({ ...egg, name_ko: "탄산칼슘/난각칼슘 (AI 미표기 칼슘제 유추)", isImputed: true });
-                    imputedNotes.push("칼슘(Ca) 보증성분 충족을 위해 [탄산칼슘 보충제] 자동 유추 보완");
-                }
-            }
+        if (typeof window.Step6MultiMixController !== "undefined") {
+            isSyncingStep6 = true;
+            window.Step6MultiMixController.syncFromHostEnvironment();
+            window.Step6MultiMixController.recalculateAndRender();
+            isSyncingStep6 = false;
+            return window.Step6MultiMixController.getState().lastResult?.guardianStep6Payload;
         }
+        return null;
+    };
 
-        const n = workingList.length;
-        const ingDM = workingList.map(ing => {
-            const dmf = Math.max(0.05, (100.0 - (ing.moisture_g || 0)) / 100.0);
-            return {
-                p: (ing.protein_g || 0) / dmf,
-                f: (ing.fat_g || 0) / dmf,
-                fb: (ing.total_dietary_fiber_g || 0) / dmf,
-                ash: (ing.ash_g || 0) / dmf,
-                ca_pct: ((ing.calcium_mg || 0) / 1000.0) / dmf,
-                p_pct: ((ing.phosphorus_mg || 0) / 1000.0) / dmf
-            };
-        });
-
-        function evalLoss(P) {
-            let p = 0, f = 0, fb = 0, ash = 0, ca = 0, phos = 0;
-            for (let i = 0; i < n; i++) {
-                const w = P[i] / 100.0;
-                p += ingDM[i].p * w;
-                f += ingDM[i].f * w;
-                fb += ingDM[i].fb * w;
-                ash += ingDM[i].ash * w;
-                ca += ingDM[i].ca_pct * w;
-                phos += ingDM[i].p_pct * w;
-            }
-            let loss = 0;
-            loss += Math.pow((p - dryMetrics.p_dm) / Math.max(10, dryMetrics.p_dm), 2) * 25.0;
-            loss += Math.pow((f - dryMetrics.f_dm) / Math.max(5, dryMetrics.f_dm), 2) * 22.0;
-            loss += Math.pow((ca - dryMetrics.ca_dm) / Math.max(0.4, dryMetrics.ca_dm), 2) * 15.0;
-            loss += Math.pow((phos - dryMetrics.phos_dm) / Math.max(0.4, dryMetrics.phos_dm), 2) * 15.0;
-            loss += Math.pow((ash - dryMetrics.ash_dm) / Math.max(3, dryMetrics.ash_dm), 2) * 6.0;
-
-            // 보충제 과다 투입 억제
-            for (let i = 0; i < n; i++) {
-                if (workingList[i].isImputed && P[i] > 6.5) {
-                    loss += Math.pow(P[i] - 6.5, 2) * 5.0;
-                }
-            }
-            return { loss, p, f, fb, ash, ca, phos };
+    window.onStep6MultiMixUpdated = function (res) {
+        if (res && res.guardianStep6Payload) {
+            guardianState.menu6_reverse.lastResult = res.guardianStep6Payload;
         }
-
-        // 확정적 다중 시작 좌표 탐색 + 투영 최적화 (실행 시 일관된 최적해 보장)
-        let bestP = projectDecreasingSimplex(Array.from({ length: n }, (_, i) => Math.pow(0.68, i) * 100));
-        let bestEval = evalLoss(bestP);
-
-        const seeds = [0.55, 0.65, 0.75, 0.82, 0.90];
-        seeds.forEach(decay => {
-            let curP = projectDecreasingSimplex(Array.from({ length: n }, (_, i) => Math.pow(decay, i) * 100));
-            let curEval = evalLoss(curP);
-            for (let step = 0; step < 320; step++) {
-                const i1 = step % n;
-                const i2 = (step * 3 + 1) % n;
-                if (i1 === i2) continue;
-                const delta = 3.5 * (1.0 - step / 350.0);
-                for (const sign of [1, -1]) {
-                    const cand = curP.slice();
-                    cand[i1] += sign * delta;
-                    cand[i2] -= sign * delta;
-                    const proj = projectDecreasingSimplex(cand);
-                    const ev = evalLoss(proj);
-                    if (ev.loss < curEval.loss) {
-                        curP = proj;
-                        curEval = ev;
-                    }
-                }
-            }
-            if (curEval.loss < bestEval.loss) {
-                bestP = curP;
-                bestEval = curEval;
-            }
-        });
-
-        // 30대 영양소 건물(DM) 역추적 합산
-        const blendDM = {};
-        const nutrientKeys = [
-            "protein_g", "fat_g", "carbohydrate_g", "total_dietary_fiber_g", "ash_g",
-            "calcium_mg", "phosphorus_mg", "magnesium_mg", "potassium_mg", "sodium_mg",
-            "zinc_mg", "iron_mg", "copper_mg", "manganese_mg", "selenium_ug", "iodine_ug",
-            "vitamin_a_ug", "vitamin_d_ug", "vitamin_e_mg", "thiamin_mg", "riboflavin_mg",
-            "niacin_mg", "pantothenic_acid_mg", "vitamin_b6_mg", "folate_ug", "vitamin_b12_ug",
-            "omega3_g", "omega6_g"
-        ];
-        nutrientKeys.forEach(k => { blendDM[k] = 0; });
-
-        bestP.forEach((pct, i) => {
-            const ing = workingList[i];
-            const dmf = Math.max(0.05, (100.0 - (ing.moisture_g || 0)) / 100.0);
-            const w = pct / 100.0;
-            nutrientKeys.forEach(k => {
-                blendDM[k] += ((parseFloat(ing[k]) || 0) / dmf) * w;
-            });
-        });
-
-        // UI 렌더링: 1) AI Imputation 배너
-        const impBanner = document.getElementById("g-rev-imputation-banner");
-        if (impBanner) {
-            if (imputedNotes.length > 0) {
-                impBanner.classList.remove("hidden");
-                impBanner.innerHTML = `💡 <strong>Smart AI Imputation 작동:</strong> ${imputedNotes.join(" · ")}`;
-            } else {
-                impBanner.classList.add("hidden");
-            }
-        }
-
-        // 2) 원재료 배합비 표
-        const ratiosTbody = document.getElementById("g-rev-ratios-tbody");
-        if (ratiosTbody) {
-            ratiosTbody.innerHTML = workingList.map((ing, i) => {
-                const ratio = bestP[i];
-                const dmf = Math.max(0.05, (100.0 - (ing.moisture_g || 0)) / 100.0);
-                const kcalDM = ((ing.energy_kcal || 100) / dmf) * (ratio / 100.0);
-                return `
-                    <tr class="${ing.isImputed ? 'bg-amber-50/60' : ''}">
-                        <td class="py-1.5 px-2.5 font-black text-slate-700">${i + 1}위</td>
-                        <td class="py-1.5 px-2.5 font-bold text-slate-900">${ing.name_ko}</td>
-                        <td class="py-1.5 px-2.5">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${ing.isImputed ? 'bg-amber-200 text-amber-900' : 'bg-purple-100 text-purple-800'}">
-                                ${ing.isImputed ? 'AI 미표기 유추' : ing.category}
-                            </span>
-                        </td>
-                        <td class="py-1.5 px-2.5 text-right font-black text-purple-800">${ratio.toFixed(1)} %</td>
-                        <td class="py-1.5 px-2.5 text-right text-slate-600">${Math.round(kcalDM)} kcal/100g</td>
-                    </tr>
-                `;
-            }).join("");
-        }
-
-        // 3) 보증성분 적합도 검증 표
-        const fitTbody = document.getElementById("g-rev-fit-tbody");
-        if (fitTbody) {
-            const rows = [
-                { name: "조단백질 (% DM)", target: dryMetrics.p_dm, val: bestEval.p },
-                { name: "조지방 (% DM)", target: dryMetrics.f_dm, val: bestEval.f },
-                { name: "칼슘 Ca (% DM)", target: dryMetrics.ca_dm, val: bestEval.ca },
-                { name: "인 P (% DM)", target: dryMetrics.phos_dm, val: bestEval.phos },
-                { name: "조회분 (% DM)", target: dryMetrics.ash_dm, val: bestEval.ash }
-            ];
-            fitTbody.innerHTML = rows.map(r => {
-                const errPct = r.target > 0 ? Math.abs(r.val - r.target) / r.target : 0;
-                const ok = errPct <= 0.12;
-                return `
-                    <tr>
-                        <td class="py-1.5 px-2.5 font-bold text-slate-800">${r.name}</td>
-                        <td class="py-1.5 px-2.5 text-right font-semibold">${r.target.toFixed(2)} %</td>
-                        <td class="py-1.5 px-2.5 text-right font-black text-purple-700">${r.val.toFixed(2)} %</td>
-                        <td class="py-1.5 px-2.5 text-center">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${ok ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                                ${ok ? '✅ 고정밀 일치' : '🟡 근사 수렴'}
-                            </span>
-                        </td>
-                    </tr>
-                `;
-            }).join("");
-        }
-
-        // 4) 28대 영양소 신뢰도 & 예상 범위 표
-        const REV_NUTRIENT_SPECS = [
-            { key: 'protein_g', label: '조단백질', unit: '% DM', category: '다량영양소', min_aafco_1000kcal: 45.0, unit_aafco: 'g', baseConfidence: 92, defaultTolPct: 8 },
-            { key: 'fat_g', label: '조지방', unit: '% DM', category: '다량영양소', min_aafco_1000kcal: 13.8, unit_aafco: 'g', baseConfidence: 90, defaultTolPct: 9 },
-            { key: 'carbohydrate_g', label: '탄수화물 (NFE)', unit: '% DM', category: '다량영양소', baseConfidence: 88, defaultTolPct: 10 },
-            { key: 'total_dietary_fiber_g', label: '식이섬유 (조섬유)', unit: '% DM', category: '다량영양소', baseConfidence: 82, defaultTolPct: 14 },
-            { key: 'ash_g', label: '조회분', unit: '% DM', category: '다량영양소', baseConfidence: 84, defaultTolPct: 12 },
-            { key: 'calcium_mg', label: '칼슘 (Ca)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.25, unit_aafco: 'g', baseConfidence: 86, defaultTolPct: 13 },
-            { key: 'phosphorus_mg', label: '인 (P)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.00, unit_aafco: 'g', baseConfidence: 86, defaultTolPct: 13 },
-            { key: 'magnesium_mg', label: '마그네슘 (Mg)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 0.15, unit_aafco: 'g', baseConfidence: 78, defaultTolPct: 16 },
-            { key: 'potassium_mg', label: '칼륨 (K)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.50, unit_aafco: 'g', baseConfidence: 80, defaultTolPct: 15 },
-            { key: 'sodium_mg', label: '나트륨 (Na)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 0.20, unit_aafco: 'g', baseConfidence: 76, defaultTolPct: 18 },
-            { key: 'iron_mg', label: '철분 (Fe)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 10.0, unit_aafco: 'mg', baseConfidence: 74, defaultTolPct: 20 },
-            { key: 'zinc_mg', label: '아연 (Zn)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 20.0, unit_aafco: 'mg', baseConfidence: 75, defaultTolPct: 18 },
-            { key: 'copper_mg', label: '구리 (Cu)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.83, unit_aafco: 'mg', baseConfidence: 72, defaultTolPct: 21 },
-            { key: 'manganese_mg', label: '망간 (Mn)', unit: 'mg/100g DM', category: '미네랄', min_aafco_1000kcal: 1.25, unit_aafco: 'mg', baseConfidence: 70, defaultTolPct: 22 },
-            { key: 'selenium_ug', label: '셀레늄 (Se)', unit: 'μg/100g DM', category: '미네랄', min_aafco_1000kcal: 80.0, unit_aafco: 'μg', baseConfidence: 68, defaultTolPct: 24 },
-            { key: 'iodine_ug', label: '요오드 (I)', unit: 'μg/100g DM', category: '미네랄', min_aafco_1000kcal: 250.0, unit_aafco: 'μg', baseConfidence: 65, defaultTolPct: 26 },
-            { key: 'vitamin_a_ug', label: '비타민 A', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 375.0, unit_aafco: 'μg', baseConfidence: 70, defaultTolPct: 24 },
-            { key: 'vitamin_d_ug', label: '비타민 D', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 3.13, unit_aafco: 'μg', baseConfidence: 68, defaultTolPct: 25 },
-            { key: 'vitamin_e_mg', label: '비타민 E', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 12.5, unit_aafco: 'IU', baseConfidence: 74, defaultTolPct: 20 },
-            { key: 'thiamin_mg', label: '비타민 B1 (티아민)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 0.56, unit_aafco: 'mg', baseConfidence: 76, defaultTolPct: 18 },
-            { key: 'riboflavin_mg', label: '비타민 B2 (리보플라빈)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 1.30, unit_aafco: 'mg', baseConfidence: 75, defaultTolPct: 18 },
-            { key: 'niacin_mg', label: '비타민 B3 (나이아신)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 3.40, unit_aafco: 'mg', baseConfidence: 76, defaultTolPct: 17 },
-            { key: 'pantothenic_acid_mg', label: '비타민 B5 (판토텐산)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 3.00, unit_aafco: 'mg', baseConfidence: 73, defaultTolPct: 19 },
-            { key: 'vitamin_b6_mg', label: '비타민 B6 (피리독신)', unit: 'mg/100g DM', category: '비타민', min_aafco_1000kcal: 0.38, unit_aafco: 'mg', baseConfidence: 74, defaultTolPct: 18 },
-            { key: 'folate_ug', label: '엽산 (B9)', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 54.0, unit_aafco: 'μg', baseConfidence: 68, defaultTolPct: 22 },
-            { key: 'vitamin_b12_ug', label: '비타민 B12', unit: 'μg/100g DM', category: '비타민', min_aafco_1000kcal: 7.0, unit_aafco: 'μg', baseConfidence: 67, defaultTolPct: 24 },
-            { key: 'omega3_g', label: '오메가-3 지방산', unit: 'g/100g DM', category: '지방산', min_aafco_1000kcal: 0.11, unit_aafco: 'g', baseConfidence: 80, defaultTolPct: 16 },
-            { key: 'omega6_g', label: '오메가-6 지방산', unit: 'g/100g DM', category: '지방산', min_aafco_1000kcal: 2.80, unit_aafco: 'g', baseConfidence: 82, defaultTolPct: 15 }
-        ];
-        const confTbody = document.getElementById("g-rev-confidence-tbody");
-        if (confTbody) {
-            const fitScore = Math.max(60, Math.min(98, Math.round(96 - bestEval.loss * 80)));
-            confTbody.innerHTML = REV_NUTRIENT_SPECS.map(spec => {
-                const val = blendDM[spec.key] || 0;
-                const conf = Math.min(96, Math.max(58, Math.round(spec.baseConfidence * 0.55 + fitScore * 0.45)));
-                const tol = spec.defaultTolPct * (1 + (100 - conf) / 120);
-                const rMin = Math.max(0, val * (1 - tol / 100));
-                const rMax = val * (1 + tol / 100);
-                const badgeCls = conf >= 85 ? "bg-emerald-100 text-emerald-800" : (conf >= 72 ? "bg-amber-100 text-amber-800" : "bg-rose-100 text-rose-800");
-                return `
-                    <tr class="hover:bg-slate-50">
-                        <td class="py-1.5 px-2.5 font-bold text-slate-800">${spec.label}</td>
-                        <td class="py-1.5 px-2.5 text-slate-500">${spec.category.toUpperCase()}</td>
-                        <td class="py-1.5 px-2.5 text-right font-black text-purple-800">${val.toFixed(2)} ${spec.unit}</td>
-                        <td class="py-1.5 px-2.5 text-right font-mono text-slate-500">${rMin.toFixed(2)} ~ ${rMax.toFixed(2)}</td>
-                        <td class="py-1.5 px-2.5 text-center"><span class="px-2 py-0.5 rounded-full font-black ${badgeCls}">${conf}%</span></td>
-                        <td class="py-1.5 px-2.5 text-center text-slate-600">${spec.min_aafco_1000kcal ? `권장 ≥ ${spec.min_aafco_1000kcal} ${spec.unit_aafco || ''}` : '참고치'}</td>
-                    </tr>
-                `;
-            }).join("");
+        if (!isSyncingStep6 && guardianState.initialized) {
+            refreshAllGuardianCalculations(true);
         }
     };
 
     // =========================================================================
     // 11. 전체 계산 통합 갱신 및 [Step 4] 신호등·게이지·스케줄표 렌더링
     // =========================================================================
-    function refreshAllGuardianCalculations() {
+    function refreshAllGuardianCalculations(skipStep6Sync) {
         const energy = computeGuardianEnergy();
+        if (!skipStep6Sync && typeof window.Step6MultiMixController !== "undefined" && guardianState.initialized) {
+            isSyncingStep6 = true;
+            window.Step6MultiMixController.syncFromHostEnvironment();
+            if (guardianState.activeMenu === 6) {
+                window.Step6MultiMixController.recalculateAndRender();
+            }
+            isSyncingStep6 = false;
+        }
         const dryMetrics = calcDryFoodMetrics(guardianState.selectedDryFood);
         const aafco = getAafcoStandardForProfile();
 
@@ -3296,8 +3175,26 @@
             mixCa_dm = diyStats.sumDM.calcium_mg / 1000.0;
             mixPhos_dm = diyStats.sumDM.phosphorus_mg / 1000.0;
             waterFromFoodMl = Math.round(mainGrams * (diyStats.sumAF.moisture_g / 100.0));
+        } else if (guardianState.activeMenu === 6 && typeof window.Step6MultiMixController !== "undefined" && window.Step6MultiMixController.getState().lastResult?.guardianStep6Payload) {
+            const p6 = window.Step6MultiMixController.getState().lastResult.guardianStep6Payload;
+            menuBadgeText = `메뉴 6: ${p6.activeFeedCount}종 역추적 & 믹스피딩 (${p6.calorieRatiosPct.join(" : ")}%)`;
+            const s0 = p6.slotSchedules[0] || {};
+            const restSlots = p6.slotSchedules.slice(1);
+            mainLabel = `사료 A: ${(s0.name || "사료 A").replace(/\[.*?\]\s*/, "")}`;
+            subLabel = restSlots.map(s => `사료 ${s.slotId}: ${(s.name || "").replace(/\[.*?\]\s*/, "")}`).join(" + ") || "보조 배합 사료";
+            mainKcal = s0.dailyKcal || 0;
+            subKcal = restSlots.reduce((acc, s) => acc + (s.dailyKcal || 0), 0);
+            mainGrams = s0.dailyGramsAF || 0;
+            subGrams = +(restSlots.reduce((acc, s) => acc + (s.dailyGramsAF || 0), 0)).toFixed(1);
+            mixP_dm = p6.blendedNutrientsDM.protein_pct || dryMetrics.p_dm;
+            mixF_dm = p6.blendedNutrientsDM.fat_pct || dryMetrics.f_dm;
+            mixFb_dm = p6.blendedNutrientsDM.crude_fiber_pct || dryMetrics.fb_dm || 2.5;
+            mixNfe_dm = p6.blendedNutrientsDM.carbs_pct || dryMetrics.nfe_dm;
+            mixCa_dm = (p6.blendedNutrientsDM.calcium_mg || 1000) / 1000.0;
+            mixPhos_dm = (p6.blendedNutrientsDM.phosphorus_mg || 800) / 1000.0;
+            waterFromFoodMl = p6.waterBalance?.fromFoodMl || 0;
         } else {
-            // 메뉴 4 또는 메뉴 6일 때는 주식 사료 + 토핑 기준
+            // 메뉴 4일 때는 주식 사료 + 토핑 기준
             menuBadgeText = guardianState.activeMenu === 4 ? "메뉴 4: 주식 건식 + 10% 안전 토핑" : "메뉴 6: 역추적 사료 급여 가이드";
             mainKcal = Math.max(0, energy.der - toppingSum.totalKcal);
             subKcal = 0;
@@ -4172,22 +4069,11 @@
                     recipeItems: guardianState.menu5_diy.items
                 }
             },
-            schema_reverse: {
-                imputationEnabled: guardianState.menu6_reverse.enableImputation,
-                selectedIngredientsOrderCount: guardianState.menu6_reverse.selectedIngIds.length,
-                lastReverseTracingResult: guardianState.menu6_reverse.lastResult
-                    ? {
-                        weightsPct: guardianState.menu6_reverse.lastResult.items.map((it, idx) => ({
-                            rank: idx + 1,
-                            name_ko: it.name_ko,
-                            estimatedWeightPct: Math.round(guardianState.menu6_reverse.lastResult.weights[idx] * 10) / 10
-                        })),
-                        estProteinDm: guardianState.menu6_reverse.lastResult.estP_dm,
-                        estFatDm: guardianState.menu6_reverse.lastResult.estF_dm,
-                        estCarbDm: guardianState.menu6_reverse.lastResult.estNfe_dm
-                    }
-                    : "역추적 메뉴 실행 시 PAVA 수렴 배합비 자동 기록"
-            },
+            schema_reverse: (typeof window.Step6MultiMixController !== "undefined" && window.Step6MultiMixController.getState().lastResult?.guardianStep6Payload)
+                ? window.Step6MultiMixController.getState().lastResult.guardianStep6Payload
+                : {
+                    note: "Step 3 메뉴 6 (1~4단계 역추적 & 2·3종 믹스피딩) 실행 결과 연동 대기"
+                },
             schema_fecal_cdss: {
                 guardianFecalKitInput: { ...fk },
                 gutEnvironmentScore100: gutScore,
