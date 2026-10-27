@@ -341,7 +341,7 @@
 
     function computeGuardianEnergy() {
         if (isGuardianConsultVet()) {
-            guardianState.energy = { rer: 0, der: 0, idealWeightKg: 0, factor: 0, maxTreatKcal: 0, perMealKcal: 0, consultVet: true, fecalNote: "???? ?????." };
+            guardianState.energy = { rer: 0, der: 0, idealWeightKg: 0, factor: 0, maxTreatKcal: 0, perMealKcal: 0, consultVet: true, fecalNote: "수의사와 상담하세요." };
             return guardianState.energy;
         }
         const p = guardianState.profile;
@@ -3019,30 +3019,30 @@
                     if (grid) {
                         b = document.createElement("div");
                         b.id = "g-consult-banner";
-                        b.className = "p-4 rounded-2xl bg-rose-600 text-white text-center text-lg font-black shadow-lg";
+                        b.className = "mt-3 p-4 rounded-2xl bg-rose-600 text-white text-center text-lg font-black shadow-lg";
                         grid.insertAdjacentElement("afterend", b);
                     }
                 }
-                if (b) b.innerHTML = "?? ???? ?????.<div class='text-xs font-bold mt-1'>?? ?? ??? ???? ??????DER???????????? ??? ???? ????.</div>";
+                if (b) b.innerHTML = "🩺 수의사와 상담하세요.<div class='text-xs font-bold mt-1'>관리 중인 질환이 선택되어 기초대사량·DER·급여량·간식·이상체중 계산을 제공하지 않습니다.</div>";
             } else if (b) {
                 b.remove();
             }
         })();
         if (energy.consultVet) {
-            const MSG = "???? ?????.";
+            const MSG = "수의사와 상담하세요.";
             const st = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
             ["g-out-rer","g-out-der","g-out-permeal","g-out-maxtreat","g-out-idealw"].forEach(id => st(id, 0));
             st("g-out-factor", 0);
             st("g-out-bcs-comment", MSG);
-            st("g-dash-target-der", "0 kcal/?");
+            st("g-dash-target-der", "0 kcal/일");
             st("g-dash-cal-breakdown", MSG);
             st("g-dash-active-menu-badge", MSG);
             const fb = document.getElementById("g-out-fecal-banner");
-            if (fb && fb.firstElementChild) fb.firstElementChild.innerHTML = "?? <strong>" + MSG + "</strong> ???? ??? ?? ????????? ??? ???? ????.";
-            const box = '<div class="col-span-full p-4 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-800 font-black text-sm">?? ' + MSG + ' (DER/MER???????/?? 0)</div>';
+            if (fb && fb.firstElementChild) fb.firstElementChild.innerHTML = "🩺 <strong>" + MSG + "</strong> 선택하신 질환은 맞춤 칼로리·사료·간식 계산을 제공하지 않습니다.";
+            const box = '<div class="col-span-full p-4 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-800 font-black text-sm">🩺 ' + MSG + ' (DER/MER·급여량·간식/토핑 0)</div>';
             ["g-dash-schedule-cards","g-dash-traffic-lights","g-dash-water-advice","g-m4-gauge-banner","g-m1-summary-box","g-m2-summary-box"].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = box; });
             const gb = document.getElementById("g-dash-gauge-bar"); if (gb) gb.style.width = "0%";
-            const gs = document.getElementById("g-dash-gauge-status"); if (gs) gs.innerText = "?? " + MSG;
+            const gs = document.getElementById("g-dash-gauge-status"); if (gs) gs.innerText = "🩺 " + MSG;
             return;
         }
         if (!skipStep6Sync && typeof window.Step6MultiMixController !== "undefined" && guardianState.initialized) {
