@@ -846,6 +846,24 @@
                     </div>
                 </div>
 
+                <!-- 급여량 증량 판단용 급성 소화기 증상 체크 -->
+                <div class="mt-6 pt-6 border-t border-slate-100 bg-rose-50/50 p-4 rounded-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-2 text-xs font-bold text-rose-900">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                            <span>급성 소화기 증상 / 급여 곤란 (급여량 증량 판단 알고리즘 Q1)</span>
+                        </div>
+                        <span class="text-[11px] text-rose-600 font-medium">하나라도 체크 시 급여량 증량 금지</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <label class="cursor-pointer"><input type="checkbox" name="acute-sx" value="구토" onchange="runRecommendation(false)" class="hidden peer"><span class="inline-block px-3 py-1.5 rounded-lg border border-slate-200 bg-white peer-checked:bg-rose-100 peer-checked:border-rose-500 peer-checked:text-rose-700 font-bold transition">🤮 구토</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="acute-sx" value="급성 설사" onchange="runRecommendation(false)" class="hidden peer"><span class="inline-block px-3 py-1.5 rounded-lg border border-slate-200 bg-white peer-checked:bg-rose-100 peer-checked:border-rose-500 peer-checked:text-rose-700 font-bold transition">💧 급성 설사</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="acute-sx" value="복통" onchange="runRecommendation(false)" class="hidden peer"><span class="inline-block px-3 py-1.5 rounded-lg border border-slate-200 bg-white peer-checked:bg-rose-100 peer-checked:border-rose-500 peer-checked:text-rose-700 font-bold transition">😣 복통</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="acute-sx" value="삼킴장애" onchange="runRecommendation(false)" class="hidden peer"><span class="inline-block px-3 py-1.5 rounded-lg border border-slate-200 bg-white peer-checked:bg-rose-100 peer-checked:border-rose-500 peer-checked:text-rose-700 font-bold transition">🫗 삼킴장애</span></label>
+                        <label class="cursor-pointer"><input type="checkbox" name="acute-sx" value="위운동장애/거대식도증" onchange="runRecommendation(false)" class="hidden peer"><span class="inline-block px-3 py-1.5 rounded-lg border border-slate-200 bg-white peer-checked:bg-amber-100 peer-checked:border-amber-500 peer-checked:text-amber-800 font-bold transition">🌀 위운동장애 / 거대식도증</span></label>
+                    </div>
+                </div>
+
                 <!-- 장벽 초음파 영상 소견 입력 -->
                 <div class="mt-6 pt-6 border-t border-slate-100 bg-indigo-50/40 p-4 rounded-xl">
                     <div class="flex items-center justify-between mb-3">
@@ -1708,6 +1726,18 @@
                         <div class="text-[11px] text-amber-200 mt-0.5">총 1일 급여량: <span id="summary-total-g" class="font-bold">0</span> g/day</div>
                     </div>
                 </div>
+            </div>
+
+            <!-- 급여량 증량 판단 5단계 결정 알고리즘 -->
+            <div id="feeding-increase-algo-card" class="bg-white rounded-2xl p-6 shadow-sm border-2 border-indigo-200 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-2.5 h-6 bg-indigo-600 rounded-full"></span>
+                        <h2 class="text-lg font-bold text-slate-800">질병 환자 급여량 증량 판단 알고리즘 (5-Step Decision Algorithm)</h2>
+                    </div>
+                    <span id="fia-verdict-badge" class="px-3 py-1 rounded-full text-xs font-black bg-slate-200 text-slate-700">판정 대기</span>
+                </div>
+                <div id="fia-body" class="space-y-3 text-xs"></div>
             </div>
 
             <!-- Clinical Conflict Notes Box -->
@@ -6277,6 +6307,144 @@
         });
     </script>
     <script src="static/guardian_data.js"></script>
-    <script src="static/guardian_portal.js"></script>
+    <script>
+/* 급여량 증량 판단 5단계 결정 알고리즘 (소화·흡수율 저하 환자의 안전한 칼로리 증량 판정) */
+(function () {
+    function fiaDiseases() {
+        var a = [];
+        document.querySelectorAll('input[name="disease"]:checked').forEach(function (el) { a.push(el.value); });
+        return a.join(' ');
+    }
+    function fiaSymptoms() {
+        var a = [];
+        document.querySelectorAll('input[name="acute-sx"]:checked').forEach(function (el) { a.push(el.value); });
+        return a;
+    }
+    function row(step, title, cls, html) {
+        return '<div class="p-3 rounded-xl border ' + cls + '"><div class="font-black mb-1">' + step + ' · ' + title + '</div><div class="leading-relaxed">' + html + '</div></div>';
+    }
+    window.renderFeedingIncreaseAlgorithm = function () {
+        var body = document.getElementById('fia-body');
+        var badge = document.getElementById('fia-verdict-badge');
+        if (!body || !badge) return;
+
+        var bcs = parseInt((document.getElementById('patient-bcs') || {}).value) || 5;
+        var mcsEl = document.querySelector('input[name="mcs"]:checked');
+        var mcs = mcsEl ? mcsEl.value : '';
+        var fecal = parseFloat((document.getElementById('patient-fecal') || {}).value) || 3.5;
+        var dis = fiaDiseases();
+        var sx = fiaSymptoms();
+        var der = (typeof currentBaseDerKcal === 'number' && currentBaseDerKcal > 0) ? currentBaseDerKcal : 0;
+
+        // [Q1] 급성 소화기 증상
+        var acute = sx.filter(function (s) { return s !== '위운동장애/거대식도증'; });
+        if (fecal >= 6.0) acute.push('수양성 설사(분변 스코어 ≥6)');
+        var isAcute = acute.length > 0;
+
+        // [Q2] 1회 부피 증량이 위험한 질환
+        var volRisk = [];
+        if (dis.indexOf('간') >= 0 && dis.indexOf('간지질증') < 0) volRisk.push('간질환/PSS (대장 암모니아 급증)');
+        if (dis.indexOf('췌장') >= 0 || dis.indexOf('3복강염') >= 0) volRisk.push('췌장염/PLE (췌장효소 과분비·지방 부하)');
+        if (sx.indexOf('위운동장애/거대식도증') >= 0) volRisk.push('위운동장애/거대식도증 (위 배출 지연·흡인성 폐렴)');
+
+        // [Q3] 체중·근육 감소
+        var cachexiaDz = /심장|신부전|종양|림프종|갑상선기능항진|FIP|복막염|간지질증/.test(dis);
+        var mcsLoss = /중등도|중증/.test(mcs);
+        var needMore = (bcs <= 3) || (bcs < 4) || (mcsLoss && cachexiaDz);
+
+        var html = '';
+        var verdict, vcls;
+
+        // STEP 1
+        var s1cls = needMore ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-emerald-50 border-emerald-300 text-emerald-900';
+        html += row('STEP 1', '체조건 평가 (BCS / MCS)', s1cls,
+            'BCS <strong>' + bcs + '/9</strong>, 근육 상태 <strong>' + (mcs || '-') + '</strong> → ' +
+            (needMore ? '<strong>체중/근육 감소 (증량 고려 대상)</strong>' + (bcs >= 4 ? ' · 근감소 + 악액질 위험 질환' : '') : '<strong>체중 정상/비만 → 증량 금지, 기존 제한식 유지</strong>'));
+
+        // STEP 2
+        var s2cls, s2html;
+        if (isAcute) {
+            s2cls = 'bg-rose-50 border-rose-400 text-rose-900';
+            s2html = '급성 증상 감지: <strong>' + acute.join(', ') + '</strong><br>🛑 <strong>급여량 증량 절대 금지.</strong> 수의사 지시하에 12~24시간 단식 후 소량의 저지방·고소화성 식단으로 재개 (하루 6~8회 아주 적은 양부터).';
+        } else if (volRisk.length) {
+            s2cls = 'bg-amber-50 border-amber-400 text-amber-900';
+            s2html = '🔴 고위험군: <strong>' + volRisk.join(' / ') + '</strong><br>⚠️ <strong>1회 식사 부피(Volume) 증량 금지.</strong> 총 칼로리는 식사 횟수 분산 + 소화율 향상 + 고소화성·저지방 처방식 전환/소화효소 병행으로만 보충.';
+        } else {
+            s2cls = 'bg-emerald-50 border-emerald-300 text-emerald-900';
+            s2html = '🟡 관리 가능군: 급성 소화기 증상 없음, 부피 증량 고위험 질환 없음.' + (cachexiaDz ? ' 만성 신장병·심장병 등은 근손실 방지가 생존율에 직결되므로 에너지 밀도 높은 처방식 기반 증량을 우선 고려.' : '');
+        }
+        html += row('STEP 2', '장기 과부하 위험성 평가 (Organ Safety Check)', s2cls, s2html);
+
+        // STEP 3
+        var ceil = [];
+        if (/심장|고혈압/.test(dis)) ceil.push('나트륨: 0.20~0.32% DM (40~70 mg/100kcal) 이내');
+        if (/신부전/.test(dis)) ceil.push('인(P): 엄격 제한 (&lt;0.8 g/1000kcal), 단백질 단계별 조절');
+        if (/췌장|3복강염|담낭|쿠싱/.test(dis)) ceil.push('지방: &lt;10~15% DM (췌장염 &lt;25 g/1000kcal)');
+        if (/간/.test(dis)) ceil.push('구리(Cu): &lt;1.2 mg/1000kcal');
+        var s3html = ceil.length
+            ? '증량 후 하루 총 섭취량이 최대 허용 한계(MTL)를 넘지 않는지 확인:<ul class="list-disc pl-5 mt-1"><li>' + ceil.join('</li><li>') + '</li></ul>상한선 초과 시 사료량 증량 불가 → 식욕촉진제(Mirtazapine)·항구토제(Maropitant) 처방 또는 수분·에너지 밀도 높은 습식 제형으로 대체.'
+            : '선택된 질환에 해당하는 제한영양소(Na·P·지방·Cu) 상한 없음 → 일반 에너지 밀도 기준으로 증량 가능.';
+        html += row('STEP 3', '제한영양소 하루 총량 확인 (Nutrient Ceiling Check)', 'bg-slate-50 border-slate-200 text-slate-800', s3html);
+
+        // STEP 4
+        var meals = isAcute ? '6~8' : (volRisk.length ? '4~8' : '4~6');
+        var s4html = '<strong>1회 급여량은 고정(또는 감량), 하루 ' + meals + '회 소분 급여 (Split Feeding)</strong><ul class="list-disc pl-5 mt-1"><li>소화율 극대화: 탄수화물은 충분히 익혀 급여, 고소화성 식재료/처방식 사용</li><li>음식을 체온 정도로 따뜻하게 데워 향을 강화, 건사료+습식 혼합으로 기피 완화</li>' +
+            (volRisk.length ? '<li>위운동장애/거대식도증: 액상·죽 형태로 분산 급여</li>' : '') + '</ul>';
+        html += row('STEP 4', '급여 방식 최적화 (Feeding Protocol)', 'bg-sky-50 border-sky-200 text-sky-900', s4html);
+
+        // 최종 판정
+        var plan = '';
+        if (isAcute) {
+            verdict = '🛑 증량 금지 (급성 증상)'; vcls = 'bg-rose-600 text-white';
+        } else if (!needMore) {
+            verdict = '⛔ 증량 불필요 (기존 유지)'; vcls = 'bg-emerald-600 text-white';
+        } else if (volRisk.length) {
+            verdict = '⚠️ 횟수 분산으로만 증량 (부피 증량 금지)'; vcls = 'bg-amber-500 text-slate-950';
+        } else {
+            verdict = '✅ 증량 승인 (점증)'; vcls = 'bg-indigo-600 text-white';
+        }
+        if (!isAcute && needMore && der > 0) {
+            var m = meals === '4~6' ? 5 : 6;
+            var up10 = Math.round(der * 1.1), up20 = Math.round(der * 1.2);
+            plan = '<div class="mt-1">현재 기준 DER <strong>' + der + ' kcal/일</strong> → 1단계 <strong>+10% = ' + up10 + ' kcal</strong> (최대 +20% = ' + up20 + ' kcal) → 하루 ' + m + '회 기준 1회 약 <strong>' + Math.round(up10 / m) + ' kcal</strong></div>';
+        }
+        // STEP 5
+        var s5html = (isAcute ? '증상 안정 전까지 증량 계획 보류. 안정 후 ' : '') + '기존 급여량의 <strong>10~20% 단위</strong>로 미세 점증 → <strong>1~2주 모니터링</strong>' + plan +
+            '<ul class="list-disc pl-5 mt-1"><li>대변 상태: 삼투성 설사·연변 발생 여부</li><li>오심/구토: 식욕부진·침 흘림</li><li>체중/근육량: BCS·MCS 회복 추이</li><li>혈액 지표: BUN/Cr/P, Lipase 등 재검사</li></ul>';
+        html += row('STEP 5', '미세 점증 및 모니터링 (Titration & Monitoring)', 'bg-indigo-50 border-indigo-200 text-indigo-900', s5html);
+
+        badge.className = 'px-3 py-1 rounded-full text-xs font-black ' + vcls;
+        badge.textContent = verdict;
+        body.innerHTML = '<div class="p-3 rounded-xl ' + vcls + ' font-black text-sm">최종 판정: ' + verdict + '</div>' + html +
+            '<div class="text-[11px] text-slate-500">※ 소화·흡수율이 떨어진 환자에게 1회 부피를 늘리면 삼투성 설사와 대장 내 암모니아·지방산 변성물 생성으로 악화될 수 있습니다. 증량은 "1회량"이 아닌 "횟수·소화율·에너지 밀도"로 달성하며, 최종 판단은 담당 수의사가 합니다.</div>';
+    };
+
+    function wrap() {
+        if (typeof window.runRecommendation === 'function' && !window.runRecommendation.__fiaWrapped) {
+            var orig = window.runRecommendation;
+            var w = function () {
+                var r = orig.apply(this, arguments);
+                try { window.renderFeedingIncreaseAlgorithm(); } catch (e) { console.error(e); }
+                return r;
+            };
+            w.__fiaWrapped = true;
+            window.runRecommendation = w;
+        }
+    }
+    wrap();
+    document.addEventListener('change', function (e) {
+        if (e.target && (e.target.name === 'mcs' || e.target.name === 'acute-sx' || e.target.id === 'patient-bcs' || e.target.id === 'patient-fecal')) {
+            try { window.renderFeedingIncreaseAlgorithm(); } catch (err) {}
+        }
+    });
+    document.addEventListener('input', function (e) {
+        if (e.target && (e.target.id === 'patient-bcs' || e.target.id === 'patient-fecal')) {
+            try { window.renderFeedingIncreaseAlgorithm(); } catch (err) {}
+        }
+    });
+    setTimeout(function () { wrap(); try { window.renderFeedingIncreaseAlgorithm(); } catch (e) {} }, 600);
+})();
+</script>
+<script src="static/guardian_portal.js"></script>
 </body>
 </html>
