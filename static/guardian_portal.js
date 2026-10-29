@@ -638,10 +638,14 @@
         if (gRoot) gRoot.classList.add("hidden");
         syncSwitcherRoleVisibility();
 
-        setVetElementsVisibility(true);
-        if (typeof window.syncStickyTopBars === "function") {
-            window.syncStickyTopBars();
-            setTimeout(window.syncStickyTopBars, 50);
+        setVetElementsVisibility(true);
+
+        if (typeof window.syncStickyTopBars === "function") {
+
+            window.syncStickyTopBars();
+
+            setTimeout(window.syncStickyTopBars, 50);
+
         }
 
         const ind = document.getElementById("current-portal-indicator");
@@ -710,6 +714,9 @@
             syncReverseIngredientsFromDryFood();
             refreshAllGuardianCalculations();
         }
+        if (window.guardianAuthModule && typeof window.guardianAuthModule.updateAuthUI === "function") {
+            window.guardianAuthModule.updateAuthUI();
+        }
     };
 
     // =========================================================================
@@ -733,6 +740,7 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <div id="guardian-auth-header-slot"></div>
                         <button type="button" onclick="sendGuardianDataToVetCdss()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 font-black shadow-md flex items-center space-x-1.5 transition">
                             <i class="fa-solid fa-stethoscope text-emerald-600"></i>
                             <span>이 결과를 수의사용 정밀 CDSS로 연동하기 ➔</span>
@@ -1813,6 +1821,8 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- 카카오 로그인 & 반려동물 프로필 급여표 저장 CTA 슬롯 -->
+                        <div id="guardian-auth-save-cta-slot" class="pt-4"></div>
                     </div>
                 </section>
 
