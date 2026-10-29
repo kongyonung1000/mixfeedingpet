@@ -429,8 +429,9 @@
         if (shield && !document.getElementById("dual-portal-role-cards")) {
             const innerCard = shield.firstElementChild;
             if (innerCard) {
-                innerCard.style.maxWidth = "880px";
-                innerCard.style.padding = "32px";
+                innerCard.style.maxWidth = "960px";
+                innerCard.className = (innerCard.className || "") + " p-4 sm:p-7 md:p-8";
+                innerCard.style.padding = ""; // 클래스(p-4 sm:p-7 md:p-8)로 반응형 여백 제어
 
                 const existingContent = innerCard.innerHTML;
                 innerCard.innerHTML = `
@@ -448,69 +449,105 @@
                             "이만큼 주는 게 맞나?" 매일 하던 고민, 우리 아이 몸에 딱 맞는 한 끼로 끝내세요.
                         </p>
 
-                        <!-- 보호자용 60% : 수의사용 40% 비중 레이아웃 (모바일에서도 시원하고 명확하게 확대) -->
-                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-6 text-left items-stretch">
+                        <!-- 보호자용 60% : 수의사용 40% 비중 레이아웃 (충분한 내부/외부 여백 및 모바일 가독성 최적화) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-6 text-left items-stretch my-2">
                             <!-- [Frontend A] 보호자용 메인 카드 (약 60%) -->
-                            <div onclick="enterGuardianPortal()" class="lg:col-span-3" style="cursor: pointer; border: 2.5px solid #10b981; background: linear-gradient(145deg, #ecfdf5 0%, #ffffff 100%); border-radius: 24px; padding: 24px sm:padding: 28px; transition: all 0.2s; box-shadow: 0 16px 32px -10px rgba(16, 185, 129, 0.3); display: flex; flex-direction: column; justify-content: space-between;">
+                            <div onclick="enterGuardianPortal()" class="lg:col-span-3 p-5 sm:p-7 rounded-3xl transition flex flex-col justify-between" style="cursor: pointer; border: 2.5px solid #10b981; background: linear-gradient(145deg, #ecfdf5 0%, #ffffff 100%); box-shadow: 0 16px 32px -10px rgba(16, 185, 129, 0.25);">
                                 <div>
-                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-                                        <span style="background: #10b981; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px;">🐾 보호자용 · 맞춤 믹스피딩</span>
-                                        <span style="font-size: 12px; color: #059669; font-weight: 800; background: #d1fae5; padding: 3px 8px; border-radius: 6px;">100% 무료 · 즉시 시작</span>
+                                    <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+                                        <span class="bg-emerald-600 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-sm">
+                                            🐾 보호자용 · 맞춤 믹스피딩
+                                        </span>
+                                        <span class="text-xs text-emerald-800 font-extrabold bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-lg">
+                                            100% 무료 · 즉시 시작
+                                        </span>
                                     </div>
-                                    <h3 style="font-size: 22px; sm:font-size: 24px; line-height: 1.3; font-weight: 900; color: #064e3b; margin: 0 0 10px; letter-spacing: -0.5px;">
+
+                                    <h3 class="text-xl sm:text-2xl font-black text-emerald-950 mb-2 leading-tight tracking-tight break-keep">
                                         우리 아이 맞춤 한 끼, 밥상 혁명
                                     </h3>
-                                    <p style="font-size: 13.5px; color: #047857; line-height: 1.55; margin-bottom: 16px;">
-                                        어려운 용어 없이 쉬운 질문 몇 개로 <strong>하루 필요 칼로리</strong>부터 <strong>아침·저녁 맞춤 식단표</strong>까지 1분 만에 완성하세요.
+                                    <p class="text-xs sm:text-sm text-emerald-850 leading-relaxed mb-4 text-slate-600 break-keep">
+                                        어려운 수의학 용어 없이 쉬운 질문 몇 개로 <strong class="text-emerald-900 font-black">하루 필요 칼로리</strong>부터 <strong class="text-emerald-900 font-black">아침·저녁 맞춤 급여표</strong>까지 1분 만에 완성하세요.
                                     </p>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 9px; margin-bottom: 18px;">
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
-                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">⚖️ 하루 정확한 칼로리</div>
-                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">체중·체형·활동량 기반 RER·DER 산출</div>
+
+                                    <!-- 보호자용 4대 핵심 기능 그리드 (내부 패딩 & 갭 여유 확보) -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
+                                        <div class="bg-white/90 border border-emerald-200/90 rounded-xl p-3 shadow-sm">
+                                            <div class="text-xs font-black text-emerald-900 flex items-center space-x-1 mb-1">
+                                                <span>⚖️</span> <span>하루 정확한 칼로리</span>
+                                            </div>
+                                            <div class="text-[11.5px] text-slate-500 leading-snug break-keep">체중·체형·활동량 기반 RER·DER 산출</div>
                                         </div>
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
-                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">📷 포장지 AI 스캔 & 검색</div>
-                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">사료 DB 검색 및 라벨 OCR 영양 분석</div>
+                                        <div class="bg-white/90 border border-emerald-200/90 rounded-xl p-3 shadow-sm">
+                                            <div class="text-xs font-black text-emerald-900 flex items-center space-x-1 mb-1">
+                                                <span>📷</span> <span>포장지 AI 스캔 & 검색</span>
+                                            </div>
+                                            <div class="text-[11.5px] text-slate-500 leading-snug break-keep">사료 DB 검색 및 라벨 OCR 영양 분석</div>
                                         </div>
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
-                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">🍲 6가지 맞춤 식단</div>
-                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">건+습식·화식·토핑·DIY·역추적</div>
+                                        <div class="bg-white/90 border border-emerald-200/90 rounded-xl p-3 shadow-sm">
+                                            <div class="text-xs font-black text-emerald-900 flex items-center space-x-1 mb-1">
+                                                <span>🍲</span> <span>6가지 맞춤 식단</span>
+                                            </div>
+                                            <div class="text-[11.5px] text-slate-500 leading-snug break-keep">건+습식·화식·토핑·DIY·역추적</div>
                                         </div>
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
-                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">🚦 AAFCO 신호등 리포트</div>
-                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">영양 과부족 체크 및 아침/저녁 급여표</div>
+                                        <div class="bg-white/90 border border-emerald-200/90 rounded-xl p-3 shadow-sm">
+                                            <div class="text-xs font-black text-emerald-900 flex items-center space-x-1 mb-1">
+                                                <span>🚦</span> <span>AAFCO 신호등 리포트</span>
+                                            </div>
+                                            <div class="text-[11.5px] text-slate-500 leading-snug break-keep">영양 과부족 체크 및 아침/저녁 급여표</div>
                                         </div>
                                     </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); enterGuardianPortal();" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px -4px rgba(16,185,129,0.45); transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
-                                    🐾 보호자용 무료 믹스피딩 시작 ➔
+
+                                <button type="button" onclick="event.stopPropagation(); enterGuardianPortal();" class="w-full py-3.5 sm:py-4 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-black text-sm sm:text-base shadow-lg hover:shadow-emerald-500/25 transition active:scale-[0.98] flex items-center justify-center space-x-2">
+                                    <span>🐾 보호자용 무료 믹스피딩 시작 ➔</span>
                                 </button>
                             </div>
 
                             <!-- [Frontend B] 수의사용 대폭 확대 카드 (약 40%) -->
-                            <div onclick="showVetLoginFormInGate()" class="lg:col-span-2" style="cursor: pointer; border: 2.5px solid #3b82f6; background: linear-gradient(145deg, #eff6ff 0%, #ffffff 100%); border-radius: 24px; padding: 24px sm:padding: 28px; transition: all 0.2s; box-shadow: 0 16px 32px -10px rgba(37, 99, 235, 0.3); display: flex; flex-direction: column; justify-content: space-between;">
+                            <div onclick="showVetLoginFormInGate()" class="lg:col-span-2 p-5 sm:p-7 rounded-3xl transition flex flex-col justify-between" style="cursor: pointer; border: 2.5px solid #3b82f6; background: linear-gradient(145deg, #eff6ff 0%, #ffffff 100%); box-shadow: 0 16px 32px -10px rgba(37, 99, 235, 0.25);">
                                 <div>
-                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-                                        <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px;">🩺 수의사 전용 (Veterinarian PRO)</span>
-                                        <span style="font-size: 12px; color: #1d4ed8; font-weight: 800; background: #dbeafe; padding: 3px 8px; border-radius: 6px;">임상 인증 접속</span>
+                                    <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+                                        <span class="bg-blue-600 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-sm">
+                                            🩺 수의사 전용 (PRO)
+                                        </span>
+                                        <span class="text-xs text-blue-800 font-extrabold bg-blue-100 border border-blue-300 px-2.5 py-1 rounded-lg">
+                                            임상 인증 접속
+                                        </span>
                                     </div>
-                                    <h3 style="font-size: 21px; sm:font-size: 23px; line-height: 1.3; font-weight: 900; color: #1e3a8a; margin: 0 0 10px; letter-spacing: -0.5px;">
-                                        임상 영양 CDSS & 환자 차트
+
+                                    <h3 class="text-xl sm:text-2xl font-black text-blue-950 mb-2 leading-tight tracking-tight break-keep">
+                                        임상 영양 CDSS & 차트
                                     </h3>
-                                    <p style="font-size: 13px; color: #1e40af; line-height: 1.55; margin-bottom: 16px;">
+                                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 break-keep">
                                         복합질환 영양 상충 해결 알고리즘과 9대 분변 마커 정밀 처방 및 수의 EMR 시스템입니다.
                                     </p>
-                                    <div style="background: white; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 12px 14px; margin-bottom: 18px;">
-                                        <ul style="font-size: 12px; color: #334155; line-height: 1.6; list-style: none; padding: 0; margin: 0; space-y: 6px;">
-                                            <li style="margin-bottom: 5px;">🩺 <strong>[Tab 1~3]</strong> 28종 복합질환 & 처방식 믹스피딩</li>
-                                            <li style="margin-bottom: 5px;">🔬 <strong>[Tab 4]</strong> 장내환경 9대 마커 + 혈액(ΔW_Lab) CDSS</li>
-                                            <li style="margin-bottom: 5px;">📋 <strong>[Tab 5]</strong> 병원 환자별 차트(EMR) 초진·재진 비교</li>
-                                            <li>🔄 <strong>[연동]</strong> 보호자 상담 데이터 진료실 실시간 수신</li>
+
+                                    <!-- 수의사용 핵심 임상 기능 목록 -->
+                                    <div class="bg-white/90 border border-blue-200/90 rounded-xl p-3.5 shadow-sm mb-5">
+                                        <ul class="text-xs text-slate-700 space-y-2 list-none p-0 m-0">
+                                            <li class="flex items-center space-x-2">
+                                                <span class="text-blue-600 font-bold">🩺</span>
+                                                <span class="break-keep"><strong>[Tab 1~3]</strong> 28종 복합질환 & 처방식 믹스피딩</span>
+                                            </li>
+                                            <li class="flex items-center space-x-2">
+                                                <span class="text-blue-600 font-bold">🔬</span>
+                                                <span class="break-keep"><strong>[Tab 4]</strong> 장내 9대 마커 + 혈액(ΔW_Lab) CDSS</span>
+                                            </li>
+                                            <li class="flex items-center space-x-2">
+                                                <span class="text-blue-600 font-bold">📋</span>
+                                                <span class="break-keep"><strong>[Tab 5]</strong> 병원 환자별 차트(EMR) 초진·재진 비교</span>
+                                            </li>
+                                            <li class="flex items-center space-x-2">
+                                                <span class="text-blue-600 font-bold">🔄</span>
+                                                <span class="break-keep"><strong>[연동]</strong> 보호자 상담 데이터 실시간 수신</span>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); showVetLoginFormInGate();" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px -4px rgba(37,99,235,0.4); transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
-                                    🩺 수의사 로그인 / CDSS 접속 ➔
+
+                                <button type="button" onclick="event.stopPropagation(); showVetLoginFormInGate();" class="w-full py-3.5 sm:py-4 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-sm sm:text-base shadow-lg hover:shadow-blue-500/25 transition active:scale-[0.98] flex items-center justify-center space-x-2">
+                                    <span>🩺 수의사 로그인 / CDSS 접속 ➔</span>
                                 </button>
                             </div>
                         </div>
