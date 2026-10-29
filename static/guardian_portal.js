@@ -448,64 +448,69 @@
                             "이만큼 주는 게 맞나?" 매일 하던 고민, 우리 아이 몸에 딱 맞는 한 끼로 끝내세요.
                         </p>
 
-                        <!-- 보호자용 80 : 수의사용 20 비중 레이아웃 -->
-                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 text-left items-stretch">
-                            <!-- [Frontend A] 보호자용 메인 카드 (약 80%) -->
-                            <div onclick="enterGuardianPortal()" class="lg:col-span-4" style="cursor: pointer; border: 2px solid #10b981; background: linear-gradient(145deg, #ecfdf5 0%, #ffffff 100%); border-radius: 22px; padding: 28px; transition: all 0.2s; box-shadow: 0 16px 32px -10px rgba(16, 185, 129, 0.35); display: flex; flex-direction: column; justify-content: space-between;">
+                        <!-- 보호자용 60% : 수의사용 40% 비중 레이아웃 (모바일에서도 시원하고 명확하게 확대) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-6 text-left items-stretch">
+                            <!-- [Frontend A] 보호자용 메인 카드 (약 60%) -->
+                            <div onclick="enterGuardianPortal()" class="lg:col-span-3" style="cursor: pointer; border: 2.5px solid #10b981; background: linear-gradient(145deg, #ecfdf5 0%, #ffffff 100%); border-radius: 24px; padding: 24px sm:padding: 28px; transition: all 0.2s; box-shadow: 0 16px 32px -10px rgba(16, 185, 129, 0.3); display: flex; flex-direction: column; justify-content: space-between;">
                                 <div>
-                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;">
-                                        <span style="background: #10b981; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px;">🐾 보호자용 · 우리 아이 맞춤 믹스피딩</span>
-                                        <span style="font-size: 11.5px; color: #059669; font-weight: 800;">가입·결제 없이 바로 시작</span>
+                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+                                        <span style="background: #10b981; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px;">🐾 보호자용 · 맞춤 믹스피딩</span>
+                                        <span style="font-size: 12px; color: #059669; font-weight: 800; background: #d1fae5; padding: 3px 8px; border-radius: 6px;">100% 무료 · 즉시 시작</span>
                                     </div>
-                                    <h3 style="font-size: 25px; line-height: 1.3; font-weight: 900; color: #064e3b; margin: 0 0 10px; letter-spacing: -0.5px;">
-                                        사료만 주던 밥상, 우리 아이 몸에 딱 맞는 한 끼로 바꿔보세요
+                                    <h3 style="font-size: 22px; sm:font-size: 24px; line-height: 1.3; font-weight: 900; color: #064e3b; margin: 0 0 10px; letter-spacing: -0.5px;">
+                                        우리 아이 맞춤 한 끼, 밥상 혁명
                                     </h3>
-                                    <p style="font-size: 14px; color: #047857; line-height: 1.6; margin-bottom: 18px;">
-                                        어려운 수의학 용어는 빼고, 쉬운 질문 몇 개에 답하면 <strong>하루 필요 칼로리</strong>부터 <strong>아침·저녁 그램 급여표</strong>까지 한 번에 완성됩니다.
+                                    <p style="font-size: 13.5px; color: #047857; line-height: 1.55; margin-bottom: 16px;">
+                                        어려운 용어 없이 쉬운 질문 몇 개로 <strong>하루 필요 칼로리</strong>부터 <strong>아침·저녁 맞춤 식단표</strong>까지 1분 만에 완성하세요.
                                     </p>
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 20px;">
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px 14px;">
-                                            <div style="font-size: 13.5px; font-weight: 900; color: #065f46; margin-bottom: 3px;">⚖️ 정확한 하루 칼로리</div>
-                                            <div style="font-size: 12px; color: #475569; line-height: 1.5;">체형·체중·활동량으로 우리 아이만의 급여량을 자동 계산</div>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 9px; margin-bottom: 18px;">
+                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
+                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">⚖️ 하루 정확한 칼로리</div>
+                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">체중·체형·활동량 기반 RER·DER 산출</div>
                                         </div>
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px 14px;">
-                                            <div style="font-size: 13.5px; font-weight: 900; color: #065f46; margin-bottom: 3px;">📷 포장지 사진 한 장이면 OK</div>
-                                            <div style="font-size: 12px; color: #475569; line-height: 1.5;">사료 검색·AI 스캔으로 지금 먹는 사료의 영양을 바로 확인</div>
+                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
+                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">📷 포장지 AI 스캔 & 검색</div>
+                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">사료 DB 검색 및 라벨 OCR 영양 분석</div>
                                         </div>
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px 14px;">
-                                            <div style="font-size: 13.5px; font-weight: 900; color: #065f46; margin-bottom: 3px;">🍲 6가지 맞춤 식단</div>
-                                            <div style="font-size: 12px; color: #475569; line-height: 1.5;">건+습식 · 건+화식 · 원재료 · 10% 토핑 · 화식 DIY · 사료 역추적</div>
+                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
+                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">🍲 6가지 맞춤 식단</div>
+                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">건+습식·화식·토핑·DIY·역추적</div>
                                         </div>
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px 14px;">
-                                            <div style="font-size: 13.5px; font-weight: 900; color: #065f46; margin-bottom: 3px;">🚦 한눈에 보는 영양 신호등</div>
-                                            <div style="font-size: 12px; color: #475569; line-height: 1.5;">AAFCO 기준 부족·과다를 색깔로 쉽게, 급여표는 그대로 따라 주기만 하면 끝</div>
-                                        </div>
-                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px 14px;">
-                                            <div style="font-size: 13.5px; font-weight: 900; color: #065f46; margin-bottom: 3px;">💩 분변 검사 결과도 쉽게 해설</div>
-                                            <div style="font-size: 12px; color: #475569; line-height: 1.5;">장 건강 신호를 어려운 용어 없이 읽어드려요</div>
-                                        </div>
-                                        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; padding: 12px 14px;">
-                                            <div style="font-size: 13.5px; font-weight: 900; color: #92400e; margin-bottom: 3px;">🩺 아픈 아이는 안전하게</div>
-                                            <div style="font-size: 12px; color: #78350f; line-height: 1.5;">질병이 있으면 임의 계산 대신 수의사 상담을 먼저 안내합니다</div>
+                                        <div style="background: white; border: 1px solid #a7f3d0; border-radius: 12px; padding: 10px 12px;">
+                                            <div style="font-size: 13px; font-weight: 900; color: #065f46; margin-bottom: 2px;">🚦 AAFCO 신호등 리포트</div>
+                                            <div style="font-size: 11.5px; color: #475569; line-height: 1.4;">영양 과부족 체크 및 아침/저녁 급여표</div>
                                         </div>
                                     </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); enterGuardianPortal();" style="width: 100%; padding: 16px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 14px; font-size: 17px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px -4px rgba(16,185,129,0.45);">
-                                    🐾 우리 아이 맞춤 한 끼, 1분 만에 시작하기 ➔
+                                <button type="button" onclick="event.stopPropagation(); enterGuardianPortal();" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px -4px rgba(16,185,129,0.45); transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                                    🐾 보호자용 무료 믹스피딩 시작 ➔
                                 </button>
                             </div>
 
-                            <!-- [Frontend B] 수의사용 컴팩트 카드 (약 20%) -->
-                            <div onclick="showVetLoginFormInGate()" class="lg:col-span-1" style="cursor: pointer; border: 1.5px solid #bfdbfe; background: #f8fafc; border-radius: 18px; padding: 16px; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                            <!-- [Frontend B] 수의사용 대폭 확대 카드 (약 40%) -->
+                            <div onclick="showVetLoginFormInGate()" class="lg:col-span-2" style="cursor: pointer; border: 2.5px solid #3b82f6; background: linear-gradient(145deg, #eff6ff 0%, #ffffff 100%); border-radius: 24px; padding: 24px sm:padding: 28px; transition: all 0.2s; box-shadow: 0 16px 32px -10px rgba(37, 99, 235, 0.3); display: flex; flex-direction: column; justify-content: space-between;">
                                 <div>
-                                    <span style="display: inline-block; background: #2563eb; color: white; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; margin-bottom: 10px;">🩺 수의사 전용</span>
-                                    <h3 style="font-size: 14px; font-weight: 900; color: #1e3a8a; margin: 0 0 6px; line-height: 1.35;">임상 영양 CDSS</h3>
-                                    <p style="font-size: 11.5px; color: #475569; line-height: 1.5; margin: 0;">
-                                        복합질환 처방식 · 분변 9대 마커 · 환자 차트(EMR)
+                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+                                        <span style="background: #2563eb; color: white; font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px;">🩺 수의사 전용 (Veterinarian PRO)</span>
+                                        <span style="font-size: 12px; color: #1d4ed8; font-weight: 800; background: #dbeafe; padding: 3px 8px; border-radius: 6px;">임상 인증 접속</span>
+                                    </div>
+                                    <h3 style="font-size: 21px; sm:font-size: 23px; line-height: 1.3; font-weight: 900; color: #1e3a8a; margin: 0 0 10px; letter-spacing: -0.5px;">
+                                        임상 영양 CDSS & 환자 차트
+                                    </h3>
+                                    <p style="font-size: 13px; color: #1e40af; line-height: 1.55; margin-bottom: 16px;">
+                                        복합질환 영양 상충 해결 알고리즘과 9대 분변 마커 정밀 처방 및 수의 EMR 시스템입니다.
                                     </p>
+                                    <div style="background: white; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 12px 14px; margin-bottom: 18px;">
+                                        <ul style="font-size: 12px; color: #334155; line-height: 1.6; list-style: none; padding: 0; margin: 0; space-y: 6px;">
+                                            <li style="margin-bottom: 5px;">🩺 <strong>[Tab 1~3]</strong> 28종 복합질환 & 처방식 믹스피딩</li>
+                                            <li style="margin-bottom: 5px;">🔬 <strong>[Tab 4]</strong> 장내환경 9대 마커 + 혈액(ΔW_Lab) CDSS</li>
+                                            <li style="margin-bottom: 5px;">📋 <strong>[Tab 5]</strong> 병원 환자별 차트(EMR) 초진·재진 비교</li>
+                                            <li>🔄 <strong>[연동]</strong> 보호자 상담 데이터 진료실 실시간 수신</li>
+                                        </ul>
+                                    </div>
                                 </div>
-                                <button type="button" onclick="event.stopPropagation(); showVetLoginFormInGate();" style="width: 100%; padding: 9px; background: #1e40af; color: white; border: none; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;">
-                                    수의사 로그인 ➔
+                                <button type="button" onclick="event.stopPropagation(); showVetLoginFormInGate();" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 900; cursor: pointer; box-shadow: 0 10px 20px -4px rgba(37,99,235,0.4); transition: transform 0.1s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                                    🩺 수의사 로그인 / CDSS 접속 ➔
                                 </button>
                             </div>
                         </div>
