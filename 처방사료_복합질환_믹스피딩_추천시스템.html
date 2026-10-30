@@ -3102,7 +3102,7 @@
             if (typeof window.syncStickyTopBars === 'function') {
                 window.syncStickyTopBars();
             }
-            if (tabId === 'tab-gut-cdss' && typeof runGutEnvironmentCDSS === 'function') {
+            if ((tabId === 'monitoring-tab' || tabId === 'tab-gut-cdss') && typeof runGutEnvironmentCDSS === 'function') {
                 runGutEnvironmentCDSS();
             }
             if (window.scrollY > 140) {
@@ -4815,13 +4815,6 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             if (runAfter) runGutEnvironmentCDSS();
         }
 
-import re
-
-with open('index.html', 'r', encoding='utf-8') as f:
-    html = f.read()
-
-# 1. New function: evaluateSmallLargeIntestineCrossValidation
-cv_function_code = """
         // =========================================================================
         // [신규] 소장 vs 대장 2축 4분면(Quadrants) 교차검증 & 6대 임상 시나리오 CDSS 엔진
         // 문헌 근거: 장내환경 추론 알고리즘 4분면.docx
@@ -4926,7 +4919,6 @@ cv_function_code = """
             }
 
             // 5. 4분면 좌표 및 영역 판정
-            // X축: 소장 이상도 (0 ~ 100), Y축: 대장 이상도 (0 ~ 100)
             let quadrantCode = "Q_NORMAL";
             let quadrantTitle = "Q1: 정상 균형 영역 (Optimal GI Zone)";
             let quadrantColor = "emerald";
@@ -4949,9 +4941,6 @@ cv_function_code = """
                 quadrantColor = "rose";
             }
 
-            // 2D 박스 내 dot 위치 (%)
-            // X: 5% ~ 95% (si_dys 기반)
-            // Y: 95% ~ 5% (li_dys 기반, CSS top이므로 역전: 위가 100, 아래가 0)
             const dotX = Math.max(5.0, Math.min(95.0, (si_dys / 100.0) * 90.0 + 5.0));
             const dotY = Math.max(5.0, Math.min(95.0, 95.0 - (li_dys / 100.0) * 90.0));
 
@@ -4976,9 +4965,6 @@ cv_function_code = """
                 }
             };
         }
-"""
-
-print("Defined evaluateSmallLargeIntestineCrossValidation code.")
 
         // =========================================================================
         // [신규] 장내 병태생리 4대 축(장운동·장염·장누수·소화액분비) + 해당없음 확률 산출 CDSS 엔진
