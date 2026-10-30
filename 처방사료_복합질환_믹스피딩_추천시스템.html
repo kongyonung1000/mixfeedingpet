@@ -2651,6 +2651,158 @@
                         </div>
                     </div>
 
+                    <!-- 1-B. [신규] 소장 vs 대장 2축 4분면(Quadrants) 교차검증 & 6대 임상 시나리오 CDSS -->
+                    <div class="p-6 rounded-2xl bg-white border-2 border-indigo-200/80 shadow-sm space-y-5">
+                        <!-- 상단 헤더 바 -->
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                            <div class="flex items-center space-x-2.5">
+                                <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center font-black shadow-sm">
+                                    <i class="fa-solid fa-arrows-split-up-and-left text-sm"></i>
+                                </span>
+                                <div>
+                                    <h3 class="text-sm font-black text-slate-900 flex items-center space-x-2">
+                                        <span>소장 vs 대장 2축 4분면 교차검증 & 6대 임상 시나리오 판정 (GI Compartment CDSS)</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">공간 분리 추론</span>
+                                    </h3>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">단일 마커 가중치 합산의 모순(단백질 검출 vs 암모니아 정상 등)을 <strong>소장 구획(SI: 단·지·탄 + 혈액cPL/담즙산)</strong>과 <strong>대장 구획(LI: 암모니아·잠혈·pH + 연동운동)</strong>의 2축으로 분리하여 정밀 교차 검증합니다.</p>
+                                </div>
+                            </div>
+                            <div id="quadrant-scenario-badge" class="px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs">
+                                Scenario 1: 정상 장내 환경 (Optimal GI Balance)
+                            </div>
+                        </div>
+
+                        <!-- 메인 2열 그리드: 좌측(4분면 시각화) vs 우측(시나리오 진단 & 3대 영양소 조절) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                            <!-- 좌측 (5칸): 소장 vs 대장 4분면 2D 좌표 플롯 & 구획별 점수 바 -->
+                            <div class="lg:col-span-5 p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
+                                <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                                    <span><i class="fa-solid fa-crosshairs text-indigo-600 mr-1"></i>소장-대장 병태 4분면 매트릭스</span>
+                                    <span id="quadrant-coord-label" class="text-[11px] font-extrabold text-indigo-600">좌표 (SI 0.0, LI 0.0)</span>
+                                </div>
+
+                                <!-- 4분면 2D 시각화 박스 -->
+                                <div class="relative w-full aspect-square max-w-[270px] mx-auto bg-white rounded-xl border border-slate-300 p-2 shadow-inner overflow-hidden select-none">
+                                    <!-- 4분면 그리드 배경 박스 -->
+                                    <div class="absolute inset-2 grid grid-cols-2 grid-rows-2 gap-1 text-[9px] font-bold">
+                                        <!-- Q3 (좌상): 대장 이상 주도 -->
+                                        <div id="q-box-li" class="p-1.5 rounded-lg bg-amber-50/50 border border-amber-200/50 text-amber-800 flex flex-col justify-start transition-all">
+                                            <span class="font-black">Q3. 대장 병태 주도</span>
+                                            <span class="text-[8px] font-normal text-amber-600 leading-tight">과속통과 / PLE / 출혈</span>
+                                        </div>
+                                        <!-- Q4 (우상): 전장관 복합 부전 -->
+                                        <div id="q-box-comb" class="p-1.5 rounded-lg bg-rose-50/50 border border-rose-200/50 text-rose-800 flex flex-col justify-start items-end text-right transition-all">
+                                            <span class="font-black">Q4. 전장관 복합 부전</span>
+                                            <span class="text-[8px] font-normal text-rose-600 leading-tight">소화부전 + 부패발효</span>
+                                        </div>
+                                        <!-- Q1 (좌하): 정상 균형 영역 -->
+                                        <div id="q-box-norm" class="p-1.5 rounded-lg bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 flex flex-col justify-end transition-all">
+                                            <span class="font-black">Q1. 정상 균형 영역</span>
+                                            <span class="text-[8px] font-normal text-emerald-600 leading-tight">최적 생태계</span>
+                                        </div>
+                                        <!-- Q2 (우하): 소장 흡수부전 주도 -->
+                                        <div id="q-box-si" class="p-1.5 rounded-lg bg-sky-50/50 border border-sky-200/50 text-sky-800 flex flex-col justify-end items-end text-right transition-all">
+                                            <span class="font-black">Q2. 소장 흡수부전</span>
+                                            <span class="text-[8px] font-normal text-sky-600 leading-tight">효소결핍 / 흡수장애</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 십자 기준선 -->
+                                    <div class="absolute left-1/2 top-2 bottom-2 w-0.5 bg-slate-300 -translate-x-1/2 pointer-events-none"></div>
+                                    <div class="absolute top-1/2 left-2 right-2 h-0.5 bg-slate-300 -translate-y-1/2 pointer-events-none"></div>
+
+                                    <!-- 축 방향 라벨 -->
+                                    <div class="absolute left-1/2 bottom-0.5 -translate-x-1/2 text-[9px] font-black text-slate-500 bg-white/90 px-1 rounded shadow-2xs">소장 이상도 (SI ➔)</div>
+                                    <div class="absolute left-0.5 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-500 bg-white/90 px-0.5 rounded shadow-2xs [writing-mode:vertical-rl] rotate-180">대장 이상도 (LI ➔)</div>
+
+                                    <!-- 실시간 환축 위치 점 (Pulsing Dot) -->
+                                    <div id="quadrant-patient-dot" class="absolute w-4 h-4 -ml-2 -mt-2 rounded-full bg-indigo-600 border-2 border-white shadow-lg transition-all duration-500 z-10 flex items-center justify-center" style="left: 10%; top: 90%;">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 소장 / 대장 / 연동운동 미니 상태 바 -->
+                                <div class="space-y-1.5 text-[11px] pt-1">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-600 font-bold">🟦 소장 구획 이상도 (단·지·탄 + cPL/담즙)</span>
+                                        <span id="q-si-dys-val" class="font-extrabold text-sky-700">0.0점 (정상 양호)</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                        <div id="q-si-dys-bar" class="h-full bg-sky-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between pt-1">
+                                        <span class="text-slate-600 font-bold">🟧 대장 구획 이상도 (암모니아·잠혈·pH)</span>
+                                        <span id="q-li-dys-val" class="font-extrabold text-amber-700">0.0점 (정상 안정)</span>
+                                    </div>
+                                    <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                        <div id="q-li-dys-bar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between pt-1 text-[10px] text-slate-500 border-t border-slate-200/60 mt-1">
+                                        <span>⚡ 연동운동: <strong id="q-transit-val" class="text-indigo-700 font-extrabold">정상 (표준 통과시간)</strong></span>
+                                        <span id="q-quadrant-title" class="font-bold text-slate-700">Q1: 정상 균형 영역</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 우측 (7칸): 6대 시나리오 병태생리 해설 & 믹스피딩 3대 영양소 조절 테이블 -->
+                            <div class="lg:col-span-7 flex flex-col justify-between space-y-3">
+                                <!-- 시나리오 병태생리 진단 배너 -->
+                                <div class="p-3.5 rounded-xl bg-gradient-to-r from-indigo-50 via-blue-50 to-slate-50 border border-indigo-200 space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-xs font-black text-indigo-950 flex items-center space-x-1.5">
+                                            <i class="fa-solid fa-dna text-indigo-600"></i>
+                                            <span id="q-scenario-title">Scenario 1: 정상 장내 환경 (Optimal GI Balance)</span>
+                                        </div>
+                                        <span id="q-scenario-tag" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-200 text-indigo-800">교차검증 진단</span>
+                                    </div>
+                                    <p id="q-scenario-desc" class="text-xs text-indigo-900 leading-relaxed font-medium">
+                                        소장 소화·흡수와 대장 발효 균형이 완벽히 유지되는 최적의 장내 생태계 상태입니다.
+                                    </p>
+                                </div>
+
+                                <!-- 믹스피딩 3대 영양소 처방 가이드 테이블 -->
+                                <div class="space-y-2">
+                                    <div class="text-xs font-black text-slate-800 flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-sliders text-emerald-600"></i>
+                                        <span>시나리오 맞춤형 식이(믹스피딩) 3대 영양소 조절 처방</span>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+                                        <!-- 1) 섬유소 -->
+                                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                                            <div class="text-[11px] font-black text-slate-700 flex items-center space-x-1">
+                                                <i class="fa-solid fa-seedling text-emerald-600"></i>
+                                                <span>① 수용성 섬유소 전략</span>
+                                            </div>
+                                            <div id="q-rx-fiber" class="text-[11px] text-slate-800 font-semibold leading-snug">
+                                                기본 표준량 유지 (1,000kcal당 3~5g, 균형 잡힌 프리바이오틱스 FOS/MOS)
+                                            </div>
+                                        </div>
+                                        <!-- 2) 수분/온수 -->
+                                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                                            <div class="text-[11px] font-black text-slate-700 flex items-center space-x-1">
+                                                <i class="fa-solid fa-droplet text-blue-600"></i>
+                                                <span>② 수분 & 온수 믹싱</span>
+                                            </div>
+                                            <div id="q-rx-water" class="text-[11px] text-slate-800 font-semibold leading-snug">
+                                                기본 건/습식 비율 유지, 추가 온수 믹싱 불필요
+                                            </div>
+                                        </div>
+                                        <!-- 3) 단백질 -->
+                                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                                            <div class="text-[11px] font-black text-slate-700 flex items-center space-x-1">
+                                                <i class="fa-solid fa-drumstick-bite text-amber-600"></i>
+                                                <span>③ 단백질 급원 & 성상</span>
+                                            </div>
+                                            <div id="q-rx-protein" class="text-[11px] text-slate-800 font-semibold leading-snug">
+                                                처방식 기본 단백질 기준 적용 유지
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 2. 9대 마커별 [정상치 vs 환자 맞춤 기대치(혈액가중치 포함) vs 실제 측정치] 정밀 판정 테이블 -->
                     <div class="overflow-x-auto rounded-2xl border border-slate-200">
                         <table class="w-full text-xs text-left">
@@ -4663,6 +4815,171 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             if (runAfter) runGutEnvironmentCDSS();
         }
 
+import re
+
+with open('index.html', 'r', encoding='utf-8') as f:
+    html = f.read()
+
+# 1. New function: evaluateSmallLargeIntestineCrossValidation
+cv_function_code = """
+        // =========================================================================
+        // [신규] 소장 vs 대장 2축 4분면(Quadrants) 교차검증 & 6대 임상 시나리오 CDSS 엔진
+        // 문헌 근거: 장내환경 추론 알고리즘 4분면.docx
+        // - 소장 구획 (SI): 미소화 단백질, 미소화 지방, 미소화 탄수화물 + 혈액 cPL/담즙산
+        // - 대장 구획 (LI): 분변 암모니아, 분변 잠혈, 분변 pH + 연동운동(과속/정상/정체)
+        // =========================================================================
+        function evaluateSmallLargeIntestineCrossValidation(data) {
+            const protein = data.protein !== undefined ? data.protein : 5.0;
+            const fat = data.fat !== undefined ? data.fat : 4.0;
+            const carbo = data.carbo !== undefined ? data.carbo : 6.0;
+            const ammonia = data.ammonia !== undefined ? data.ammonia : 20.0;
+            const blood = data.blood !== undefined ? data.blood : 0.0;
+            const ph = data.ph !== undefined ? data.ph : 6.5;
+            const transitScore = data.transitScore !== undefined ? data.transitScore : 1.0;
+            const labCpl = !!data.labCpl;
+            const labBile = !!data.labBile;
+            const albLow = !!data.albLow;
+
+            // 1. 소장 구획 이상도 (SI Dys Score: 0 ~ 100)
+            const si_p = Math.max(0.0, (protein - 8.0) / 8.0) * 40.0;
+            const si_f = Math.max(0.0, (fat - 7.0) / 7.0) * 40.0;
+            const si_c = Math.max(0.0, (carbo - 10.0) / 10.0) * 25.0;
+            const si_lab = (labCpl ? 30.0 : 0.0) + (labBile ? 25.0 : 0.0);
+            const si_dys = Math.min(100.0, Math.round((si_p + si_f + si_c + si_lab) * 10) / 10);
+
+            // 2. 대장 구획 이상도 (LI Dys Score: 0 ~ 100)
+            const li_a = Math.max(0.0, (ammonia - 30.0) / 25.0) * 45.0;
+            const li_b = Math.min(50.0, (blood / 10.0) * 40.0);
+            const li_ph = (Math.abs(ph - 6.5) / 1.5) * 30.0;
+            const li_dys = Math.min(100.0, Math.round((li_a + li_b + li_ph) * 10) / 10);
+
+            // 3. 연동운동 및 통과속도 분류
+            let transitState = "NORMAL";
+            let transitLabel = "정상 (표준 통과시간)";
+            if (transitScore > 1.15) {
+                transitState = "RAPID";
+                transitLabel = "과항진 (과속 통과)";
+            } else if (transitScore < 0.85) {
+                transitState = "STASIS";
+                transitLabel = "지연 (만성 정체 / 변비)";
+            }
+
+            // 4. 6대 임상 시나리오 판정 (Priority Decision Tree)
+            let scenarioId = 1;
+            let scenarioShort = "정상 장내 생태계 (Optimal)";
+            let scenarioName = "Scenario 1: 정상 장내 환경 (Optimal GI Balance)";
+            let scenarioDesc = "소장 소화·흡수와 대장 발효 균형이 완벽히 유지되는 최적의 장내 생태계 상태입니다.";
+            let rxFiber = "기본 표준량 유지 (1,000kcal당 3~5g, 균형 잡힌 프리바이오틱스 FOS/MOS)";
+            let rxWater = "기본 건/습식 비율 유지, 추가 온수 믹싱 불필요";
+            let rxProtein = "처방식 기본 단백질 기준 적용 유지";
+
+            // Priority 1: Scenario 3 (대장 통과 과속)
+            // 소장 단백질은 검출되었으나 암모니아는 정상/낮음 (연동 과속)
+            if (protein > 7.5 && ammonia <= 32.0 && blood < 10.0 && (transitState === "RAPID" || si_f < 10.0)) {
+                scenarioId = 3;
+                scenarioShort = "대장 통과 과속 (Rapid Transit)";
+                scenarioName = "Scenario 3: 대장 통과 시간 과속 (Rapid Transit / 연동 과항진)";
+                scenarioDesc = "소장의 단백질 소화·흡수력은 정상이나, 대장의 연동운동이 지나치게 빨라 장내 미생물이 단백질을 부패(암모니아 전환)시킬 시간적 여유조차 없이 단백질 원형 그대로 배출되었습니다. 사료 단백질 문제가 아닌 신경성 설사 또는 대장 과민 반응을 우선 고려해야 합니다.";
+                rxFiber = "불용성 섬유소 완전 배제, 점성형 수용성 섬유소(차전자피 등) 미세 증량하여 변 형태 유지";
+                rxWater = "과도한 액상 공급 제한, 습식 배합 비율 최적화 (배변 과속 방지)";
+                rxProtein = "단백질 총량은 유지하되, 소화율 90% 이상 고소화성 가수분해 원료 매칭";
+            }
+            // Priority 2: Scenario 4 (대장 하부 점막 누수 및 단백 소실)
+            else if (blood >= 10.0 || (protein > 7.0 && ammonia <= 35.0 && (albLow || blood >= 5.0))) {
+                scenarioId = 4;
+                scenarioShort = "대장 하부 점막 누수 (Colonic PLE)";
+                scenarioName = "Scenario 4: 대장 하부 점막 누수 및 단백 소실 (Colonic PLE / 염증)";
+                scenarioDesc = "소장 소화 기능과 무관하게, 결장/직장 부위의 국소 미란·궤양 또는 림프관 확장으로 인해 혈중 단백질과 혈액이 대장 강내로 직접 유출되었습니다. (단백소실성 장병증)";
+                rxFiber = "점막 피복 및 상피 보호형 수용성 섬유소 적용, 장벽 미세순환 성분 보강";
+                rxWater = "온수 믹싱을 통한 부드러운 유동성 식사 구성 (점막 물리적 자극 최소화)";
+                rxProtein = "대장 점막 알러지/면역 반응을 최소화하는 단일 신원료(Novel Protein) 또는 초저분자 가수분해 단백질";
+            }
+            // Priority 3: Scenario 5 (탄수화물 흡수 부전 및 대장 삼투성 발효)
+            else if (carbo > 8.5 && ph < 6.0) {
+                scenarioId = 5;
+                scenarioShort = "탄수화물 흡수부전 & 삼투성 발효";
+                scenarioName = "Scenario 5: 탄수화물 흡수 부전 및 대장 삼투성 발효";
+                scenarioDesc = "소장에서 탄수화물/전분 흡수가 실패하여 대장으로 넘어간 뒤, 유산균 및 발효균에 의해 급격한 젖산 생성 및 산성화가 발생하여 삼투성 설사를 유발했습니다.";
+                rxFiber = "발효 속도가 느린 완만 발효 수용성 섬유소로 전환 (급격한 가스/산성화 방지)";
+                rxWater = "수분 공급을 1일 다회로 분할 공급하여 삼투압 충격 최소화";
+                rxProtein = "식이 탄수화물(NFE) 비율을 대폭 축소하고 단백질 및 필수 지방 균형 재조정";
+            }
+            // Priority 4: Scenario 6 (대장 만성 정체 / 거대결장)
+            else if (transitState === "STASIS" && (ph > 7.3 || ammonia < 12.0 || ammonia > 35.0) && protein <= 8.0) {
+                scenarioId = 6;
+                scenarioShort = "대장 만성 정체 (Megacolon)";
+                scenarioName = "Scenario 6: 대장 만성 정체 (Megacolon / 마비성 장폐색)";
+                scenarioDesc = "대장 내 체류 시간이 비정상적으로 길어져 수분이 과다 재흡수되고, 발효 기질 고갈 또는 부패성 산물이 만성 정체되었습니다.";
+                rxFiber = "차전자피 등 고보수성 수용성 섬유소 극대화 (+50% 상향, 변의 부피와 수분 유지)";
+                rxWater = "수분 공급량 및 추가 온수 믹싱 최대치 적용 (습식 사료 비율 80% 이상 강제)";
+                rxProtein = "장관 무력증 환축의 배변 부담을 줄이기 위한 초고소화성 조성 배합";
+            }
+            // Priority 5: Scenario 2 (소장 소화부전 및 대장 부패 발효)
+            else if (si_dys >= 20.0 && li_dys >= 20.0) {
+                scenarioId = 2;
+                scenarioShort = "소장 소화부전 + 대장 부패";
+                scenarioName = "Scenario 2: 소장 소화·흡수 불량 및 대장 부패 발효";
+                scenarioDesc = "소장에서 흡수되지 못한 미소화 단백질/지방이 대장으로 대량 유입되어 부패균에 의한 암모니아 및 요독성 대사산물이 급증했습니다.";
+                rxFiber = "수용성 섬유소 대폭 증량 (+30%), 대장 내 단쇄지방산(SCFA) 생성 촉진";
+                rxWater = "수분 공급량 표준 대비 +15% 상향 (대장 내 유해 부패물 배출 촉진)";
+                rxProtein = "고생물가 가수분해 단백질(Hydrolyzed Protein)로 전면 전환 (대장 유입 차단)";
+            }
+
+            // 5. 4분면 좌표 및 영역 판정
+            // X축: 소장 이상도 (0 ~ 100), Y축: 대장 이상도 (0 ~ 100)
+            let quadrantCode = "Q_NORMAL";
+            let quadrantTitle = "Q1: 정상 균형 영역 (Optimal GI Zone)";
+            let quadrantColor = "emerald";
+
+            if (si_dys < 25.0 && li_dys < 25.0) {
+                quadrantCode = "Q_NORMAL";
+                quadrantTitle = "Q1: 정상 균형 영역 (Optimal GI Zone)";
+                quadrantColor = "emerald";
+            } else if (si_dys >= 25.0 && li_dys < 25.0) {
+                quadrantCode = "Q_SI_PRIMARY";
+                quadrantTitle = "Q2: 소장 흡수부전 주도 영역 (Primary SI Malabsorption)";
+                quadrantColor = "sky";
+            } else if (si_dys < 25.0 && li_dys >= 25.0) {
+                quadrantCode = "Q_LI_PRIMARY";
+                quadrantTitle = "Q3: 대장 병태생리 주도 영역 (Colonic Dysfunction / Rapid Transit / PLE)";
+                quadrantColor = "amber";
+            } else {
+                quadrantCode = "Q_COMBINED";
+                quadrantTitle = "Q4: 전장관 복합 부전 영역 (Combined SI-LI Dysfunction)";
+                quadrantColor = "rose";
+            }
+
+            // 2D 박스 내 dot 위치 (%)
+            // X: 5% ~ 95% (si_dys 기반)
+            // Y: 95% ~ 5% (li_dys 기반, CSS top이므로 역전: 위가 100, 아래가 0)
+            const dotX = Math.max(5.0, Math.min(95.0, (si_dys / 100.0) * 90.0 + 5.0));
+            const dotY = Math.max(5.0, Math.min(95.0, 95.0 - (li_dys / 100.0) * 90.0));
+
+            return {
+                si_dys,
+                li_dys,
+                transitState,
+                transitLabel,
+                scenarioId,
+                scenarioShort,
+                scenarioName,
+                scenarioDesc,
+                quadrantCode,
+                quadrantTitle,
+                quadrantColor,
+                dotX,
+                dotY,
+                rx: {
+                    fiber: rxFiber,
+                    water: rxWater,
+                    protein: rxProtein
+                }
+            };
+        }
+"""
+
+print("Defined evaluateSmallLargeIntestineCrossValidation code.")
+
         // =========================================================================
         // [신규] 장내 병태생리 4대 축(장운동·장염·장누수·소화액분비) + 해당없음 확률 산출 CDSS 엔진
         // 문헌 및 근거: 장내환경 변수 가중치 상관관계 개·고양이 통합완성본-v2 엑셀 기준
@@ -5389,6 +5706,85 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             // =========================================================================
             // [신규] 장내 병태생리 4대 축(장운동·장염·장누수·소화액분비) + 해당없음 확률 계산 및 카드 4 렌더링
             // =========================================================================
+            // =========================================================================
+            // [신규] 소장 vs 대장 2축 4분면(Quadrants) 교차검증 & 6대 임상 시나리오 실행 및 렌더링
+            // =========================================================================
+            const cvInput = {
+                protein: evalMap.protein ? evalMap.protein.meas : 5.0,
+                fat: evalMap.fat ? evalMap.fat.meas : 4.0,
+                carbo: evalMap.carbo ? evalMap.carbo.meas : 6.0,
+                ammonia: evalMap.ammonia ? evalMap.ammonia.meas : 20.0,
+                blood: evalMap.blood ? evalMap.blood.meas : 0.0,
+                ph: evalMap.ph ? evalMap.ph.meas : 6.5,
+                transitScore: (ageW.motility || 1.0) * (dietW.motility || 1.0) * (1.0 + attenuateGroupDelta(drugWList, "motility", 0.40)),
+                labCpl: checkedLabItems.some(x => x.includes("cPL") || x.includes("fPL")),
+                labBile: checkedLabItems.some(x => x.includes("빌리루빈") || x.includes("ALT") || x.includes("담관")),
+                albLow: checkedLabItems.some(x => x.includes("알부민"))
+            };
+
+            const cvResult = evaluateSmallLargeIntestineCrossValidation(cvInput);
+
+            // 1-B UI 컴포넌트 갱신
+            const badgeEl = document.getElementById('quadrant-scenario-badge');
+            if (badgeEl) badgeEl.innerText = cvResult.scenarioName.split(' / ')[0];
+
+            const coordEl = document.getElementById('quadrant-coord-label');
+            if (coordEl) coordEl.innerText = `좌표 (SI ${cvResult.si_dys.toFixed(1)}, LI ${cvResult.li_dys.toFixed(1)})`;
+
+            const dotEl = document.getElementById('quadrant-patient-dot');
+            if (dotEl) {
+                dotEl.style.left = `${cvResult.dotX}%`;
+                dotEl.style.top = `${cvResult.dotY}%`;
+            }
+
+            const siValEl = document.getElementById('q-si-dys-val');
+            if (siValEl) siValEl.innerText = `${cvResult.si_dys.toFixed(1)}점 (${cvResult.si_dys < 25 ? '정상 양호' : (cvResult.si_dys < 50 ? '경도 이상' : '중증 소화부전')})`;
+            const siBarEl = document.getElementById('q-si-dys-bar');
+            if (siBarEl) siBarEl.style.width = `${Math.min(100, cvResult.si_dys)}%`;
+
+            const liValEl = document.getElementById('q-li-dys-val');
+            if (liValEl) liValEl.innerText = `${cvResult.li_dys.toFixed(1)}점 (${cvResult.li_dys < 25 ? '정상 안정' : (cvResult.li_dys < 50 ? '주의 경고' : '중증 부패/출혈')})`;
+            const liBarEl = document.getElementById('q-li-dys-bar');
+            if (liBarEl) liBarEl.style.width = `${Math.min(100, cvResult.li_dys)}%`;
+
+            const transValEl = document.getElementById('q-transit-val');
+            if (transValEl) transValEl.innerText = cvResult.transitLabel;
+
+            const quadTitleEl = document.getElementById('q-quadrant-title');
+            if (quadTitleEl) quadTitleEl.innerText = cvResult.quadrantTitle;
+
+            // 4개 박스 활성화 하이라이트
+            ['q-box-norm', 'q-box-si', 'q-box-li', 'q-box-comb'].forEach(id => {
+                const b = document.getElementById(id);
+                if (b) b.classList.remove('ring-2', 'ring-indigo-600', 'shadow-md');
+            });
+            const activeBoxMap = {
+                'Q_NORMAL': 'q-box-norm',
+                'Q_SI_PRIMARY': 'q-box-si',
+                'Q_LI_PRIMARY': 'q-box-li',
+                'Q_COMBINED': 'q-box-comb'
+            };
+            const targetBoxId = activeBoxMap[cvResult.quadrantCode];
+            if (targetBoxId) {
+                const targetBox = document.getElementById(targetBoxId);
+                if (targetBox) targetBox.classList.add('ring-2', 'ring-indigo-600', 'shadow-md');
+            }
+
+            const scTitleEl = document.getElementById('q-scenario-title');
+            if (scTitleEl) scTitleEl.innerText = cvResult.scenarioName;
+            const scDescEl = document.getElementById('q-scenario-desc');
+            if (scDescEl) scDescEl.innerText = cvResult.scenarioDesc;
+
+            const rxFiberEl = document.getElementById('q-rx-fiber');
+            if (rxFiberEl) rxFiberEl.innerText = cvResult.rx.fiber;
+            const rxWaterEl = document.getElementById('q-rx-water');
+            if (rxWaterEl) rxWaterEl.innerText = cvResult.rx.water;
+            const rxProteinEl = document.getElementById('q-rx-protein');
+            if (rxProteinEl) rxProteinEl.innerText = cvResult.rx.protein;
+
+            // AI 코멘트 최상단에 2축 교차검증 결론 추가
+            aiComments.unshift(`• 🔬 <strong>[소장 vs 대장 2축 교차검증]</strong> ${cvResult.scenarioName} 판정 — ${cvResult.scenarioDesc.split('.')[0]}. (${cvResult.quadrantTitle})`);
+
             const pathoResult = calculateGutPathoProbabilities({
                 score,
                 ageW,
