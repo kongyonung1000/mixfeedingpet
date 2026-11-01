@@ -707,7 +707,7 @@
             <div class="flex flex-wrap items-center space-x-2 md:space-x-5 overflow-x-auto">
                 <button onclick="switchTab('profile-tab')" id="btn-profile-tab" class="tab-btn active py-3.5 px-2.5 text-sm font-semibold flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-id-card-clip"></i>
-                    <span>1. 환자 신상 · 약물 · 복합 질환</span>
+                    <span>1. 환자 정보 & 분변 해석(비중 SG)</span>
                 </button>
                 <button onclick="switchTab('feeding-tab')" id="btn-feeding-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-bowl-food"></i>
@@ -735,6 +735,8 @@
 
         <!-- TAB 1: 환자 신상 및 복합 질환 입력 -->
         <section id="profile-tab" class="tab-content space-y-6">
+            <!-- [NEW 선택 B] 분변 해석 모듈 (소장계/대장 관련 패턴 검토 · 비중 SG 적용) -->
+            <div id="gut-pattern-review" class="bg-white rounded-2xl p-6 shadow-md border-2 border-indigo-500/40"></div>
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
                     <div class="flex items-center space-x-3">
@@ -2160,8 +2162,19 @@
 
         <!-- TAB 4: 장내환경 9대 마커 가중치 CDSS & 분변키트/혈액검사 피드백 -->
         <section id="monitoring-tab" class="tab-content space-y-6 hidden">
-            <!-- NEW: 소장계/대장 패턴 검토 및 분변 비중(SG) 해석 모듈 패널 -->
-            <div id="gut-pattern-review" class="mt-6"></div>
+            <!-- NEW: 소장계/대장 관련 패턴 및 분변 비중(SG) 해석 모듈 안내 -->
+            <div class="bg-indigo-50/70 rounded-2xl p-4 border border-indigo-200 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold">🔬</span>
+                    <div>
+                        <h4 class="text-sm font-bold text-indigo-900">분변 해석 모듈 (소장계/대장 관련 패턴 검토 · 비중 SG)</h4>
+                        <p class="text-xs text-indigo-700">수의사 메인 화면 1번 [환자 정보 & 분변 해석] 탭 상단에 전면 배치되어 상시 검토할 수 있습니다.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="switchTab('profile-tab')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition shadow-sm">
+                    1번 탭 모듈로 이동 ➔
+                </button>
+            </div>
 
 
             <!-- NEW: 9-Marker Gut Environment Weighted Baseline & Differential Attribution CDSS -->
