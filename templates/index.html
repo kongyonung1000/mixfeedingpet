@@ -2528,132 +2528,55 @@
                 <!-- NEW: 분변 해석 모듈 (소장계/대장 관련 패턴 검토 · 비중 SG 적용) -->
                 <div id="gut-pattern-review" class="bg-white rounded-2xl p-6 shadow-md border-2 border-indigo-500/40 mb-6"></div>
 
-                <!-- 9대 분변 마커 실측치 입력 그리드 (기본 접힘: 제목 클릭 시 열림/닫힘 토글) -->
-                <div class="bg-slate-900 text-white px-5 py-3.5 rounded-2xl border border-slate-800">
-                    <div onclick="toggleFecal9MarkerInputPanel()" class="flex flex-wrap items-center justify-between cursor-pointer select-none group">
-                        <div class="flex items-center space-x-2.5">
-                            <i class="fa-solid fa-sliders text-amber-400"></i>
-                            <h3 class="text-sm font-extrabold group-hover:text-amber-300 transition">장내환경 9대 분변 마커 실측값 입력 (Fecal 9-Biomarker Panel)</h3>
-                        </div>
-                        <span id="fecal-9marker-toggle-badge" class="text-[11px] text-slate-300 bg-white/10 group-hover:bg-white/20 px-3 py-1 rounded-lg font-bold transition flex items-center space-x-1.5">
-                            <span>클릭하여 입력창 열기</span>
-                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                        </span>
-                    </div>
-
-                    <div id="fecal-9marker-input-body" class="hidden space-y-4 pt-4 mt-3 border-t border-white/10">
-                        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
-                            <div>괄호 안은 정상 생리 기준 범위이며, 직접 수치를 수정하지 않으면 <strong>환자의 5대 축(연령·식이·약물·질병·혈액검사) 임상 가중치</strong>에 맞춰 자동 추정됩니다.</div>
-                            <div class="flex items-center gap-2">
-                                <span id="fecal-input-mode-badge" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold text-[10px]">🔄 5대축 자동연동 모드</span>
-                                <button type="button" onclick="resetFecalInputsToAuto()" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-[10px] transition">
-                                    <i class="fa-solid fa-rotate-left mr-1"></i>자동추정 모드로 복귀
-                                </button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3 text-xs">
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-amber-300">① 분변 pH</label>
-                            <div class="text-[10px] text-slate-400 mb-1">정상: 6.0~7.0</div>
-                            <input type="number" step="0.1" id="m9-ph" value="6.8" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-amber-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-sky-300">② 암모니아</label>
-                            <div class="text-[10px] text-slate-400 mb-1">10~30 μmol/g</div>
-                            <input type="number" step="0.5" id="m9-ammonia" value="32.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-sky-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-indigo-300">③ 인돌 (Indole)</label>
-                            <div class="text-[10px] text-slate-400 mb-1">5~25 μg/g</div>
-                            <input type="number" step="0.5" id="m9-indole" value="22.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-indigo-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-emerald-300">④ 젖산 (Lactate)</label>
-                            <div class="text-[10px] text-slate-400 mb-1">5~12 mmol/g</div>
-                            <input type="number" step="0.2" id="m9-lactate" value="7.2" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-emerald-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-rose-300">⑤ 잠혈 (Blood)</label>
-                            <div class="text-[10px] text-slate-400 mb-1">&lt;10 ng/mL</div>
-                            <input type="number" step="1.0" id="m9-blood" value="5.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-rose-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-blue-300">⑥ 미소화 단백질</label>
-                            <div class="text-[10px] text-slate-400 mb-1">2.0~8.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-protein" value="7.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-blue-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-teal-300">⑦ 미소화 탄수</label>
-                            <div class="text-[10px] text-slate-400 mb-1">3.0~10.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-carbo" value="8.5" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-teal-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-yellow-300">⑧ 미소화 지방</label>
-                            <div class="text-[10px] text-slate-400 mb-1">1.0~7.0 %DM</div>
-                            <input type="number" step="0.2" id="m9-fat" value="9.5" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-yellow-400">
-                        </div>
-                        <div class="bg-white/10 p-2.5 rounded-xl border border-white/15">
-                            <label class="block text-[11px] font-bold text-purple-300">⑨ 추정 흡수율</label>
-                            <div class="text-[10px] text-slate-400 mb-1">80~95 %</div>
-                            <input type="number" step="0.5" id="m9-absorption" value="68.0" oninput="onFecalInputManualChange()" class="w-full px-2 py-1.5 rounded-lg bg-slate-800 text-white font-extrabold border border-white/20 outline-none focus:border-purple-400">
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center justify-between pt-2 gap-3">
-                        <div class="text-xs text-amber-300 font-semibold">
-                            <i class="fa-solid fa-scale-unbalanced-flip mr-1"></i>실측 흡수율(<span id="cdss-meas-abs-label">68.0</span>%) 반영 1일 보정 급여량:
-                            <strong id="cdss-recalc-kcal" class="text-white underline ml-1">0 kcal/day</strong>
-                            (<strong id="cdss-recalc-g" class="text-emerald-300">0 g/day</strong>)
-                        </div>
-                        <button type="button" onclick="runGutEnvironmentCDSS()" class="px-7 py-3 bg-gradient-to-r from-indigo-500 via-blue-600 to-emerald-500 hover:from-indigo-600 hover:to-emerald-600 text-white font-black rounded-xl text-xs shadow-lg flex items-center space-x-2 transition transform active:scale-95">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <span>9대 분변 마커 + 혈액검사 가중치 결합 & 원인 분해 진단 실행</span>
-                        </button>
-                    </div>
-                    </div>
+                <!-- [삭제됨: 분변해석모듈 표와 중복되어 9대 분변마커 실측값 입력 패널 제거됨] -->
+                <div style="display:none;" aria-hidden="true">
+                    <span id="cdss-meas-abs-label">68.0</span>
+                    <strong id="cdss-recalc-kcal">0 kcal/day</strong>
+                    <strong id="cdss-recalc-g">0 g/day</strong>
+                    <input type="number" id="m9-ph" value="6.8">
+                    <input type="number" id="m9-ammonia" value="20.0">
+                    <input type="number" id="m9-indole" value="15.0">
+                    <input type="number" id="m9-lactate" value="8.0">
+                    <input type="number" id="m9-blood" value="0.0">
+                    <input type="number" id="m9-protein" value="5.0">
+                    <input type="number" id="m9-carbo" value="6.0">
+                    <input type="number" id="m9-fat" value="4.0">
+                    <input type="number" id="m9-absorption" value="85.0">
+                    <div id="fecal-9marker-toggle-badge"></div>
+                    <div id="fecal-9marker-input-body"></div>
+                    <div id="fecal-input-mode-badge"></div>
                 </div>
 
                 <!-- CDSS 종합 결과 리포트 영역 -->
                 <div id="gut-cdss-result-panel" class="space-y-6">
-                    <!-- 1. 종합 장내환경 등급 & 5대 원인 진단 분해기 (Differential Attribution) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                        <!-- 좌측: 종합 점수 및 등급 배지 -->
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-indigo-950 text-white flex flex-col justify-between border border-indigo-500/30">
-                            <div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-indigo-300">종합 장내환경 평가 등급</span>
-                                    <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-white font-semibold">100점 만점 환산</span>
-                                </div>
-                                <div class="mt-3 flex items-baseline space-x-3">
-                                    <span id="cdss-score-val" class="text-4xl font-black text-amber-400">68.5</span>
-                                    <span class="text-sm text-slate-300">/ 100점</span>
-                                </div>
-                                <div id="cdss-grade-badge" class="mt-2 inline-block px-3.5 py-1 rounded-xl text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-400/40">
-                                    Grade 3 (주의 - Moderate Imbalance)
-                                </div>
+                    <!-- 1. 장내환경 변화 5대 원인 기여도 분해 (Differential Attribution) -->
+                    <div class="w-full p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between mb-2">
+                                <h4 class="text-sm font-black text-slate-800"><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5"></i>장내환경 변화 5대 원인 기여도 분해 (Differential Attribution)</h4>
+                                <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">혈액검사 가중치(ΔW_Lab) 연동 감별</span>
                             </div>
-                            <div class="mt-4 pt-3 border-t border-white/10">
-                                <div class="text-[11px] text-slate-400 mb-1.5 font-semibold">도출된 핵심 병태생리 진단 태그:</div>
-                                <div id="cdss-abnormal-tags" class="flex flex-wrap gap-1.5"></div>
-                            </div>
+                            <p class="text-xs text-slate-500 mb-3">현재 관찰된 분변 마커의 편차와 비보상성 초과분이 <strong>식이(사료/간식), 약물, 질병+혈액검사 중증도, 나이/체급, 기타(효소 한계 초과 등)</strong> 중 어디에서 기인했는지 백분율(%)로 분해합니다.</p>
+
+                            <!-- 누적 스택 바 -->
+                            <div id="cdss-attribution-stack-bar" class="w-full h-5 rounded-xl overflow-hidden flex shadow-inner bg-slate-200 mb-3"></div>
+
+                            <!-- 5대 요인 상세 수치 카드 -->
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs" id="cdss-attribution-cards"></div>
+
+                            <div id="cdss-primary-culprit-banner" class="mt-3 p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-950 font-semibold"></div>
                         </div>
 
-                        <!-- 우측(2칸): 5대 원인 기여도 분해 바 (식이 vs 약물 vs 질병+혈액중증도 vs 나이 vs 기타) -->
-                        <div class="lg:col-span-2 p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
-                            <div>
-                                <div class="flex flex-wrap items-center justify-between mb-2">
-                                    <h4 class="text-sm font-black text-slate-800"><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5"></i>장내환경 변화 5대 원인 기여도 분해 (Differential Attribution)</h4>
-                                    <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">혈액검사 가중치(ΔW_Lab) 연동 감별</span>
-                                </div>
-                                <p class="text-xs text-slate-500 mb-3">현재 관찰된 분변 마커의 편차와 비보상성 초과분이 <strong>식이(사료/간식), 약물, 질병+혈액검사 중증도, 나이/체급, 기타(효소 한계 초과 등)</strong> 중 어디에서 기인했는지 백분율(%)로 분해합니다.</p>
+                        <!-- 관찰된 주요 병태생리 패턴 태그 (종합평가등급 대체 안전 표기) -->
+                        <div class="pt-3 border-t border-slate-200">
+                            <div class="text-[11px] text-slate-500 mb-1.5 font-bold"><i class="fa-solid fa-tags text-indigo-500 mr-1"></i>관찰된 주요 이상 패턴 태그:</div>
+                            <div id="cdss-abnormal-tags" class="flex flex-wrap gap-1.5"></div>
+                        </div>
 
-                                <!-- 누적 스택 바 -->
-                                <div id="cdss-attribution-stack-bar" class="w-full h-5 rounded-xl overflow-hidden flex shadow-inner bg-slate-200 mb-3"></div>
-
-                                <!-- 5대 요인 상세 수치 카드 -->
-                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs" id="cdss-attribution-cards"></div>
-                            </div>
-                            <div id="cdss-primary-culprit-banner" class="mt-3 p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-950 font-semibold"></div>
+                        <!-- 삭제된 종합평가등급 요소 안전 보존 (JS Null 에러 방지용 hidden) -->
+                        <div style="display:none;" aria-hidden="true">
+                            <span id="cdss-score-val"></span>
+                            <div id="cdss-grade-badge"></div>
                         </div>
                     </div>
 
@@ -2809,22 +2732,9 @@
                         </div>
                     </div>
 
-                    <!-- 2. 9대 마커별 [정상치 vs 환자 맞춤 기대치(혈액가중치 포함) vs 실제 측정치] 정밀 판정 테이블 -->
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200">
-                        <table class="w-full text-xs text-left">
-                            <thead class="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200">
-                                <tr>
-                                    <th class="py-3 px-3">분변 마커 (단위)</th>
-                                    <th class="py-3 px-3">정상 성견 기준</th>
-                                    <th class="py-3 px-3 text-indigo-700">합산 가중치 (W_total)</th>
-                                    <th class="py-3 px-3 text-blue-700">환자 맞춤 기대치 (Expected)</th>
-                                    <th class="py-3 px-3 text-slate-900">실제 측정치 (Measured)</th>
-                                    <th class="py-3 px-3 text-center">CDSS 판정 상태</th>
-                                    <th class="py-3 px-3">5대 축(연령·식이·약물·질병·혈액) 가중 편차 및 임상 해석</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cdss-markers-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
-                        </table>
+                    <!-- [삭제됨: 위의 분변해석모듈 표와 중복되어 9대 마커 정밀 판정 테이블 제거됨] -->
+                    <div style="display:none;" aria-hidden="true">
+                        <table><tbody id="cdss-markers-table-body"></tbody></table>
                     </div>
 
                     <!-- 3. 가중치 기반 AI 심층 분석 코멘트 -->
@@ -4128,258 +4038,215 @@
             absorption: { age: 1.1, size: 0.9, diet: 1.2, drug: 1.3, disease: 1.7, lab: 1.8 }
         };
 
-        function _mkW(ph, amm, ind, lac, bld, pro, car, fat, abs, mot = 1.0, dig = 1.0, leak = 1.0, inf = 1.0) {
-            return {
-                ph, ammonia: amm, indole: ind, lactate: lac, blood: bld,
-                protein: pro, carbo: car, fat, absorption: abs,
-                motility: mot, digestion: dig, leak: leak, inflammation: inf
-            };
-        }
+        // ===========================================================================
 
-        // -----------------------------------------------------------------
-        // [A] 강아지 (Canine) 전용 가중치 매트릭스 — 엑셀 『변수기준(개)』 시트 100% 반영
-        // -----------------------------------------------------------------
-        // --- CDSS_AGE_WEIGHTS_DOG ---
+// V3 엑셀(장내환경_변수_가중치_상관관계_개_고양이_통합완성본-v3.xlsx) 100% 반영
+
+// ===========================================================================
+
+function _mkW(ph, amm, glu, bld, pro, car, fat, abs, mot = 1.0, dig = 1.0, leak = 1.0, inf = 1.0, mic = 1.0) {
+    return {
+        ph, ammonia: amm, glucose: glu, blood: bld,
+        protein: pro, carbo: car, fat, absorption: abs,
+        motility: mot, digestion: dig, leak: leak, inflammation: inf,
+        microbial_index: mic,
+        // 하위 호환성 및 기존 로직 방어 (인돌 및 젖산 참조 호환)
+        indole: glu,
+        lactate: glu
+    };
+}
+
 const CDSS_AGE_WEIGHTS_DOG = {
-            "1년령 이하 (성장기)": _mkW(0.95, 0.85, 0.80, 1.30, 1.00, 1.15, 1.10, 1.10, 0.90, 1.15, 0.90, 1.10, 1.00),
+            "1년령 이하 (성장기)": _mkW(0.95, 0.85, 1.08, 1.00, 1.15, 1.10, 1.10, 0.90, 1.15, 0.90, 1.10, 1.00, 1.08),
             "1년 ~ 7년 (성견 기준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "7년령 이상 (노령기)": _mkW(1.05, 1.25, 1.20, 0.85, 1.10, 1.20, 1.15, 1.25, 0.85, 0.80, 0.85, 1.20, 1.15)
+            "7년령 이상 (노령기)": _mkW(1.05, 1.25, 1.12, 1.10, 1.20, 1.15, 1.25, 0.85, 0.80, 0.85, 1.20, 1.15, 1.22),
         };
 
-// --- CDSS_SIZE_WEIGHTS_DOG ---
 const CDSS_SIZE_WEIGHTS_DOG = {
-            "소형견 (<10kg)": _mkW(0.98, 0.90, 0.90, 1.10, 1.00, 0.95, 0.95, 0.95, 1.05, 1.05, 1.00, 0.98, 1.00),
+            "소형견 (<10kg)": _mkW(0.98, 0.90, 0.96, 1.00, 0.95, 0.95, 0.95, 1.05, 1.05, 1.00, 0.98, 1.00, 0.94),
             "중형견 (10~25kg, 기준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "대형견 (>25kg)": _mkW(1.05, 1.20, 1.25, 0.90, 1.05, 1.15, 1.10, 1.10, 0.92, 0.88, 0.95, 1.15, 1.10)
+            "대형견 (>25kg)": _mkW(1.05, 1.20, 1.08, 1.05, 1.15, 1.10, 1.10, 0.92, 0.88, 0.95, 1.15, 1.10, 1.18),
         };
 
-// --- CDSS_DIET_WEIGHTS_DOG ---
 const CDSS_DIET_WEIGHTS_DOG = {
-            "고단백사료": _mkW(1.08, 1.45, 1.40, 0.85, 1.00, 1.30, 0.80, 1.05, 0.98, 0.95, 1.15, 1.10, 1.15),
-            "저단백사료": _mkW(0.94, 0.70, 0.70, 1.15, 1.00, 0.70, 1.15, 1.00, 1.02, 1.00, 0.90, 0.98, 0.95),
-            "신장처방식 (저단백·고지방 k/d·레날)": _mkW(0.94, 0.70, 0.70, 1.15, 1.00, 0.70, 1.15, 1.20, 1.02, 0.95, 0.88, 1.05, 1.00),
+            "고단백사료": _mkW(1.08, 1.45, 0.85, 1.00, 1.30, 0.80, 1.05, 0.98, 0.95, 1.15, 1.10, 1.15, 1.35),
+            "저단백사료": _mkW(0.94, 0.70, 1.15, 1.00, 0.70, 1.15, 1.00, 1.02, 1.00, 0.90, 0.98, 0.95, 0.92),
             "중단백사료 (표준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "저지방사료": _mkW(0.98, 0.95, 0.95, 1.05, 1.00, 1.00, 1.10, 0.60, 1.03, 1.05, 0.85, 0.95, 0.92),
-            "고탄수화물사료": _mkW(0.92, 0.75, 0.75, 1.35, 1.00, 0.85, 1.35, 0.90, 0.95, 0.90, 1.05, 1.05, 1.05),
-            "가수분해사료": _mkW(1.00, 0.85, 0.85, 1.05, 0.95, 0.80, 0.95, 0.95, 1.10, 1.00, 0.80, 0.85, 0.80),
+            "저지방사료": _mkW(0.98, 0.95, 1.08, 1.00, 1.00, 1.10, 0.60, 1.03, 1.05, 0.85, 0.95, 0.92, 0.95),
+            "고탄수화물사료": _mkW(0.92, 0.75, 1.35, 1.00, 0.85, 1.35, 0.90, 0.95, 0.90, 1.05, 1.05, 1.05, 1.28),
+            "가수분해사료": _mkW(1.00, 0.85, 0.92, 0.95, 0.80, 0.95, 0.95, 1.10, 1.00, 0.80, 0.85, 0.80, 0.82),
             "건식 (표준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "습식 (캔/파우치)": _mkW(1.04, 1.15, 1.10, 0.95, 1.00, 1.05, 0.85, 1.10, 1.05, 1.10, 1.05, 0.95, 0.95),
-            "화식 (신선식)": _mkW(1.02, 1.05, 1.00, 1.00, 1.00, 0.90, 0.90, 0.95, 1.08, 1.05, 1.05, 0.92, 0.92),
-            "간식 (트릿/육포 등)": _mkW(1.10, 1.35, 1.30, 0.80, 1.00, 1.25, 0.85, 1.20, 0.92, 0.85, 1.10, 1.20, 1.20)
+            "습식 (캔/파우치)": _mkW(1.04, 1.15, 0.88, 1.00, 1.05, 0.85, 1.10, 1.05, 1.10, 1.05, 0.95, 0.95, 1.04),
+            "화식 (신선식)": _mkW(1.02, 1.05, 0.90, 1.00, 0.90, 0.90, 0.95, 1.08, 1.05, 1.05, 0.92, 0.92, 0.88),
+            "간식 (트릿/육포 등)": _mkW(1.10, 1.35, 1.18, 1.00, 1.25, 0.85, 1.20, 0.92, 0.85, 1.10, 1.20, 1.20, 1.32),
+            "신장처방식 (저단백·고지방 k/d·레날)": _mkW(0.94, 0.70, 1.15, 1.00, 0.70, 1.15, 1.20, 1.02, 1.00, 0.90, 0.98, 0.95, 0.92),
         };
 
-// --- CDSS_DRUG_WEIGHTS_DOG ---
 const CDSS_DRUG_WEIGHTS_DOG = {
-            "NSAIDs": _mkW(1.02, 1.05, 1.05, 0.95, 1.80, 1.10, 1.00, 1.00, 0.95, 0.90, 0.95, 1.85, 1.75),
-            "소화제 (소화효소/위장관조절제)": _mkW(0.98, 0.90, 0.90, 1.05, 1.00, 0.80, 0.80, 0.80, 1.15, 1.25, 1.40, 0.88, 0.85),
-            "심장약 (이뇨제/ACEi/피모벤단)": _mkW(1.02, 1.10, 1.05, 0.95, 1.00, 1.05, 1.05, 1.10, 0.92, 0.75, 0.92, 1.35, 1.15),
-            "신장약 (인바인더/요독소흡착제 등)": _mkW(0.98, 0.75, 0.75, 1.00, 1.05, 1.05, 1.00, 1.00, 0.95, 0.70, 0.90, 1.10, 1.10),
-            "간약 (UDCA/SAMe/실리마린)": _mkW(0.97, 0.90, 0.90, 1.05, 1.00, 0.95, 0.95, 0.85, 1.08, 1.05, 1.10, 0.92, 0.90),
-            "간질약 (Phenobarbital/KBr/Pexion)": _mkW(1.00, 1.05, 1.05, 0.95, 1.00, 1.05, 1.05, 1.05, 0.95, 0.80, 0.95, 1.05, 1.05),
-            "기관지 폐 약 (기관지확장제/진해제)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00),
-            "스테로이드 (Prednisolone 등)": _mkW(1.05, 1.15, 1.15, 0.90, 1.50, 1.15, 1.10, 1.20, 0.88, 0.95, 0.90, 1.55, 0.85),
-            "관절염, 디스크약 (진통소염/신경통약)": _mkW(1.02, 1.05, 1.05, 0.95, 1.40, 1.05, 1.00, 1.00, 0.95, 0.90, 0.95, 1.45, 1.40),
-            "쿠싱약 (Trilostane)": _mkW(1.00, 1.05, 1.05, 1.00, 1.05, 1.05, 1.05, 1.10, 0.95, 0.95, 0.95, 1.10, 1.05),
-            "에디슨약 (Fludrocortisone/DOCP)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.05, 1.00),
-            "갑상선기능항진증약 (Methimazole)": _mkW(1.02, 1.05, 1.05, 0.95, 1.00, 1.05, 1.05, 1.05, 0.95, 0.95, 0.95, 1.10, 1.10),
-            "갑상선기능저하증약 (Levothyroxine)": _mkW(0.98, 0.95, 0.95, 1.05, 1.00, 0.95, 0.95, 0.95, 1.05, 1.10, 1.05, 0.95, 0.95),
-            "항암제 (Cytotoxic agents)": _mkW(1.10, 1.35, 1.30, 0.80, 1.70, 1.30, 1.25, 1.35, 0.75, 0.65, 0.70, 1.90, 1.80),
-            "피부병약 (항생제/항히스타민/Apoquel)": _mkW(1.04, 1.15, 1.15, 0.90, 1.05, 1.10, 1.05, 1.05, 0.95, 0.90, 0.95, 1.35, 1.30),
-            "인슐린 (Insulin)": _mkW(0.99, 0.95, 0.95, 1.04, 1.00, 0.95, 0.90, 0.95, 1.04, 1.00, 1.00, 1.00, 1.00),
-            "식욕촉진제 (Mirtazapine/Elura)": _mkW(1.01, 1.05, 1.05, 0.98, 1.00, 1.05, 1.05, 1.05, 1.02, 1.15, 1.05, 0.95, 0.95),
-            "광범위 항생제 (클라바목스/메트로니다졸)": _mkW(1.06, 1.30, 1.25, 0.85, 1.15, 1.20, 1.15, 1.15, 0.88, 1.20, 0.85, 1.65, 1.55),
-            "면역억제제 (Cyclosporine/Atopica)": _mkW(1.04, 1.12, 1.12, 0.92, 1.20, 1.10, 1.08, 1.10, 0.92, 0.85, 0.85, 1.60, 1.40),
-            "항바이러스제 (GS-441524, FIP 치료제)": _mkW(1.02, 1.05, 1.05, 0.95, 1.05, 1.05, 1.05, 1.05, 0.96, 0.95, 0.95, 1.15, 1.15),
-            "배뇨조절제 (Prazosin/방광염약)": _mkW(1.00, 1.02, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.90, 1.00, 1.00, 1.00)
+            "NSAIDs": _mkW(1.02, 1.05, 1.12, 1.80, 1.10, 1.00, 1.00, 0.95, 0.90, 0.95, 1.85, 1.75, 1.38),
+            "소화제 (소화효소/위장관조절제)": _mkW(0.98, 0.90, 0.85, 1.00, 0.80, 0.80, 0.80, 1.15, 1.25, 1.40, 0.88, 0.85, 0.84),
+            "심장약 (이뇨제/ACEi/피모벤단)": _mkW(1.02, 1.10, 1.05, 1.00, 1.05, 1.05, 1.10, 0.92, 0.75, 0.92, 1.35, 1.15, 1.18),
+            "신장약 (인바인더/요독소흡착제 등)": _mkW(0.98, 0.75, 1.00, 1.05, 1.05, 1.00, 1.00, 0.95, 0.70, 0.90, 1.10, 1.10, 0.88),
+            "간약 (UDCA/SAMe/실리마린)": _mkW(0.97, 0.90, 0.95, 1.00, 0.95, 0.95, 0.85, 1.08, 1.05, 1.10, 0.92, 0.90, 0.90),
+            "간질약 (Phenobarbital/KBr/Pexion)": _mkW(1.00, 1.05, 1.05, 1.00, 1.05, 1.05, 1.05, 0.95, 0.80, 0.95, 1.05, 1.05, 1.10),
+            "기관지 폐 약 (기관지확장제/진해제)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00, 1.02),
+            "스테로이드 (Prednisolone 등)": _mkW(1.05, 1.15, 1.28, 1.50, 1.15, 1.10, 1.20, 0.88, 0.95, 0.90, 1.55, 0.85, 1.32),
+            "관절염, 디스크약 (진통소염/신경통약)": _mkW(1.02, 1.05, 1.08, 1.40, 1.05, 1.00, 1.00, 0.95, 0.90, 0.95, 1.45, 1.40, 1.22),
+            "쿠싱약 (Trilostane)": _mkW(1.00, 1.05, 1.05, 1.05, 1.05, 1.05, 1.10, 0.95, 0.95, 0.95, 1.10, 1.05, 1.08),
+            "에디슨약 (Fludrocortisone/DOCP)": _mkW(1.00, 1.00, 1.02, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.05, 1.00, 1.02),
+            "갑상선기능항진증약 (Methimazole)": _mkW(1.02, 1.05, 1.04, 1.00, 1.05, 1.05, 1.05, 0.95, 0.95, 0.95, 1.10, 1.10, 1.08),
+            "갑상선기능저하증약 (Levothyroxine)": _mkW(0.98, 0.95, 0.96, 1.00, 0.95, 0.95, 0.95, 1.05, 1.10, 1.05, 0.95, 0.95, 0.94),
+            "항암제 (Cytotoxic agents)": _mkW(1.10, 1.35, 1.50, 1.70, 1.30, 1.25, 1.35, 0.75, 0.65, 0.70, 1.90, 1.80, 1.75),
+            "피부병약 (항생제/항히스타민/Apoquel)": _mkW(1.04, 1.15, 1.25, 1.05, 1.10, 1.05, 1.05, 0.95, 0.90, 0.95, 1.35, 1.30, 1.45),
+            "해당없음 (정상 대조군)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
         };
 
-// --- CDSS_DISEASE_WEIGHTS_DOG ---
 const CDSS_DISEASE_WEIGHTS_DOG = {
             "MMVD stage A, B": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "MMVD stage C, D": _mkW(1.04, 1.20, 1.15, 0.90, 1.25, 1.15, 1.10, 1.20, 0.85, 0.75, 0.88, 1.55, 1.25),
+            "MMVD stage C, D": _mkW(1.04, 1.20, 1.12, 1.25, 1.15, 1.10, 1.20, 0.85, 0.75, 0.88, 1.55, 1.25, 1.32),
             "HCM A, B": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "HCM C, D": _mkW(1.04, 1.20, 1.15, 0.90, 1.20, 1.15, 1.10, 1.20, 0.85, 0.78, 0.88, 1.50, 1.20),
-            "폐성고혈압": _mkW(1.03, 1.15, 1.10, 0.95, 1.15, 1.10, 1.05, 1.15, 0.88, 0.82, 0.90, 1.35, 1.15),
-            "기타 심장병(PDA 등)": _mkW(1.02, 1.10, 1.05, 0.95, 1.10, 1.05, 1.05, 1.10, 0.92, 0.90, 0.95, 1.20, 1.10),
-            "CKD stage 1, 2": _mkW(1.02, 1.15, 1.15, 0.95, 1.05, 1.05, 1.00, 1.05, 0.95, 0.92, 0.95, 1.15, 1.15),
-            "CKD stage 3, 4": _mkW(1.08, 1.55, 1.50, 0.80, 1.30, 1.20, 1.10, 1.15, 0.82, 0.70, 0.80, 1.60, 1.65),
-            "만성췌장염": _mkW(1.06, 1.25, 1.20, 0.85, 1.20, 1.40, 1.30, 1.65, 0.65, 0.85, 0.50, 1.35, 1.45),
-            "만성담낭염": _mkW(1.04, 1.15, 1.10, 0.95, 1.10, 1.10, 1.05, 1.45, 0.80, 0.90, 0.65, 1.20, 1.25),
-            "IBD (염증성장질환)": _mkW(1.08, 1.45, 1.40, 0.75, 1.85, 1.45, 1.35, 1.40, 0.60, 0.70, 0.65, 1.95, 1.95),
-            "만성 폐렴": _mkW(1.02, 1.10, 1.05, 0.95, 1.05, 1.05, 1.05, 1.05, 0.95, 0.90, 0.95, 1.15, 1.20),
-            "만성기관지염": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.05, 1.05),
-            "천식": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.05, 1.05),
-            "만성간질환": _mkW(1.06, 1.40, 1.30, 0.90, 1.25, 1.20, 1.10, 1.45, 0.78, 0.75, 0.75, 1.50, 1.40),
-            "쿠싱 (부신피질기능항진)": _mkW(1.03, 1.15, 1.10, 0.95, 1.20, 1.15, 1.10, 1.15, 0.90, 0.90, 0.95, 1.30, 1.10),
-            "에디슨 (부신피질기능저하)": _mkW(1.02, 1.10, 1.05, 0.95, 1.15, 1.10, 1.05, 1.10, 0.90, 0.80, 0.90, 1.30, 1.20),
-            "갑상선기능항진증": _mkW(0.98, 1.15, 1.10, 1.10, 1.10, 1.15, 1.15, 1.15, 0.88, 1.35, 1.10, 1.20, 1.15),
-            "갑상선기능저하증": _mkW(1.02, 1.05, 1.05, 0.95, 1.00, 1.05, 1.05, 1.15, 0.92, 0.70, 0.85, 1.10, 1.05),
-            "관절염": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00),
-            "디스크": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.80, 1.00, 1.00, 1.00),
-            "요로결석": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00),
-            "담낭점액종": _mkW(1.05, 1.15, 1.15, 0.95, 1.10, 1.10, 1.05, 1.50, 0.78, 0.85, 0.60, 1.25, 1.30),
-            "담낭슬러지 25%이상": _mkW(1.03, 1.08, 1.05, 0.98, 1.05, 1.05, 1.00, 1.25, 0.88, 0.92, 0.75, 1.15, 1.15),
-            "담낭결석": _mkW(1.04, 1.10, 1.10, 0.95, 1.05, 1.05, 1.00, 1.35, 0.85, 0.90, 0.70, 1.20, 1.20),
-            "만성외이염 (알러지 기반)": _mkW(1.02, 1.08, 1.08, 0.98, 1.05, 1.05, 1.00, 1.00, 0.96, 0.95, 0.95, 1.25, 1.25),
-            "뇌질환 (뇌수막염/경색 등)": _mkW(1.00, 1.05, 1.05, 0.98, 1.05, 1.05, 1.05, 1.05, 0.95, 0.75, 0.95, 1.15, 1.10),
-            "종양 (전신/악성)": _mkW(1.08, 1.35, 1.30, 0.80, 1.60, 1.30, 1.20, 1.25, 0.75, 0.70, 0.75, 1.75, 1.70),
-            "당뇨병": _mkW(1.02, 1.18, 1.12, 0.90, 1.05, 1.20, 1.40, 1.25, 0.86, 0.78, 0.90, 1.20, 1.15),
-            "3복강염 (Triaditis: 췌장염+담관염+IBD)": _mkW(1.10, 1.50, 1.45, 0.72, 1.90, 1.50, 1.40, 1.70, 0.55, 0.65, 0.40, 1.95, 2.00),
-            "담관간염 / 담낭염 (Cholangiohepatitis)": _mkW(1.05, 1.25, 1.20, 0.90, 1.15, 1.15, 1.10, 1.50, 0.76, 0.85, 0.65, 1.35, 1.45),
-            "소화기 림프종 (GI Lymphoma, 소형/대형세포)": _mkW(1.10, 1.48, 1.42, 0.75, 1.88, 1.48, 1.38, 1.45, 0.58, 0.60, 0.55, 2.00, 1.90),
-            "간지질증 (Hepatic Lipidosis, 지방간)": _mkW(1.06, 1.42, 1.35, 0.85, 1.20, 1.25, 1.15, 1.60, 0.70, 0.55, 0.60, 1.60, 1.50),
-            "특발성 방광염 (FIC / 하부요로계질환 FLUTD)": _mkW(1.01, 1.05, 1.05, 0.98, 1.15, 1.02, 1.00, 1.02, 0.98, 0.90, 1.00, 1.10, 1.10),
-            "고양이 전염성 복막염 (FIP, 습식/건식)": _mkW(1.08, 1.40, 1.35, 0.82, 1.55, 1.38, 1.25, 1.30, 0.68, 0.65, 0.70, 1.90, 1.95),
-            "고양이 백혈병/면역결핍증 (FeLV / FIV)": _mkW(1.05, 1.25, 1.25, 0.88, 1.30, 1.20, 1.15, 1.20, 0.85, 0.80, 0.85, 1.55, 1.60),
-            "만성 구내염 (FCGS / 치아흡수성병변 FORL)": _mkW(1.03, 1.15, 1.12, 0.95, 1.15, 1.12, 1.08, 1.10, 0.90, 0.90, 0.85, 1.15, 1.30),
-            "만성 변비 / 거대결장 (Megacolon)": _mkW(1.08, 1.45, 1.42, 0.80, 1.30, 1.25, 1.18, 1.20, 0.78, 0.30, 0.90, 1.40, 1.40),
-            "림프구성 문맥간염 (LPH)": _mkW(1.04, 1.20, 1.18, 0.92, 1.10, 1.12, 1.08, 1.35, 0.82, 0.80, 0.75, 1.35, 1.35),
-            "담낭슬러지 및 담관폐색": _mkW(1.04, 1.12, 1.10, 0.96, 1.08, 1.08, 1.02, 1.38, 0.84, 0.85, 0.60, 1.30, 1.30),
-            "전신 고혈압 (Hypertension)": _mkW(1.02, 1.10, 1.08, 0.96, 1.12, 1.06, 1.04, 1.10, 0.92, 0.85, 0.95, 1.35, 1.15),
-            "만성 비부비동염 (Feline Chronic Rhinitis)": _mkW(1.01, 1.04, 1.02, 0.98, 1.02, 1.02, 1.02, 1.02, 0.98, 0.92, 0.95, 1.10, 1.15),
-            "피부 알러지 / 호산구성 육아종 (EGC)": _mkW(1.02, 1.10, 1.08, 0.96, 1.08, 1.08, 1.02, 1.05, 0.95, 0.95, 0.95, 1.30, 1.35)
+            "HCM C, D": _mkW(1.04, 1.20, 1.12, 1.20, 1.15, 1.10, 1.20, 0.85, 0.78, 0.88, 1.50, 1.20, 1.30),
+            "폐성고혈압": _mkW(1.03, 1.15, 1.06, 1.15, 1.10, 1.05, 1.15, 0.88, 0.82, 0.90, 1.35, 1.15, 1.20),
+            "기타 심장병(PDA 등)": _mkW(1.02, 1.10, 1.04, 1.10, 1.05, 1.05, 1.10, 0.92, 0.90, 0.95, 1.20, 1.10, 1.12),
+            "CKD stage 1, 2": _mkW(1.02, 1.15, 1.02, 1.05, 1.05, 1.00, 1.05, 0.95, 0.92, 0.95, 1.15, 1.15, 1.16),
+            "CKD stage 3, 4": _mkW(1.08, 1.55, 1.15, 1.30, 1.20, 1.10, 1.15, 0.82, 0.70, 0.80, 1.60, 1.65, 1.62),
+            "만성췌장염": _mkW(1.06, 1.25, 1.22, 1.20, 1.40, 1.30, 1.65, 0.65, 0.85, 0.50, 1.35, 1.45, 1.42),
+            "만성담낭염": _mkW(1.04, 1.15, 1.06, 1.10, 1.10, 1.05, 1.45, 0.80, 0.90, 0.65, 1.20, 1.25, 1.25),
+            "IBD (염증성장질환)": _mkW(1.08, 1.45, 1.52, 1.85, 1.45, 1.35, 1.40, 0.60, 0.70, 0.65, 1.95, 1.95, 1.85),
+            "만성 폐렴": _mkW(1.02, 1.10, 1.05, 1.05, 1.05, 1.05, 1.05, 0.95, 0.90, 0.95, 1.15, 1.20, 1.16),
+            "만성기관지염": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.05, 1.05, 1.04),
+            "천식": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.05, 1.05, 1.04),
+            "만성간질환": _mkW(1.06, 1.40, 1.15, 1.25, 1.20, 1.10, 1.45, 0.78, 0.75, 0.75, 1.50, 1.40, 1.48),
+            "쿠싱 (부신피질기능항진)": _mkW(1.03, 1.15, 1.25, 1.20, 1.15, 1.10, 1.15, 0.90, 0.90, 0.95, 1.30, 1.10, 1.22),
+            "에디슨 (부신피질기능저하)": _mkW(1.02, 1.10, 1.08, 1.15, 1.10, 1.05, 1.10, 0.90, 0.80, 0.90, 1.30, 1.20, 1.18),
+            "갑상선기능항진증": _mkW(0.98, 1.15, 1.20, 1.10, 1.15, 1.15, 1.15, 0.88, 1.35, 1.10, 1.20, 1.15, 1.22),
+            "갑상선기능저하증": _mkW(1.02, 1.05, 1.04, 1.00, 1.05, 1.05, 1.15, 0.92, 0.70, 0.85, 1.10, 1.05, 1.12),
+            "관절염": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00, 1.02),
+            "디스크": _mkW(1.00, 1.00, 1.02, 1.00, 1.00, 1.00, 1.00, 1.00, 0.80, 1.00, 1.00, 1.00, 1.08),
+            "요로결석": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00, 1.02),
+            "담낭점액종": _mkW(1.05, 1.15, 1.08, 1.10, 1.10, 1.05, 1.50, 0.78, 0.85, 0.60, 1.25, 1.30, 1.32),
+            "담낭슬러지 25%이상": _mkW(1.03, 1.08, 1.02, 1.05, 1.05, 1.00, 1.25, 0.88, 0.92, 0.75, 1.15, 1.15, 1.15),
+            "담낭결석": _mkW(1.04, 1.10, 1.04, 1.05, 1.05, 1.00, 1.35, 0.85, 0.90, 0.70, 1.20, 1.20, 1.20),
+            "만성외이염 (알러지 기반)": _mkW(1.02, 1.08, 1.04, 1.05, 1.05, 1.00, 1.00, 0.96, 0.95, 0.95, 1.25, 1.25, 1.24),
+            "뇌질환 (뇌수막염/경색 등)": _mkW(1.00, 1.05, 1.05, 1.05, 1.05, 1.05, 1.05, 0.95, 0.75, 0.95, 1.15, 1.10, 1.15),
+            "종양 (전신/악성)": _mkW(1.08, 1.35, 1.28, 1.60, 1.30, 1.20, 1.25, 0.75, 0.70, 0.75, 1.75, 1.70, 1.58),
+            "해당없음 (정상)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
         };
 
-// --- CDSS_LAB_MARKER_WEIGHTS_DOG ---
 const CDSS_LAB_MARKER_WEIGHTS_DOG = {
-            "cPL 경도 상승 (1단계/경증 췌장염 의심)": _mkW(1.03, 1.18, 1.15, 0.90, 1.15, 1.22, 1.18, 1.35, 0.80, 0.90, 0.75, 1.20, 1.25),
-            "cPL 고도 상승 (2단계/급성·중증 췌장염)": _mkW(1.07, 1.35, 1.30, 0.80, 1.30, 1.45, 1.35, 1.68, 0.60, 0.65, 0.40, 1.65, 1.60),
-            "SDMA 상승 (신장 조기 손상 마커)": _mkW(1.02, 1.25, 1.25, 0.95, 1.10, 1.10, 1.02, 1.08, 0.92, 0.92, 0.95, 1.15, 1.15),
-            "BUN / Creatinine 상승 (신부전/요독증)": _mkW(1.08, 1.55, 1.50, 0.80, 1.35, 1.20, 1.10, 1.15, 0.80, 0.72, 0.82, 1.55, 1.60),
-            "코발라민(B12) 저하 (소장 회장부 흡수부전)": _mkW(1.06, 1.30, 1.25, 0.85, 1.20, 1.35, 1.25, 1.30, 0.65, 0.80, 0.75, 1.50, 1.45),
-            "엽산(Folate/B9) 상승 (소장 세균과증식 SIBO)": _mkW(1.08, 1.42, 1.38, 0.78, 1.25, 1.30, 1.25, 1.35, 0.70, 0.75, 0.85, 1.45, 1.40),
-            "총 빌리루빈 상승 (담관폐색/담즙정체 황달)": _mkW(1.05, 1.30, 1.25, 0.88, 1.15, 1.15, 1.08, 1.55, 0.75, 0.85, 0.60, 1.35, 1.30),
-            "알부민 경도 저하 (경증 저단백혈증)": _mkW(1.04, 1.20, 1.18, 0.88, 1.35, 1.28, 1.15, 1.18, 0.78, 0.80, 0.85, 1.40, 1.35),
-            "알부민 중증 저하 (단백소실성 장병증 PLE)": _mkW(1.08, 1.40, 1.35, 0.78, 1.70, 1.55, 1.30, 1.35, 0.58, 0.65, 0.70, 1.95, 1.85),
-            "CRP 경도 상승 (경미한 염증/국소 감염)": _mkW(1.03, 1.18, 1.15, 0.90, 1.25, 1.18, 1.10, 1.12, 0.86, 0.85, 0.90, 1.30, 1.35),
-            "CRP 고도 상승 (급성/중증 전신 염증)": _mkW(1.06, 1.35, 1.30, 0.82, 1.50, 1.35, 1.20, 1.25, 0.72, 0.75, 0.80, 1.65, 1.85),
-            "혈당 상승 (당뇨병 Canine DM)": _mkW(1.02, 1.18, 1.12, 0.90, 1.05, 1.20, 1.40, 1.25, 0.86, 0.78, 0.90, 1.20, 1.15),
-            "ALT / AST / ALP / GGT 상승 (간·담도 손상)": _mkW(1.05, 1.35, 1.28, 0.90, 1.20, 1.18, 1.10, 1.45, 0.80, 0.85, 0.75, 1.30, 1.25),
-            "백혈구(WBC) 상승 (전신 급만성 염증)": _mkW(1.06, 1.28, 1.25, 0.85, 1.40, 1.25, 1.15, 1.20, 0.82, 0.80, 0.85, 1.45, 1.50),
-            "전해질 불균형 (저칼륨혈증/고인산혈증)": _mkW(1.02, 1.15, 1.10, 0.95, 1.10, 1.08, 1.05, 1.08, 0.90, 0.60, 0.85, 1.30, 1.20)
+            "cPL 경도 상승 (1단계/경증 췌장염 의심)": _mkW(1.03, 1.18, 1.12, 1.15, 1.22, 1.18, 1.35, 0.80, 0.90, 0.75, 1.20, 1.25, 1.24),
+            "cPL 고도 상승 (2단계/급성·중증 췌장염)": _mkW(1.07, 1.35, 1.30, 1.30, 1.45, 1.35, 1.68, 0.60, 0.65, 0.40, 1.65, 1.60, 1.58),
+            "SDMA 상승 (신장 조기 손상 마커)": _mkW(1.02, 1.25, 1.02, 1.10, 1.10, 1.02, 1.08, 0.92, 0.92, 0.95, 1.15, 1.15, 1.18),
+            "BUN / Creatinine 상승 (신부전/요독증)": _mkW(1.08, 1.55, 1.14, 1.35, 1.20, 1.10, 1.15, 0.80, 0.72, 0.82, 1.55, 1.60, 1.60),
+            "코발라민(B12) 저하 (소장 회장부 흡수부전)": _mkW(1.06, 1.30, 1.38, 1.20, 1.35, 1.25, 1.30, 0.65, 0.80, 0.75, 1.50, 1.45, 1.52),
+            "엽산(Folate/B9) 상승 (소장 세균과증식 SIBO)": _mkW(1.08, 1.42, 0.88, 1.25, 1.30, 1.25, 1.35, 0.70, 0.75, 0.85, 1.45, 1.40, 1.55),
+            "총 빌리루빈 상승 (담관폐색/담즙정체 황달)": _mkW(1.05, 1.30, 1.08, 1.15, 1.15, 1.08, 1.55, 0.75, 0.85, 0.60, 1.35, 1.30, 1.38),
+            "알부민 경도 저하 (경증 저단백혈증)": _mkW(1.04, 1.20, 1.18, 1.35, 1.28, 1.15, 1.18, 0.78, 0.80, 0.85, 1.40, 1.35, 1.32),
+            "알부민 중증 저하 (단백소실성 장병증 PLE)": _mkW(1.08, 1.40, 1.45, 1.70, 1.55, 1.30, 1.35, 0.58, 0.65, 0.70, 1.95, 1.85, 1.78),
+            "CRP 경도 상승 (경미한 염증/국소 감염)": _mkW(1.03, 1.18, 1.08, 1.25, 1.18, 1.10, 1.12, 0.86, 0.85, 0.90, 1.30, 1.35, 1.25),
+            "CRP 고도 상승 (급성/중증 전신 염증)": _mkW(1.06, 1.35, 1.25, 1.50, 1.35, 1.20, 1.25, 0.72, 0.75, 0.80, 1.65, 1.85, 1.55),
+            "혈당 상승 (당뇨병 Canine DM)": _mkW(1.02, 1.18, 1.65, 1.05, 1.20, 1.40, 1.25, 0.86, 0.78, 0.90, 1.20, 1.15, 1.35),
+            "ALT / AST / ALP / GGT 상승 (간·담도 손상)": _mkW(1.05, 1.35, 1.12, 1.20, 1.18, 1.10, 1.45, 0.80, 0.85, 0.75, 1.30, 1.25, 1.36),
+            "백혈구(WBC) 상승 (전신 급만성 염증)": _mkW(1.06, 1.28, 1.18, 1.40, 1.25, 1.15, 1.20, 0.82, 0.80, 0.85, 1.45, 1.50, 1.42),
+            "전해질 불균형 (저칼륨혈증/고인산혈증)": _mkW(1.02, 1.15, 1.06, 1.10, 1.08, 1.05, 1.08, 0.90, 0.60, 0.85, 1.30, 1.20, 1.24),
+            "혈액 바이오마커 정상 대조군": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
         };
 
-// --- CDSS_AGE_WEIGHTS_CAT ---
 const CDSS_AGE_WEIGHTS_CAT = {
-            "1년령 이하 (자묘/성장기)": _mkW(0.95, 0.88, 0.82, 1.25, 1.00, 1.12, 1.05, 1.08, 0.92, 1.15, 0.90, 1.10, 1.00),
+            "1년령 이하 (자묘/성장기)": _mkW(0.95, 0.88, 1.06, 1.00, 1.12, 1.05, 1.08, 1.00, 1.15, 0.90, 1.10, 1.00, 1.08),
             "1년 ~ 7년 (성묘 기준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "7년령 이상 (노령묘/시니어)": _mkW(1.06, 1.28, 1.22, 0.82, 1.12, 1.22, 1.12, 1.28, 0.82, 0.75, 0.80, 1.25, 1.20)
+            "7년령 이상 (노령묘/시니어)": _mkW(1.06, 1.28, 1.14, 1.12, 1.22, 1.12, 1.28, 1.00, 0.75, 0.80, 1.25, 1.20, 1.25),
         };
 
-// --- CDSS_SIZE_WEIGHTS_CAT ---
 const CDSS_SIZE_WEIGHTS_CAT = {
-            "소형묘 (<3.5kg / 싱가푸라 등)": _mkW(0.98, 0.92, 0.92, 1.08, 1.00, 0.96, 0.98, 0.96, 1.04, 1.05, 1.00, 0.98, 1.00),
+            "소형묘 (<3.5kg / 싱가푸라 등)": _mkW(0.98, 0.92, 0.98, 1.00, 0.96, 0.98, 0.96, 1.00, 1.05, 1.00, 0.98, 1.00, 0.95),
             "중형묘 (3.5~6kg, 코숏/표준 기준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "대형묘 (>6kg / 메인쿤·랙돌 등)": _mkW(1.04, 1.15, 1.18, 0.92, 1.04, 1.12, 1.08, 1.08, 0.94, 0.85, 0.95, 1.15, 1.10)
+            "대형묘 (>6kg / 메인쿤·랙돌 등)": _mkW(1.04, 1.15, 1.06, 1.04, 1.12, 1.08, 1.08, 1.00, 0.85, 0.95, 1.15, 1.10, 1.15),
         };
 
-// --- CDSS_DIET_WEIGHTS_CAT ---
 const CDSS_DIET_WEIGHTS_CAT = {
-            "고단백사료": _mkW(1.08, 1.45, 1.40, 0.85, 1.00, 1.30, 0.80, 1.05, 0.98, 0.95, 1.15, 1.10, 1.15),
-            "저단백사료": _mkW(0.94, 0.70, 0.70, 1.15, 1.00, 0.70, 1.15, 1.00, 1.02, 1.00, 0.90, 0.98, 0.95),
-            "신장처방식 (저단백·고지방 k/d·레날)": _mkW(0.94, 0.68, 0.68, 1.18, 1.00, 0.68, 1.18, 1.18, 1.02, 0.95, 0.88, 1.05, 1.00),
-            "중단백사료 (표준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "저지방사료": _mkW(0.98, 0.95, 0.95, 1.05, 1.00, 1.00, 1.10, 0.60, 1.03, 1.05, 0.85, 0.95, 0.92),
-            "고탄수화물사료": _mkW(0.92, 0.75, 0.75, 1.35, 1.00, 0.85, 1.35, 0.90, 0.95, 0.90, 1.05, 1.05, 1.05),
-            "가수분해사료": _mkW(1.00, 0.85, 0.85, 1.05, 0.95, 0.80, 0.95, 0.95, 1.10, 1.00, 0.80, 0.85, 0.80),
-            "건식 (표준)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "습식 (캔/파우치)": _mkW(1.04, 1.15, 1.10, 0.95, 1.00, 1.05, 0.85, 1.10, 1.05, 1.10, 1.05, 0.95, 0.95),
-            "화식 (신선식)": _mkW(1.02, 1.05, 1.00, 1.00, 1.00, 0.90, 0.90, 0.95, 1.08, 1.05, 1.05, 0.92, 0.92),
-            "간식 (트릿/육포 등)": _mkW(1.10, 1.35, 1.30, 0.80, 1.00, 1.25, 0.85, 1.20, 0.92, 0.85, 1.10, 1.20, 1.20)
+            "고단백사료 (육식 특화 40%↑)": _mkW(1.06, 1.42, 0.82, 1.00, 1.28, 0.78, 1.06, 1.00, 1.00, 1.15, 1.05, 1.05, 1.25),
+            "저단백사료 (신부전 처방 등)": _mkW(0.94, 0.68, 1.22, 1.00, 0.68, 1.18, 1.02, 1.00, 0.90, 0.85, 1.05, 1.00, 0.92),
+            "중단백사료 (표준 권장 30~38%)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
+            "저지방사료 (췌장/체중관리)": _mkW(0.98, 0.95, 1.10, 1.00, 1.02, 1.12, 0.58, 1.00, 1.00, 0.85, 0.95, 0.95, 0.96),
+            "고탄수화물사료 (곡물 위주 비권장)": _mkW(0.91, 0.72, 1.55, 1.05, 0.82, 1.45, 0.88, 1.00, 0.80, 0.75, 1.35, 1.30, 1.42),
+            "가수분해사료 (식이알러지 처방)": _mkW(1.00, 0.85, 0.90, 0.95, 0.78, 0.95, 0.95, 1.00, 1.00, 0.80, 0.80, 0.75, 0.80),
+            "건식 (키블, 수분부족 주의)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.80, 0.95, 1.20, 1.10, 1.00),
+            "습식 (주식캔/파우치 수분공급)": _mkW(1.03, 1.12, 0.85, 1.00, 1.06, 0.82, 1.08, 1.00, 1.15, 1.05, 0.90, 0.90, 0.95),
+            "화식 / 생식 (B.A.R.F. 신선식)": _mkW(1.02, 1.08, 0.85, 1.00, 0.92, 0.85, 0.98, 1.00, 1.05, 1.05, 0.95, 0.95, 0.92),
+            "간식 (츄르/동결건조/육포)": _mkW(1.08, 1.32, 1.18, 1.00, 1.22, 0.88, 1.18, 1.00, 0.90, 1.10, 1.15, 1.20, 1.28),
+            "신장처방식 (저단백·고지방 레날/k/d)": _mkW(0.94, 0.68, 1.22, 1.00, 0.68, 1.18, 1.18, 1.00, 0.90, 0.85, 1.05, 1.00, 0.92),
         };
 
-// --- CDSS_DRUG_WEIGHTS_CAT ---
 const CDSS_DRUG_WEIGHTS_CAT = {
-            "갑상선기능항진증약 (Methimazole)": _mkW(1.02, 1.05, 1.05, 0.95, 1.00, 1.05, 1.05, 1.05, 0.95, 0.95, 0.95, 1.10, 1.10),
-            "식욕촉진제 (Mirtazapine/Elura)": _mkW(1.01, 1.05, 1.05, 0.98, 1.00, 1.05, 1.05, 1.05, 1.02, 1.15, 1.05, 0.95, 0.95),
-            "신장약 (인바인더/요독소흡착제 등)": _mkW(0.98, 0.75, 0.75, 1.00, 1.05, 1.05, 1.00, 1.00, 0.95, 0.70, 0.90, 1.10, 1.10),
-            "소화제 (소화효소/위장관조절제)": _mkW(0.98, 0.90, 0.90, 1.05, 1.00, 0.80, 0.80, 0.80, 1.15, 1.25, 1.40, 0.88, 0.85),
-            "스테로이드 (Prednisolone 등)": _mkW(1.05, 1.15, 1.15, 0.90, 1.50, 1.15, 1.10, 1.20, 0.88, 0.95, 0.90, 1.55, 0.85),
-            "광범위 항생제 (클라바목스/메트로니다졸)": _mkW(1.06, 1.30, 1.25, 0.85, 1.15, 1.20, 1.15, 1.15, 0.88, 1.20, 0.85, 1.65, 1.55),
-            "NSAIDs": _mkW(1.02, 1.05, 1.05, 0.95, 1.80, 1.10, 1.00, 1.00, 0.95, 0.90, 0.95, 1.85, 1.75),
-            "관절염, 디스크약 (진통소염/신경통약)": _mkW(1.02, 1.05, 1.05, 0.95, 1.40, 1.05, 1.00, 1.00, 0.95, 0.90, 0.95, 1.45, 1.40),
-            "심장약 (이뇨제/ACEi/피모벤단)": _mkW(1.02, 1.10, 1.05, 0.95, 1.00, 1.05, 1.05, 1.10, 0.92, 0.75, 0.92, 1.35, 1.15),
-            "간약 (UDCA/SAMe/실리마린)": _mkW(0.97, 0.90, 0.90, 1.05, 1.00, 0.95, 0.95, 0.85, 1.08, 1.05, 1.10, 0.92, 0.90),
-            "면역억제제 (Cyclosporine/Atopica)": _mkW(1.04, 1.12, 1.12, 0.92, 1.20, 1.10, 1.08, 1.10, 0.92, 0.85, 0.85, 1.60, 1.40),
-            "항바이러스제 (GS-441524, FIP 치료제)": _mkW(1.02, 1.05, 1.05, 0.95, 1.05, 1.05, 1.05, 1.05, 0.96, 0.95, 0.95, 1.15, 1.15),
-            "항암제 (Cytotoxic agents)": _mkW(1.10, 1.35, 1.30, 0.80, 1.70, 1.30, 1.25, 1.35, 0.75, 0.65, 0.70, 1.90, 1.80),
-            "배뇨조절제 (Prazosin/방광염약)": _mkW(1.00, 1.02, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.90, 1.00, 1.00, 1.00),
-            "기관지 폐 약 (기관지확장제/진해제)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00),
-            "인슐린 (Insulin)": _mkW(0.99, 0.95, 0.95, 1.04, 1.00, 0.95, 0.88, 0.94, 1.04, 1.00, 1.00, 1.00, 1.00),
-            "피부병약 (항생제/항히스타민/Apoquel)": _mkW(1.04, 1.15, 1.15, 0.90, 1.05, 1.10, 1.05, 1.05, 0.95, 0.90, 0.95, 1.35, 1.30),
-            "쿠싱약 (Trilostane)": _mkW(1.00, 1.05, 1.05, 1.00, 1.05, 1.05, 1.05, 1.10, 0.95, 0.95, 0.95, 1.10, 1.05),
-            "에디슨약 (Fludrocortisone/DOCP)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.05, 1.00),
-            "갑상선기능저하증약 (Levothyroxine)": _mkW(0.98, 0.95, 0.95, 1.05, 1.00, 0.95, 0.95, 0.95, 1.05, 1.10, 1.05, 0.95, 0.95),
-            "간질약 (Phenobarbital/KBr/Pexion)": _mkW(1.00, 1.05, 1.05, 0.95, 1.00, 1.05, 1.05, 1.05, 0.95, 0.80, 0.95, 1.05, 1.05)
+            "갑상선항진증약 (Methimazole/Felimazole)": _mkW(1.02, 1.08, 1.04, 1.05, 1.05, 1.05, 1.05, 1.00, 0.95, 0.95, 1.10, 1.15, 1.10),
+            "식욕촉진제 (Mirtazapine/Elura)": _mkW(1.01, 1.05, 1.04, 1.00, 1.05, 1.05, 1.05, 1.00, 1.15, 1.05, 0.95, 0.95, 1.02),
+            "신장약 (인바인더/요독흡착제/아조딜)": _mkW(0.98, 0.72, 1.00, 1.05, 1.05, 1.00, 1.00, 1.00, 0.65, 0.90, 1.10, 1.10, 0.86),
+            "소화기약 (소화효소/모사프리드/위보호제)": _mkW(0.98, 0.90, 0.84, 1.00, 0.80, 0.80, 0.80, 1.00, 1.35, 1.30, 0.85, 0.85, 0.84),
+            "스테로이드 (Prednisolone/Budesonide)": _mkW(1.05, 1.15, 1.32, 1.45, 1.15, 1.10, 1.20, 1.00, 0.95, 0.90, 1.45, 0.80, 1.30),
+            "광범위 항생제 (클라바목스/메트로니다졸)": _mkW(1.06, 1.30, 1.35, 1.15, 1.20, 1.15, 1.15, 1.00, 1.20, 0.85, 1.65, 1.55, 1.62),
+            "NSAIDs (Meloxicam/Onsior/로베나콕시브)": _mkW(1.03, 1.08, 1.15, 1.85, 1.12, 1.02, 1.02, 1.00, 0.90, 0.95, 1.90, 1.80, 1.42),
+            "진통·신경안정제 (Gabapentin)": _mkW(1.00, 1.02, 1.02, 1.00, 1.00, 1.02, 1.02, 1.00, 0.75, 0.95, 1.05, 1.00, 1.04),
+            "심장·혈압약 (Amlodipine/베나제프릴/피모벤단)": _mkW(1.02, 1.08, 1.05, 1.00, 1.05, 1.05, 1.08, 1.00, 0.80, 0.95, 1.30, 1.10, 1.15),
+            "간·담낭약 (SAMe/실리마린/우르소/UDCA)": _mkW(0.97, 0.88, 0.94, 1.00, 0.95, 0.95, 0.82, 1.00, 1.05, 1.15, 0.90, 0.90, 0.88),
+            "면역억제제 (Cyclosporine/Atopica)": _mkW(1.04, 1.12, 1.15, 1.20, 1.10, 1.08, 1.10, 1.00, 0.85, 0.85, 1.60, 1.40, 1.38),
+            "항바이러스제 (GS-441524, FIP 치료제)": _mkW(1.02, 1.05, 1.05, 1.05, 1.05, 1.05, 1.05, 1.00, 0.95, 0.95, 1.15, 1.15, 1.12),
+            "항암제 (Chlorambucil/L-Asparaginase)": _mkW(1.10, 1.35, 1.48, 1.65, 1.30, 1.25, 1.35, 1.00, 0.65, 0.70, 1.95, 1.85, 1.75),
+            "배뇨조절제 (Prazosin/방광염약)": _mkW(1.00, 1.02, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.90, 1.00, 1.00, 1.00, 1.02),
+            "천식/호흡기약 (Fluticasone 흡입/테오필린)": _mkW(1.01, 1.02, 1.02, 1.02, 1.02, 1.02, 1.02, 1.00, 1.00, 1.00, 1.00, 1.00, 1.02),
+            "해당없음 (정상 대조군)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
         };
 
-// --- CDSS_DISEASE_WEIGHTS_CAT ---
 const CDSS_DISEASE_WEIGHTS_CAT = {
-            "3복강염 (Triaditis: 췌장염+담관염+IBD)": _mkW(1.10, 1.50, 1.45, 0.72, 1.90, 1.50, 1.40, 1.70, 0.55, 0.65, 0.40, 1.95, 2.00),
-            "만성췌장염": _mkW(1.06, 1.25, 1.20, 0.85, 1.20, 1.40, 1.30, 1.65, 0.65, 0.85, 0.50, 1.35, 1.45),
-            "만성간질환": _mkW(1.06, 1.40, 1.30, 0.90, 1.25, 1.20, 1.10, 1.45, 0.78, 0.75, 0.75, 1.50, 1.40),
-            "담관간염 / 담낭염 (Cholangiohepatitis)": _mkW(1.05, 1.25, 1.20, 0.90, 1.15, 1.15, 1.10, 1.50, 0.76, 0.85, 0.65, 1.35, 1.45),
-            "IBD (염증성장질환)": _mkW(1.08, 1.45, 1.40, 0.75, 1.85, 1.45, 1.35, 1.40, 0.60, 0.70, 0.65, 1.95, 1.95),
-            "소화기 림프종 (GI Lymphoma, 소형/대형세포)": _mkW(1.10, 1.48, 1.42, 0.75, 1.88, 1.48, 1.38, 1.45, 0.58, 0.60, 0.55, 2.00, 1.90),
-            "간지질증 (Hepatic Lipidosis, 지방간)": _mkW(1.06, 1.42, 1.35, 0.85, 1.20, 1.25, 1.15, 1.60, 0.70, 0.55, 0.60, 1.60, 1.50),
-            "CKD stage 1, 2": _mkW(1.02, 1.15, 1.15, 0.95, 1.05, 1.05, 1.00, 1.05, 0.95, 0.92, 0.95, 1.15, 1.15),
-            "CKD stage 3, 4": _mkW(1.08, 1.55, 1.50, 0.80, 1.30, 1.20, 1.10, 1.15, 0.82, 0.70, 0.80, 1.60, 1.65),
-            "특발성 방광염 (FIC / 하부요로계질환 FLUTD)": _mkW(1.01, 1.05, 1.05, 0.98, 1.15, 1.02, 1.00, 1.02, 0.98, 0.90, 1.00, 1.10, 1.10),
-            "요로결석": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00),
-            "갑상선기능항진증": _mkW(0.98, 1.15, 1.10, 1.10, 1.10, 1.15, 1.15, 1.15, 0.88, 1.35, 1.10, 1.20, 1.15),
-            "HCM A, B": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "HCM C, D": _mkW(1.04, 1.20, 1.15, 0.90, 1.20, 1.15, 1.10, 1.20, 0.85, 0.78, 0.88, 1.50, 1.20),
-            "MMVD stage A, B": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
-            "MMVD stage C, D": _mkW(1.04, 1.20, 1.15, 0.90, 1.25, 1.15, 1.10, 1.20, 0.85, 0.75, 0.88, 1.55, 1.25),
-            "고양이 전염성 복막염 (FIP, 습식/건식)": _mkW(1.08, 1.40, 1.35, 0.82, 1.55, 1.38, 1.25, 1.30, 0.68, 0.65, 0.70, 1.90, 1.95),
-            "고양이 백혈병/면역결핍증 (FeLV / FIV)": _mkW(1.05, 1.25, 1.25, 0.88, 1.30, 1.20, 1.15, 1.20, 0.85, 0.80, 0.85, 1.55, 1.60),
-            "만성 구내염 (FCGS / 치아흡수성병변 FORL)": _mkW(1.03, 1.15, 1.12, 0.95, 1.15, 1.12, 1.08, 1.10, 0.90, 0.90, 0.85, 1.15, 1.30),
-            "천식": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.05, 1.05),
-            "만성기관지염": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.05, 1.05),
-            "만성 폐렴": _mkW(1.02, 1.10, 1.05, 0.95, 1.05, 1.05, 1.05, 1.05, 0.95, 0.90, 0.95, 1.15, 1.20),
-            "만성 변비 / 거대결장 (Megacolon)": _mkW(1.08, 1.45, 1.42, 0.80, 1.30, 1.25, 1.18, 1.20, 0.78, 0.30, 0.90, 1.40, 1.40),
-            "림프구성 문맥간염 (LPH)": _mkW(1.04, 1.20, 1.18, 0.92, 1.10, 1.12, 1.08, 1.35, 0.82, 0.80, 0.75, 1.35, 1.35),
-            "담낭슬러지 및 담관폐색": _mkW(1.04, 1.12, 1.10, 0.96, 1.08, 1.08, 1.02, 1.38, 0.84, 0.85, 0.60, 1.30, 1.30),
-            "담낭슬러지 25%이상": _mkW(1.03, 1.08, 1.05, 0.98, 1.05, 1.05, 1.00, 1.25, 0.88, 0.92, 0.75, 1.15, 1.15),
-            "만성담낭염": _mkW(1.04, 1.15, 1.10, 0.95, 1.10, 1.10, 1.05, 1.45, 0.80, 0.90, 0.65, 1.20, 1.25),
-            "담낭점액종": _mkW(1.05, 1.15, 1.15, 0.95, 1.10, 1.10, 1.05, 1.50, 0.78, 0.85, 0.60, 1.25, 1.30),
-            "담낭결석": _mkW(1.04, 1.10, 1.10, 0.95, 1.05, 1.05, 1.00, 1.35, 0.85, 0.90, 0.70, 1.20, 1.20),
-            "당뇨병": _mkW(1.02, 1.15, 1.10, 0.92, 1.05, 1.18, 1.35, 1.22, 0.88, 0.75, 0.90, 1.25, 1.20),
-            "전신 고혈압 (Hypertension)": _mkW(1.02, 1.10, 1.08, 0.96, 1.12, 1.06, 1.04, 1.10, 0.92, 0.85, 0.95, 1.35, 1.15),
-            "관절염": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00),
-            "뇌질환 (뇌수막염/경색 등)": _mkW(1.00, 1.05, 1.05, 0.98, 1.05, 1.05, 1.05, 1.05, 0.95, 0.75, 0.95, 1.15, 1.10),
-            "만성 비부비동염 (Feline Chronic Rhinitis)": _mkW(1.01, 1.04, 1.02, 0.98, 1.02, 1.02, 1.02, 1.02, 0.98, 0.92, 0.95, 1.10, 1.15),
-            "피부 알러지 / 호산구성 육아종 (EGC)": _mkW(1.02, 1.10, 1.08, 0.96, 1.08, 1.08, 1.02, 1.05, 0.95, 0.95, 0.95, 1.30, 1.35),
-            "쿠싱 (부신피질기능항진)": _mkW(1.03, 1.15, 1.10, 0.95, 1.20, 1.15, 1.10, 1.15, 0.90, 0.90, 0.95, 1.30, 1.10),
-            "종양 (전신/악성)": _mkW(1.08, 1.35, 1.30, 0.80, 1.60, 1.30, 1.20, 1.25, 0.75, 0.70, 0.75, 1.75, 1.70),
-            "갑상선기능저하증": _mkW(1.02, 1.05, 1.05, 0.95, 1.00, 1.05, 1.05, 1.15, 0.92, 0.70, 0.85, 1.10, 1.05),
-            "에디슨 (부신피질기능저하)": _mkW(1.02, 1.10, 1.05, 0.95, 1.15, 1.10, 1.05, 1.10, 0.90, 0.80, 0.90, 1.30, 1.20),
-            "만성외이염 (알러지 기반)": _mkW(1.02, 1.08, 1.08, 0.98, 1.05, 1.05, 1.00, 1.00, 0.96, 0.95, 0.95, 1.25, 1.25),
-            "디스크": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.80, 1.00, 1.00, 1.00),
-            "폐성고혈압": _mkW(1.03, 1.15, 1.10, 0.95, 1.15, 1.10, 1.05, 1.15, 0.88, 0.82, 0.90, 1.35, 1.15),
-            "기타 심장병(PDA 등)": _mkW(1.02, 1.10, 1.05, 0.95, 1.10, 1.05, 1.05, 1.10, 0.92, 0.90, 0.95, 1.20, 1.10)
+            "3복강염 (Triaditis: 췌장염+담관염+IBD)": _mkW(1.10, 1.50, 1.58, 1.90, 1.50, 1.40, 1.70, 1.00, 0.65, 0.40, 1.95, 2.00, 1.92),
+            "만성 췌장염 (Feline Pancreatitis, fPL↑)": _mkW(1.07, 1.30, 1.28, 1.25, 1.42, 1.30, 1.68, 1.00, 0.80, 0.45, 1.40, 1.50, 1.48),
+            "담관간염 / 담낭염 (Cholangiohepatitis)": _mkW(1.05, 1.25, 1.12, 1.15, 1.15, 1.10, 1.50, 1.00, 0.85, 0.65, 1.35, 1.45, 1.38),
+            "IBD (만성 염증성 장질환)": _mkW(1.08, 1.45, 1.50, 1.85, 1.45, 1.35, 1.40, 1.00, 0.70, 0.65, 1.90, 1.95, 1.85),
+            "소화기 림프종 (GI Lymphoma, 소형/대형세포)": _mkW(1.10, 1.48, 1.55, 1.88, 1.48, 1.38, 1.45, 1.00, 0.60, 0.55, 2.00, 1.90, 1.88),
+            "간지질증 (Hepatic Lipidosis, 지방간)": _mkW(1.06, 1.42, 1.20, 1.20, 1.25, 1.15, 1.60, 1.00, 0.55, 0.60, 1.60, 1.50, 1.52),
+            "CKD stage 1, 2 (초기 만성신부전)": _mkW(1.02, 1.18, 1.02, 1.05, 1.05, 1.00, 1.05, 1.00, 0.90, 0.95, 1.15, 1.15, 1.18),
+            "CKD stage 3, 4 (말기 만성신부전/요독증)": _mkW(1.08, 1.58, 1.16, 1.35, 1.22, 1.12, 1.18, 1.00, 0.65, 0.80, 1.65, 1.70, 1.65),
+            "특발성 방광염 (FIC / 하부요로계질환 FLUTD)": _mkW(1.01, 1.05, 1.04, 1.15, 1.02, 1.00, 1.02, 1.00, 0.90, 1.00, 1.10, 1.10, 1.12),
+            "요로결석 (스트루바이트 / 칼슘옥살레이트)": _mkW(1.01, 1.02, 1.00, 1.08, 1.00, 1.00, 1.00, 1.00, 0.95, 1.00, 1.00, 1.00, 1.05),
+            "갑상선기능항진증 (Feline Hyperthyroidism)": _mkW(1.04, 1.25, 1.25, 1.12, 1.20, 1.18, 1.25, 1.00, 1.40, 1.15, 1.25, 1.20, 1.28),
+            "HCM stage A, B (비대성심근증 무증상기)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
+            "HCM stage C, D (심부전/폐수종/동맥혈전AATE)": _mkW(1.05, 1.22, 1.14, 1.25, 1.18, 1.12, 1.22, 1.00, 0.75, 0.85, 1.60, 1.25, 1.34),
+            "고양이 전염성 복막염 (FIP, 습식/건식)": _mkW(1.08, 1.40, 1.35, 1.55, 1.38, 1.25, 1.30, 1.00, 0.65, 0.70, 1.90, 1.95, 1.72),
+            "고양이 백혈병/면역결핍증 (FeLV / FIV)": _mkW(1.05, 1.25, 1.18, 1.30, 1.20, 1.15, 1.20, 1.00, 0.80, 0.85, 1.55, 1.60, 1.45),
+            "만성 구내염 (FCGS / 치아흡수성병변 FORL)": _mkW(1.03, 1.15, 1.08, 1.15, 1.12, 1.08, 1.10, 1.00, 0.90, 0.85, 1.15, 1.30, 1.25),
+            "고양이 천식 / 만성 기관지염": _mkW(1.01, 1.05, 1.02, 1.02, 1.02, 1.02, 1.05, 1.00, 0.95, 1.00, 1.05, 1.05, 1.05),
+            "만성 변비 / 거대결장 (Megacolon)": _mkW(1.08, 1.45, 0.92, 1.30, 1.25, 1.18, 1.20, 1.00, 0.30, 0.90, 1.40, 1.40, 1.62),
+            "림프구성 문맥간염 (LPH)": _mkW(1.04, 1.20, 1.10, 1.10, 1.12, 1.08, 1.35, 1.00, 0.80, 0.75, 1.35, 1.35, 1.32),
+            "담낭슬러지 및 담관폐색": _mkW(1.04, 1.12, 1.05, 1.08, 1.08, 1.02, 1.38, 1.00, 0.85, 0.60, 1.30, 1.30, 1.28),
+            "당뇨병 (Feline Diabetes Mellitus)": _mkW(1.02, 1.15, 1.70, 1.05, 1.18, 1.35, 1.22, 1.00, 0.75, 0.90, 1.25, 1.20, 1.38),
+            "전신 고혈압 (Hypertension)": _mkW(1.02, 1.10, 1.05, 1.12, 1.06, 1.04, 1.10, 1.00, 0.85, 0.95, 1.35, 1.15, 1.16),
+            "퇴행성 관절염 (Feline DJD/OA)": _mkW(1.00, 1.02, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.85, 1.00, 1.00, 1.00, 1.04),
+            "뇌질환 (전정계질환/뇌수막염/간질)": _mkW(1.00, 1.05, 1.05, 1.05, 1.05, 1.05, 1.05, 1.00, 0.75, 0.95, 1.15, 1.10, 1.15),
+            "만성 비부비동염 (Feline Chronic Rhinitis)": _mkW(1.01, 1.04, 1.02, 1.02, 1.02, 1.02, 1.02, 1.00, 0.92, 0.95, 1.10, 1.15, 1.10),
+            "피부 알러지 / 호산구성 육아종 (EGC)": _mkW(1.02, 1.10, 1.06, 1.08, 1.08, 1.02, 1.05, 1.00, 0.95, 0.95, 1.30, 1.35, 1.28),
+            "쿠싱 / 아크로메갈리 (선단비대증)": _mkW(1.03, 1.12, 1.42, 1.15, 1.12, 1.15, 1.15, 1.00, 0.85, 0.90, 1.35, 1.20, 1.28),
+            "악성 종양 (섬유육종/유선종양 등 전신)": _mkW(1.08, 1.38, 1.30, 1.62, 1.32, 1.22, 1.28, 1.00, 0.68, 0.75, 1.75, 1.70, 1.60),
+            "해당없음 (정상)": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
         };
 
-// --- CDSS_LAB_MARKER_WEIGHTS_CAT ---
 const CDSS_LAB_MARKER_WEIGHTS_CAT = {
-            "fPL 경도 상승 (1단계/경증 췌장염 의심)": _mkW(1.03, 1.18, 1.15, 0.90, 1.15, 1.22, 1.18, 1.35, 0.80, 0.85, 0.70, 1.25, 1.30),
-            "fPL 고도 상승 (2단계/급성·중증 췌장염)": _mkW(1.07, 1.35, 1.30, 0.80, 1.30, 1.45, 1.35, 1.68, 0.60, 0.65, 0.40, 1.65, 1.70),
-            "SDMA 상승 (신장 조기 손상 마커)": _mkW(1.02, 1.25, 1.25, 0.95, 1.10, 1.10, 1.02, 1.08, 0.92, 0.90, 0.95, 1.15, 1.15),
-            "BUN / Creatinine 상승 (신부전/요독증)": _mkW(1.08, 1.55, 1.50, 0.80, 1.35, 1.20, 1.10, 1.15, 0.80, 0.68, 0.80, 1.60, 1.65),
-            "코발라민(B12) 저하 (소장 회장부 흡수부전)": _mkW(1.06, 1.30, 1.25, 0.85, 1.20, 1.35, 1.25, 1.30, 0.65, 0.75, 0.60, 1.60, 1.55),
-            "엽산(Folate/B9) 상승 (소장 세균과증식 SIBO)": _mkW(1.08, 1.42, 1.38, 0.78, 1.25, 1.30, 1.25, 1.35, 0.70, 0.70, 0.85, 1.50, 1.45),
-            "총 빌리루빈 상승 (담관폐색/담즙정체 황달)": _mkW(1.05, 1.30, 1.25, 0.88, 1.15, 1.15, 1.08, 1.55, 0.75, 0.75, 0.55, 1.45, 1.40),
-            "알부민 경도 저하 (경증 저단백혈증)": _mkW(1.04, 1.20, 1.18, 0.88, 1.35, 1.28, 1.15, 1.18, 0.78, 0.80, 0.85, 1.40, 1.35),
-            "알부민 중증 저하 (단백소실성 장병증 PLE)": _mkW(1.08, 1.40, 1.35, 0.78, 1.70, 1.55, 1.30, 1.35, 0.58, 0.60, 0.65, 2.00, 1.90),
-            "Total T4 상승 (갑상선기능항진증 확진)": _mkW(1.04, 1.25, 1.20, 0.92, 1.12, 1.20, 1.18, 1.25, 0.82, 1.45, 1.15, 1.25, 1.20),
-            "혈당 상승 (당뇨병 Feline DM)": _mkW(1.02, 1.18, 1.12, 0.90, 1.05, 1.20, 1.40, 1.25, 0.86, 0.75, 0.90, 1.25, 1.15),
-            "ALT / AST / GGT 상승 (간세포 손상)": _mkW(1.05, 1.35, 1.28, 0.90, 1.20, 1.18, 1.10, 1.45, 0.80, 0.80, 0.70, 1.40, 1.35),
-            "백혈구(WBC) 상승 (전신 급만성 염증)": _mkW(1.06, 1.28, 1.25, 0.85, 1.40, 1.25, 1.15, 1.20, 0.82, 0.78, 0.85, 1.45, 1.55),
-            "전해질 불균형 (저칼륨혈증/고인산혈증)": _mkW(1.02, 1.15, 1.10, 0.95, 1.10, 1.08, 1.05, 1.08, 0.90, 0.50, 0.85, 1.35, 1.20)
+            "fPL 경도 상승 (1단계/경증 췌장염 의심)": _mkW(1.03, 1.18, 1.15, 1.15, 1.22, 1.18, 1.35, 1.00, 0.85, 0.70, 1.25, 1.30, 1.28),
+            "fPL 고도 상승 (2단계/급성·중증 췌장염)": _mkW(1.07, 1.35, 1.35, 1.30, 1.45, 1.35, 1.68, 1.00, 0.65, 0.40, 1.65, 1.70, 1.62),
+            "SDMA 상승 (신장 조기 손상 마커)": _mkW(1.02, 1.25, 1.02, 1.10, 1.10, 1.02, 1.08, 1.00, 0.90, 0.95, 1.15, 1.15, 1.18),
+            "BUN / Creatinine 상승 (신부전/요독증)": _mkW(1.08, 1.55, 1.15, 1.35, 1.20, 1.10, 1.15, 1.00, 0.68, 0.80, 1.60, 1.65, 1.62),
+            "코발라민(B12) 저하 (소장 회장부 흡수부전)": _mkW(1.06, 1.30, 1.42, 1.20, 1.35, 1.25, 1.30, 1.00, 0.75, 0.60, 1.60, 1.55, 1.58),
+            "엽산(Folate/B9) 상승 (소장 세균과증식 SIBO)": _mkW(1.08, 1.42, 0.86, 1.25, 1.30, 1.25, 1.35, 1.00, 0.70, 0.85, 1.50, 1.45, 1.56),
+            "총 빌리루빈 상승 (담관폐색/담즙정체 황달)": _mkW(1.05, 1.30, 1.08, 1.15, 1.15, 1.08, 1.55, 1.00, 0.75, 0.55, 1.45, 1.40, 1.42),
+            "알부민 경도 저하 (경증 저단백혈증)": _mkW(1.04, 1.20, 1.18, 1.35, 1.28, 1.15, 1.18, 1.00, 0.80, 0.85, 1.40, 1.35, 1.32),
+            "알부민 중증 저하 (단백소실성 장병증 PLE)": _mkW(1.08, 1.40, 1.48, 1.70, 1.55, 1.30, 1.35, 1.00, 0.60, 0.65, 2.00, 1.90, 1.80),
+            "Total T4 상승 (갑상선기능항진증 확진)": _mkW(1.04, 1.25, 1.26, 1.12, 1.20, 1.18, 1.25, 1.00, 1.45, 1.15, 1.25, 1.20, 1.30),
+            "혈당 상승 (당뇨병 Feline DM)": _mkW(1.02, 1.18, 1.72, 1.05, 1.20, 1.40, 1.25, 1.00, 0.75, 0.90, 1.25, 1.15, 1.40),
+            "ALT / AST / GGT 상승 (간세포 손상)": _mkW(1.05, 1.35, 1.14, 1.20, 1.18, 1.10, 1.45, 1.00, 0.80, 0.70, 1.40, 1.35, 1.38),
+            "백혈구(WBC) 상승 (전신 급만성 염증)": _mkW(1.06, 1.28, 1.20, 1.40, 1.25, 1.15, 1.20, 1.00, 0.78, 0.85, 1.45, 1.55, 1.45),
+            "전해질 불균형 (저칼륨혈증/고인산혈증)": _mkW(1.02, 1.15, 1.06, 1.10, 1.08, 1.05, 1.08, 1.00, 0.50, 0.85, 1.35, 1.20, 1.30),
+            "혈액 바이오마커 정상 대조군": _mkW(1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00),
         };
 
-
-        // 하위 호환용 기본 참조
         const CDSS_AGE_WEIGHTS = CDSS_AGE_WEIGHTS_DOG;
         const CDSS_SIZE_WEIGHTS = CDSS_SIZE_WEIGHTS_DOG;
         const CDSS_DIET_WEIGHTS = CDSS_DIET_WEIGHTS_DOG;
@@ -5612,10 +5479,8 @@ try {
             else if (score < 70) { grade = 3; gradeName = "주의 (Moderate Imbalance)"; gradeColor = "bg-amber-500/25 text-amber-300 border-amber-400/40"; }
             else if (score < 85) { grade = 2; gradeName = "경미한 불균형 (Mild Dysbiosis)"; gradeColor = "bg-sky-500/25 text-sky-200 border-sky-400/40"; }
 
-            document.getElementById('cdss-score-val').innerText = score.toFixed(1);
-            const gBadge = document.getElementById('cdss-grade-badge');
-            gBadge.className = `mt-2 inline-block px-3.5 py-1 rounded-xl text-xs font-black border ${gradeColor}`;
-            gBadge.innerText = `Grade ${grade} — ${gradeName}`;
+            const _scoreEl = document.getElementById('cdss-score-val'); if (_scoreEl) _scoreEl.innerText = score.toFixed(1);
+            const gBadge = document.getElementById('cdss-grade-badge'); if (gBadge) { gBadge.className = `mt-2 inline-block px-3.5 py-1 rounded-xl text-xs font-black border ${gradeColor}`; gBadge.innerText = `Grade ${grade} — ${gradeName}`; }
 
             const uniqueTags = [...new Set(abnormalTags)];
             const tagsBox = document.getElementById('cdss-abnormal-tags');
