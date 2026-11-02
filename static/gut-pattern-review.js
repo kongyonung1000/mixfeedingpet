@@ -340,7 +340,24 @@
 
       try {
         if (action === "start") startSession();
-        if (action === "analyze") runAnalysis();
+        if (action === "analyze") {
+          // 1) 상단 표에서 입력한 실측값을 하단 CDSS 엔진(m9-*)에 먼저 동기화하여 AI 코멘트·4분면·처방카드 갱신
+          try {
+            ["ph", "ammonia", "glucose", "blood", "protein", "carbo", "fat"].forEach(function (k) {
+              var gEl = document.getElementById("gpr-value-" + k);
+              var mEl = document.getElementById("m9-" + k);
+              if (gEl && mEl && gEl.value !== "") {
+                mEl.value = gEl.value;
+              }
+            });
+            window._fecalManualOverride = true;
+            if (typeof window.runGutEnvironmentCDSS === "function") {
+              window.runGutEnvironmentCDSS();
+            }
+          } catch (syncErr) {}
+          // 2) 상단 분변 해석 판독 요약 렌더링
+          runAnalysis();
+        }
         if (action === "baseline") setBaseline();
         if (action === "clear") clearBaseline();
       } catch (error) {
@@ -781,12 +798,12 @@
         }
       }
 
-      // 실측값 입력칸 동기화 (기존 CDSS 측정값이 있으면 채움)
+      // 실측값 입력칸 동기화 (자동연동 모드이거나 비어있을 때 CDSS 측정값과 동기화)
       const valEl = document.getElementById("gpr-value-" + key);
-      if (valEl && (!valEl.value || valEl.value === "0")) {
+      if (valEl && (!window._fecalManualOverride || !valEl.value)) {
         if (map[key]?.meas !== undefined && map[key]?.meas !== null) {
           valEl.value = map[key].meas;
-        } else if (DEFAULT_MEAS_VALUES[key] !== undefined) {
+        } else if (DEFAULT_MEAS_VALUES[key] !== undefined && !valEl.value) {
           valEl.value = DEFAULT_MEAS_VALUES[key];
         }
       }
