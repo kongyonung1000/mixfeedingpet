@@ -593,6 +593,10 @@
                         <button type="button" onclick="openDualLandingModal()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold transition">
                             <i class="fa-solid fa-house"></i> 포털 선택창
                         </button>
+                        <button type="button" onclick="vetPortalLogout()" id="top-logout-vet-btn" class="px-3 py-1 rounded-lg bg-rose-700 hover:bg-rose-800 text-white font-bold transition flex items-center space-x-1 shadow" style="display:none;">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>🔒 수의사 로그아웃</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -605,12 +609,7 @@
     }
 
     window.showVetLoginFormInGate = function () {
-        // 만약 이미 수의사 로그인 세션이 있으면 바로 수의사 뷰로 진입
-        const rawSession = sessionStorage.getItem("vet_mix_auth_user");
-        if (rawSession) {
-            enterVetPortalDirect();
-            return;
-        }
+        // [보안 강화] 수의사 접속 시 반드시 로그인 폼을 명시적으로 표시하여 무단 우회 방지
         const roleCards = document.getElementById("dual-portal-role-cards");
         const authBox = document.getElementById("vet-auth-box-wrapper");
         const shield = document.getElementById("private-gate-shield");
@@ -663,10 +662,22 @@
         });
     }
 
+    // 수의사 로그아웃 핸들러
+    window.vetPortalLogout = function () {
+        if (confirm("수의사 세션을 안전하게 종료하고 로그아웃하시겠습니까?")) {
+            sessionStorage.removeItem("vet_mix_auth_user");
+            localStorage.removeItem("vet_mix_auth_user");
+            localStorage.removeItem("vet_auth_verified");
+            localStorage.removeItem("vet_mix_auth");
+            alert("정상적으로 로그아웃되었습니다. 랜딩 화면으로 이동합니다.");
+            location.reload();
+        }
+    };
+
     // 보호자 화면에서는 수의사 로그인 전까지 수의사용/관리자 전환 버튼을 숨김 (포털 분리)
     function syncSwitcherRoleVisibility() {
         const isVet = !!sessionStorage.getItem("vet_mix_auth_user");
-        ['top-switch-vet-btn', 'top-admin-schema-btn'].forEach(id => {
+        ['top-switch-vet-btn', 'top-admin-schema-btn', 'top-logout-vet-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = isVet ? '' : 'none';
         });
