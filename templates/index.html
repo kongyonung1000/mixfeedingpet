@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
 
-    <title>처방사료 복합질환 믹스피딩 추천 & 분변키트 AI 캘리브레이션 시스템</title>
+    <title>복합질환 반려동물 믹스피딩 설계 · 반응 모니터링</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome CDN -->
@@ -686,8 +686,8 @@
                     <i class="fa-solid fa-stethoscope text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">처방사료 복합질환 믹스피딩 & 분변키트 AI 캘리브레이션</h1>
-                    <p class="text-[11px] text-blue-100 font-medium hidden sm:block">Veterinary Clinical Multi-Morbidity Diet Optimization & Bioavailability Error Tuner</p>
+                    <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">복합질환 반려동물 믹스피딩 설계 · 반응 모니터링</h1>
+                    <p class="text-[11px] text-blue-100 font-medium hidden sm:block">본 플랫폼은 이미 질병이 확인된 반려동물의 믹스피딩을 설계하고, 급여 후 분변 마커의 조합과 개인별 변화를 기록·비교하여 수의사의 영양관리를 지원합니다.</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -711,19 +711,19 @@
             <div class="flex flex-wrap items-center space-x-2 md:space-x-5 overflow-x-auto">
                 <button onclick="switchTab('profile-tab')" id="btn-profile-tab" class="tab-btn active py-3.5 px-2.5 text-sm font-semibold flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-id-card-clip"></i>
-                    <span>1. 환자 신상 · 약물 · 복합 질환</span>
+                    <span>1. 환자 · 영양관리 조건</span>
                 </button>
                 <button onclick="switchTab('feeding-tab')" id="btn-feeding-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-bowl-food"></i>
-                    <span>2. 최적 믹스피딩 & 화식조리법</span>
+                    <span>2. 믹스피딩 설계</span>
                 </button>
                 <button onclick="switchTab('analytics-tab')" id="btn-analytics-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-chart-pie"></i>
-                    <span>3. 영양소 & 수분 분석 차트</span>
+                    <span>3. 영양 · 수분 검토</span>
                 </button>
                 <button onclick="switchTab('monitoring-tab')" id="btn-monitoring-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-microscope text-indigo-600"></i>
-                    <span>4. 장내환경 8대 마커 + CDSS</span>
+                    <span>4. 분변 패턴 · 급여 반응</span>
                 </button>
                 <button onclick="switchTab('records-tab')" id="btn-records-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i>
@@ -2525,40 +2525,9 @@
                     <div id="fecal-input-mode-badge"></div>
                 </div>
 
-                <!-- CDSS 종합 결과 리포트 영역 -->
+                <!-- 관찰·검토형 결과 리포트 영역 ([변화 요약 ➔ 두 축 패턴 ➔ 상세 근거]) -->
                 <div id="gut-cdss-result-panel" class="space-y-6">
-                    <!-- 1. 장내환경 변화 5대 원인 기여도 분해 (Differential Attribution) -->
-                    <div class="w-full p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4">
-                        <div>
-                            <div class="flex flex-wrap items-center justify-between mb-2">
-                                <h4 class="text-sm font-black text-slate-800"><i class="fa-solid fa-scale-balanced text-indigo-600 mr-1.5"></i>장내환경 변화 5대 원인 기여도 분해 (Differential Attribution)</h4>
-                                <span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">혈액검사 가중치(ΔW_Lab) 연동 감별</span>
-                            </div>
-                            <p class="text-xs text-slate-500 mb-3">현재 관찰된 분변 마커의 편차와 비보상성 초과분이 <strong>식이(사료/간식), 약물, 질병+혈액검사 중증도, 나이/체급, 기타(효소 한계 초과 등)</strong> 중 어디에서 기인했는지 백분율(%)로 분해합니다.</p>
-
-                            <!-- 누적 스택 바 -->
-                            <div id="cdss-attribution-stack-bar" class="w-full h-5 rounded-xl overflow-hidden flex shadow-inner bg-slate-200 mb-3"></div>
-
-                            <!-- 5대 요인 상세 수치 카드 -->
-                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs" id="cdss-attribution-cards"></div>
-
-                            <div id="cdss-primary-culprit-banner" class="mt-3 p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-950 font-semibold"></div>
-                        </div>
-
-                        <!-- 관찰된 주요 병태생리 패턴 태그 (종합평가등급 대체 안전 표기) -->
-                        <div class="pt-3 border-t border-slate-200">
-                            <div class="text-[11px] text-slate-500 mb-1.5 font-bold"><i class="fa-solid fa-tags text-indigo-500 mr-1"></i>관찰된 주요 이상 패턴 태그:</div>
-                            <div id="cdss-abnormal-tags" class="flex flex-wrap gap-1.5"></div>
-                        </div>
-
-                        <!-- 삭제된 종합평가등급 요소 안전 보존 (JS Null 에러 방지용 hidden) -->
-                        <div style="display:none;" aria-hidden="true">
-                            <span id="cdss-score-val"></span>
-                            <div id="cdss-grade-badge"></div>
-                        </div>
-                    </div>
-
-                    <!-- 1-B. [신규] 소장 vs 대장 2축 4분면(Quadrants) 교차검증 & 6대 임상 시나리오 CDSS -->
+                    <!-- 1. 영양성분 잔류 패턴(X축) · 분변 대사·화학적 환경 패턴(Y축) 2축 검토 모듈 -->
                     <div class="p-6 rounded-2xl bg-white border-2 border-indigo-200/80 shadow-sm space-y-5">
                         <!-- 상단 헤더 바 -->
                         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -2568,49 +2537,48 @@
                                 </span>
                                 <div>
                                     <h3 class="text-sm font-black text-slate-900 flex items-center space-x-2">
-                                        <span>소장 vs 대장 2축 4분면 교차검증 & 6대 임상 시나리오 판정 (GI Compartment CDSS)</span>
-                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">공간 분리 추론</span>
+                                        <span>영양성분 잔류 패턴(X축) · 분변 대사·화학적 환경 패턴(Y축) 2축 검토 모듈</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">비배타적 2축 패턴 관찰</span>
                                     </h3>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">단일 마커 가중치 합산의 모순(단백질 검출 vs 암모니아 정상 등)을 <strong>소장 구획(SI: 단·지·탄 + 혈액cPL/담즙산)</strong>과 <strong>대장 구획(LI: 암모니아·잠혈·pH + 연동운동)</strong>의 2축으로 분리하여 정밀 교차 검증합니다.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">소장성·대장성 질환을 이분법으로 단정하지 않고, <strong>X축(영양성분 잔류 패턴: 소장계 처리·식이 기질 검토)</strong>과 <strong>Y축(분변 대사·화학적 환경 패턴: 대장 대사·산염기 환경 검토)</strong>의 변화를 함께 관찰합니다. (잠혈 반응은 상쇄하지 않고 별도 표시)</p>
                                 </div>
                             </div>
                             <div id="quadrant-scenario-badge" class="px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs">
-                                Scenario 1: 정상 장내 환경 (Optimal GI Balance)
+                                관찰 패턴 1: 측정 항목 기준 범위 내 유지
                             </div>
                         </div>
 
-                        <!-- 메인 2열 그리드: 좌측(4분면 시각화) vs 우측(시나리오 진단 & 3대 영양소 조절) -->
+                        <!-- 메인 2열 그리드: 좌측(2축 4분면 시각화) vs 우측(관찰 패턴 해설 & 식이 후보안) -->
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-                            <!-- 좌측 (5칸): 소장 vs 대장 4분면 2D 좌표 플롯 & 구획별 점수 바 -->
+                            <!-- 좌측 (5칸): 2축 4분면 매트릭스 -->
                             <div class="lg:col-span-5 p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-3">
                                 <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-                                    <span><i class="fa-solid fa-crosshairs text-indigo-600 mr-1"></i>소장-대장 병태 4분면 매트릭스</span>
-                                    <span id="quadrant-coord-label" class="text-[11px] font-extrabold text-indigo-600">좌표 (SI 0.0, LI 0.0)</span>
+                                    <span><i class="fa-solid fa-crosshairs text-indigo-600 mr-1"></i>2축 4분면 변화 패턴 매트릭스</span>
+                                    <span id="quadrant-coord-label" class="text-[11px] font-extrabold text-indigo-600">좌표 (X: 0.0, Y: 0.0)</span>
                                 </div>
 
                                 <!-- 4분면 2D 시각화 박스 -->
                                 <div class="relative w-full aspect-square max-w-[270px] mx-auto bg-white rounded-xl border border-slate-300 p-2 shadow-inner overflow-hidden select-none">
-                                    <!-- 4분면 그리드 배경 박스 -->
                                     <div class="absolute inset-2 grid grid-cols-2 grid-rows-2 gap-1 text-[9px] font-bold">
-                                        <!-- Q3 (좌상): 대장 이상 주도 -->
+                                        <!-- Q3 (좌상): 대사·화학적 변화 중심 -->
                                         <div id="q-box-li" class="p-1.5 rounded-lg bg-amber-50/50 border border-amber-200/50 text-amber-800 flex flex-col justify-start transition-all">
-                                            <span class="font-black">Q3. 대장 병태 주도</span>
-                                            <span class="text-[8px] font-normal text-amber-600 leading-tight">과속통과 / PLE / 출혈</span>
+                                            <span class="font-black">대사·화학적 변화 중심</span>
+                                            <span class="text-[8px] font-normal text-amber-600 leading-tight">암모니아·pH 대사환경 검토</span>
                                         </div>
-                                        <!-- Q4 (우상): 전장관 복합 부전 -->
+                                        <!-- Q4 (우상): 복합 변화 패턴 -->
                                         <div id="q-box-comb" class="p-1.5 rounded-lg bg-rose-50/50 border border-rose-200/50 text-rose-800 flex flex-col justify-start items-end text-right transition-all">
-                                            <span class="font-black">Q4. 전장관 복합 부전</span>
-                                            <span class="text-[8px] font-normal text-rose-600 leading-tight">소화부전 + 부패발효</span>
+                                            <span class="font-black">복합 변화 패턴</span>
+                                            <span class="text-[8px] font-normal text-rose-600 leading-tight">잔류 변화 + 대사 환경 변화</span>
                                         </div>
-                                        <!-- Q1 (좌하): 정상 균형 영역 -->
+                                        <!-- Q1 (좌하): 기준 대비 뚜렷한 변화 적음 -->
                                         <div id="q-box-norm" class="p-1.5 rounded-lg bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 flex flex-col justify-end transition-all">
-                                            <span class="font-black">Q1. 정상 균형 영역</span>
-                                            <span class="text-[8px] font-normal text-emerald-600 leading-tight">최적 생태계</span>
+                                            <span class="font-black">기준 대비 변화 적음</span>
+                                            <span class="text-[8px] font-normal text-emerald-600 leading-tight">측정 항목 뚜렷한 이탈 없음</span>
                                         </div>
-                                        <!-- Q2 (우하): 소장 흡수부전 주도 -->
+                                        <!-- Q2 (우하): 잔류 패턴 변화 중심 -->
                                         <div id="q-box-si" class="p-1.5 rounded-lg bg-sky-50/50 border border-sky-200/50 text-sky-800 flex flex-col justify-end items-end text-right transition-all">
-                                            <span class="font-black">Q2. 소장 흡수부전</span>
-                                            <span class="text-[8px] font-normal text-sky-600 leading-tight">효소결핍 / 흡수장애</span>
+                                            <span class="font-black">잔류 패턴 변화 중심</span>
+                                            <span class="text-[8px] font-normal text-sky-600 leading-tight">소장계 처리·식이 기질 검토</span>
                                         </div>
                                     </div>
 
@@ -2619,89 +2587,91 @@
                                     <div class="absolute top-1/2 left-2 right-2 h-0.5 bg-slate-300 -translate-y-1/2 pointer-events-none"></div>
 
                                     <!-- 축 방향 라벨 -->
-                                    <div class="absolute left-1/2 bottom-0.5 -translate-x-1/2 text-[9px] font-black text-slate-500 bg-white/90 px-1 rounded shadow-2xs">소장 이상도 (SI ➔)</div>
-                                    <div class="absolute left-0.5 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-500 bg-white/90 px-0.5 rounded shadow-2xs [writing-mode:vertical-rl] rotate-180">대장 이상도 (LI ➔)</div>
+                                    <div class="absolute left-1/2 bottom-0.5 -translate-x-1/2 text-[9px] font-black text-slate-500 bg-white/90 px-1 rounded shadow-2xs">영양성분 잔류 패턴 (X축 ➔)</div>
+                                    <div class="absolute left-0.5 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-500 bg-white/90 px-0.5 rounded shadow-2xs [writing-mode:vertical-rl] rotate-180">대사·화학적 패턴 (Y축 ➔)</div>
 
-                                    <!-- 실시간 환축 위치 점 (Pulsing Dot) -->
+                                    <!-- 실시간 환축 위치 점 -->
                                     <div id="quadrant-patient-dot" class="absolute w-4 h-4 -ml-2 -mt-2 rounded-full bg-indigo-600 border-2 border-white shadow-lg transition-all duration-500 z-10 flex items-center justify-center" style="left: 10%; top: 90%;">
                                         <div class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></div>
                                     </div>
                                 </div>
 
-                                <!-- 소장 / 대장 / 연동운동 미니 상태 바 -->
+                                <!-- 2축 변화량 미니 바 -->
                                 <div class="space-y-1.5 text-[11px] pt-1">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-slate-600 font-bold">🟦 소장 구획 이상도 (단·지·탄 + cPL/담즙)</span>
-                                        <span id="q-si-dys-val" class="font-extrabold text-sky-700">0.0점 (정상 양호)</span>
+                                        <span class="text-slate-600 font-bold">🟦 X축: 영양성분 잔류 패턴 (소장계 처리 검토)</span>
+                                        <span id="q-si-dys-val" class="font-extrabold text-sky-700">0.0 (변화 적음)</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                         <div id="q-si-dys-bar" class="h-full bg-sky-500 rounded-full transition-all duration-500" style="width: 0%"></div>
                                     </div>
                                     <div class="flex items-center justify-between pt-1">
-                                        <span class="text-slate-600 font-bold">🟧 대장 구획 이상도 (암모니아·잠혈·pH)</span>
-                                        <span id="q-li-dys-val" class="font-extrabold text-amber-700">0.0점 (정상 안정)</span>
+                                        <span class="text-slate-600 font-bold">🟧 Y축: 분변 대사·화학적 환경 패턴 (대장 검토)</span>
+                                        <span id="q-li-dys-val" class="font-extrabold text-amber-700">0.0 (변화 적음)</span>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                         <div id="q-li-dys-bar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%"></div>
                                     </div>
                                     <div class="flex items-center justify-between pt-1 text-[10px] text-slate-500 border-t border-slate-200/60 mt-1">
-                                        <span>⚡ 연동운동: <strong id="q-transit-val" class="text-indigo-700 font-extrabold">정상 (표준 통과시간)</strong></span>
-                                        <span id="q-quadrant-title" class="font-bold text-slate-700">Q1: 정상 균형 영역</span>
+                                        <span>⚡ 통과·수분 조건 참고: <strong id="q-transit-val" class="text-indigo-700 font-extrabold">미측정 / 조건 참고</strong></span>
+                                        <span id="q-quadrant-title" class="font-bold text-slate-700">기준 대비 뚜렷한 변화 적음</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- 우측 (7칸): 6대 시나리오 병태생리 해설 & 믹스피딩 3대 영양소 조절 테이블 -->
+                            <!-- 우측 (7칸): 관찰·검토 패턴 설명 & 식이 조정 가능성 검토 -->
                             <div class="lg:col-span-7 flex flex-col justify-between space-y-3">
-                                <!-- 시나리오 병태생리 진단 배너 -->
                                 <div class="p-3.5 rounded-xl bg-gradient-to-r from-indigo-50 via-blue-50 to-slate-50 border border-indigo-200 space-y-1.5">
                                     <div class="flex items-center justify-between">
                                         <div class="text-xs font-black text-indigo-950 flex items-center space-x-1.5">
-                                            <i class="fa-solid fa-dna text-indigo-600"></i>
-                                            <span id="q-scenario-title">Scenario 1: 정상 장내 환경 (Optimal GI Balance)</span>
+                                            <i class="fa-solid fa-magnifying-glass text-indigo-600"></i>
+                                            <span id="q-scenario-title">관찰 패턴 1: 측정 항목 기준 범위 내 유지</span>
                                         </div>
-                                        <span id="q-scenario-tag" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-200 text-indigo-800">교차검증 진단</span>
+                                        <span id="q-scenario-tag" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-200 text-indigo-800">관찰된 변화 · 검토 패턴</span>
                                     </div>
                                     <p id="q-scenario-desc" class="text-xs text-indigo-900 leading-relaxed font-medium">
-                                        소장 소화·흡수와 대장 발효 균형이 완벽히 유지되는 최적의 장내 생태계 상태입니다.
+                                        [관찰] 측정한 항목에서 뚜렷한 이탈이 관찰되지 않았습니다. [관련 해석] 현 급여 조건에서 잔류 및 대사 패턴이 비교적 일정하게 유지되고 있으나, 미측정 항목이나 장 전체의 완전한 정상·고흡수율을 단정하지는 않습니다.
                                     </p>
                                 </div>
 
-                                <!-- 믹스피딩 3대 영양소 처방 가이드 테이블 -->
+                                <!-- 관찰된 패턴과 함께 검토할 주요 태그 -->
+                                <div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                    <div class="text-[11px] text-slate-500 mb-1 font-bold"><i class="fa-solid fa-tags text-indigo-500 mr-1"></i>관찰된 변화 · 검토 패턴 요약 태그:</div>
+                                    <div id="cdss-abnormal-tags" class="flex flex-wrap gap-1.5"></div>
+                                </div>
+
+                                <!-- 식이(믹스피딩) 3대 요소 조정 가능성 검토 -->
                                 <div class="space-y-2">
                                     <div class="text-xs font-black text-slate-800 flex items-center space-x-1.5">
                                         <i class="fa-solid fa-sliders text-emerald-600"></i>
-                                        <span>시나리오 맞춤형 식이(믹스피딩) 3대 영양소 조절 처방</span>
+                                        <span>영양 목표 유지 하 식이 요소별 조정 가능성 검토 후보</span>
                                     </div>
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
-                                        <!-- 1) 섬유소 -->
                                         <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                                             <div class="text-[11px] font-black text-slate-700 flex items-center space-x-1">
                                                 <i class="fa-solid fa-seedling text-emerald-600"></i>
-                                                <span>① 수용성 섬유소 전략</span>
+                                                <span>① 식이섬유 특성 검토</span>
                                             </div>
                                             <div id="q-rx-fiber" class="text-[11px] text-slate-800 font-semibold leading-snug">
-                                                기본 표준량 유지 (1,000kcal당 3~5g, 균형 잡힌 프리바이오틱스 FOS/MOS)
+                                                현재 섬유소 구성 유지 가능성 검토 (필요 시 수용성/불용성 비율 점검)
                                             </div>
                                         </div>
-                                        <!-- 2) 수분/온수 -->
                                         <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                                             <div class="text-[11px] font-black text-slate-700 flex items-center space-x-1">
                                                 <i class="fa-solid fa-droplet text-blue-600"></i>
-                                                <span>② 수분 & 온수 믹싱</span>
+                                                <span>② 수분 · 제형 배합 검토</span>
                                             </div>
                                             <div id="q-rx-water" class="text-[11px] text-slate-800 font-semibold leading-snug">
-                                                기본 건/습식 비율 유지, 추가 온수 믹싱 불필요
+                                                현재 건식·습식/화식 수분 배합 유지 및 음수량 기록 병행
                                             </div>
                                         </div>
-                                        <!-- 3) 단백질 -->
                                         <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                                             <div class="text-[11px] font-black text-slate-700 flex items-center space-x-1">
                                                 <i class="fa-solid fa-drumstick-bite text-amber-600"></i>
-                                                <span>③ 단백질 급원 & 성상</span>
+                                                <span>③ 단백질·기질 구성 검토</span>
                                             </div>
                                             <div id="q-rx-protein" class="text-[11px] text-slate-800 font-semibold leading-snug">
-                                                처방식 기본 단백질 기준 적용 유지
+                                                기저 질환 영양 목표 범위 내에서 현재 단백질 급원 유지 검토
                                             </div>
                                         </div>
                                     </div>
@@ -2710,81 +2680,90 @@
                         </div>
                     </div>
 
-                    <!-- [삭제됨: 위의 분변해석모듈 표와 중복되어 9대 마커 정밀 판정 테이블 제거됨] -->
                     <div style="display:none;" aria-hidden="true">
                         <table><tbody id="cdss-markers-table-body"></tbody></table>
+                        <span id="cdss-score-val"></span>
+                        <div id="cdss-grade-badge"></div>
                     </div>
 
-                    <!-- 3. 가중치 기반 AI 심층 분석 코멘트 -->
+                    <!-- 2. 모형 예상 · 규칙 기반 해석 · 개인별 비교 검토 코멘트 -->
                     <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-50 via-blue-50 to-sky-50 border border-indigo-200 space-y-2">
-                        <div class="text-sm font-black text-indigo-950 flex items-center space-x-2">
-                            <i class="fa-solid fa-robot text-indigo-600"></i>
-                            <span>💡 분변 마커 + 혈액검사 가중치(ΔW_Lab) 교차 검증 AI 분석 코멘트</span>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="text-sm font-black text-indigo-950 flex items-center space-x-2">
+                                <i class="fa-solid fa-clipboard-check text-indigo-600"></i>
+                                <span>💡 모형 예상 · 규칙 기반 해석 · 혈액/식이 동반 조건 검토 코멘트</span>
+                            </div>
+                            <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white text-indigo-700 border border-indigo-200">[관찰 ➔ 관련 해석 ➔ 동반 조건 ➔ 다음 확인사항]</span>
                         </div>
                         <div id="cdss-ai-comments-list" class="space-y-1.5 text-xs text-indigo-900 leading-relaxed pl-1"></div>
                     </div>
 
-                    <!-- 4. 수의사 맞춤형 4대 임상 처방 & 병태생리 확률 카드 (식이 재조정 / 타깃 영양제 / 수의사 처치 / 장 질병 확률) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        <!-- 카드 1: 식이 믹스피딩 비율 재조정 -->
+                    <!-- 3. 수의사 검토용 3대 조정 후보안 & 다음 확인사항 카드 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- 카드 1: 믹스피딩 조정 후보안 (수의사 확인·승인형) -->
                         <div class="p-5 rounded-2xl border-2 border-blue-200 bg-blue-50/40 flex flex-col justify-between space-y-3">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-black text-blue-900"><i class="fa-solid fa-bowl-rice text-blue-600 mr-1.5"></i>① 맞춤형 믹스피딩 비율 재조정</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Diet Feedback</span>
+                                    <span class="text-xs font-black text-blue-900"><i class="fa-solid fa-bowl-rice text-blue-600 mr-1.5"></i>① 입력 조건에서 계산한 믹스피딩 조정 후보안</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">수의사 승인 후 적용</span>
                                 </div>
                                 <div id="cdss-diet-actions-list" class="space-y-2 text-xs text-slate-700"></div>
                             </div>
                             <button type="button" onclick="applyCdssRecommendedMixRatio()" class="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow transition flex items-center justify-center space-x-1.5">
-                                <i class="fa-solid fa-bolt"></i>
-                                <span>추천 믹스피딩 비율(저지방 70 : 신장 30) Tab 2에 즉시 적용</span>
+                                <i class="fa-solid fa-user-check"></i>
+                                <span>수의사 검토·승인 후 조정 후보안(70:30) Tab 2로 불러오기</span>
                             </button>
                         </div>
 
-                        <!-- 카드 2: 영양제 타깃 처방 -->
+                        <!-- 카드 2: 보조제 조정 가능성 검토 -->
                         <div class="p-5 rounded-2xl border-2 border-amber-200 bg-amber-50/40 flex flex-col justify-between space-y-3">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-black text-amber-950"><i class="fa-solid fa-pills text-amber-600 mr-1.5"></i>② 영양제(Nutraceuticals) 타깃 처방</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full">Target Supplement</span>
+                                    <span class="text-xs font-black text-amber-950"><i class="fa-solid fa-pills text-amber-600 mr-1.5"></i>② 영양 목표 유지 하 보조제 조정 가능성 검토</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full">보조제 검토 후보</span>
                                 </div>
                                 <div id="cdss-supp-actions-list" class="space-y-2 text-xs text-slate-700"></div>
                             </div>
                             <div class="text-[11px] text-amber-800 bg-amber-100/60 p-2 rounded-lg font-medium">
-                                <i class="fa-solid fa-circle-info mr-1"></i>선방 중인 마커 관련 보조제는 현 용량을 유지하고, 기대치 초과 마커 타깃 성분을 최우선 증량합니다.
+                                <i class="fa-solid fa-circle-info mr-1"></i>마커 단일 변화로 보조제를 자동 증감하지 않으며, 급여 이력·기호성·임상 증상과 함께 수의사가 조정 여부를 판단합니다.
                             </div>
                         </div>
 
-                        <!-- 카드 3: 수의사 임상 처치 및 추가 검사 가이드 -->
+                        <!-- 카드 3: 다음 확인사항 및 추가 임상 검토 가이드 -->
                         <div class="p-5 rounded-2xl border-2 border-emerald-200 bg-emerald-50/40 flex flex-col justify-between space-y-3">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-black text-emerald-950"><i class="fa-solid fa-user-doctor text-emerald-600 mr-1.5"></i>③ 수의사 임상 처치 & 추가 검사 가이드</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">Vet Action</span>
+                                    <span class="text-xs font-black text-emerald-950"><i class="fa-solid fa-user-doctor text-emerald-600 mr-1.5"></i>③ 동반 조건 및 다음 임상 확인사항</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">수의사 검토 사항</span>
                                 </div>
                                 <div id="cdss-vet-actions-list" class="space-y-2 text-xs text-slate-700"></div>
                             </div>
                             <div class="text-[11px] text-emerald-800 bg-emerald-100/60 p-2 rounded-lg font-medium">
-                                <i class="fa-solid fa-stethoscope mr-1"></i>약물 유발성 점막 손상이나 췌장·신장 비보상성 악화 시 식이 단독 교정보다 약물·내과 처치가 선행되어야 합니다.
+                                <i class="fa-solid fa-stethoscope mr-1"></i>분변 지표 변화와 식단의 최종 적합성을 동일시하지 않으며, 실제 섭취량·체중·BCS/MCS·임상 경과를 함께 검토합니다.
                             </div>
-                        </div>
-                        <!-- 카드 4: 장 질병 확률 (4대 병태생리 축 + 해당없음) -->
-                        <div class="p-5 rounded-2xl border-2 border-indigo-200 bg-indigo-50/40 flex flex-col justify-between space-y-3">
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-black text-indigo-950">
-                                        <i class="fa-solid fa-chart-pie text-indigo-600 mr-1.5"></i>④ 장 질병 확률 (4대 병태생리 축)
-                                    </span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">Patho Prob</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 mb-2.5">
-                                    업그레이드된 장내환경 가중치 기반으로 4대 병태생리 축 및 안정 확률(0~100%)을 정밀 분해합니다.
-                                </p>
-                                <div id="cdss-patho-prob-list" class="space-y-2 text-xs text-slate-700"></div>
-                            </div>
-                            <div id="cdss-patho-action-trigger" class="text-[11px] text-indigo-950 bg-indigo-100/70 p-2.5 rounded-xl font-medium leading-relaxed border border-indigo-200"></div>
                         </div>
                     </div>
+
+                    <!-- 4. 전문가 상세 참고 영역 (기본 접힘: 가중치 계산 편차 및 탐색적 기전 비중) -->
+                    <details class="rounded-2xl bg-slate-50 border border-slate-200 p-4 text-xs">
+                        <summary class="cursor-pointer font-bold text-slate-700 flex items-center justify-between select-none">
+                            <span><i class="fa-solid fa-flask-vial text-indigo-600 mr-1.5"></i>🔍 전문가 상세 참고: 5대 축 가중치 편차 및 탐색적 기전 비중 보기 (질병 확진·원인 단정 아님)</span>
+                            <span class="text-[10px] text-slate-500 font-normal">클릭하여 펼치기 / 접기</span>
+                        </summary>
+                        <div class="mt-4 pt-4 border-t border-slate-200 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-xl bg-white border border-slate-200 space-y-3">
+                                <div class="font-bold text-slate-800">모형 가중치 기반 5대 요인 편차 비중 (참고치)</div>
+                                <div id="cdss-attribution-stack-bar" class="w-full h-4 rounded-xl overflow-hidden flex shadow-inner bg-slate-200"></div>
+                                <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs" id="cdss-attribution-cards"></div>
+                                <div id="cdss-primary-culprit-banner" class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700"></div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-white border border-slate-200 space-y-3">
+                                <div class="font-bold text-slate-800">4대 기전 축 가중치 분포 (탐색적 모형 참고치)</div>
+                                <div id="cdss-patho-prob-list" class="space-y-2 text-xs text-slate-700"></div>
+                                <div id="cdss-patho-action-trigger" class="text-[11px] text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200"></div>
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </div>
 
@@ -4000,10 +3979,10 @@
             ammonia:    { name: "② 암모니아 (NH₃)", unit: "μmol/g", base: 20.0, min: 10.0, max: 30.0, imp: 1.5 },
             glucose:    { name: "③ 포도당 (Glucose)", unit: "mg/dL", base: 0.0, min: 0.0, max: 20.0, imp: 1.5 },
             blood:      { name: "④ 잠혈 (Blood)", unit: "ng/mL", base: 0.0, min: 0.0, max: 10.0, imp: 2.5 },
-            protein:    { name: "⑤ 미소화 단백질", unit: "% DM", base: 5.0, min: 2.0, max: 8.0, imp: 1.2 },
-            carbo:      { name: "⑥ 미소화 탄수화물", unit: "% DM", base: 6.0, min: 3.0, max: 10.0, imp: 1.0 },
-            fat:        { name: "⑦ 미소화 지방", unit: "% DM", base: 4.0, min: 1.0, max: 7.0, imp: 1.4 },
-            absorption: { name: "⑧ 추정 흡수율", unit: "%", base: 85.0, min: 80.0, max: 95.0, imp: 1.8 },
+            protein:    { name: "⑤ 분변 단백질 반응(출처미분리)", unit: "% DM", base: 5.0, min: 2.0, max: 8.0, imp: 1.2 },
+            carbo:      { name: "⑥ 전분 잔류 신호(루골)", unit: "% DM", base: 6.0, min: 3.0, max: 10.0, imp: 1.0 },
+            fat:        { name: "⑦ 지방 잔류 신호", unit: "% DM", base: 4.0, min: 1.0, max: 7.0, imp: 1.4 },
+            absorption: { name: "⑧ 모형 참고 흡수지수(직접측정 외)", unit: "%", base: 85.0, min: 80.0, max: 95.0, imp: 1.8 },
             // 하위 호환성용 유지
             indole:     { name: "인돌 (Indole)", unit: "μg/g", base: 15.0, min: 5.0, max: 25.0, imp: 1.5 },
             lactate:    { name: "젖산 (Lactate)", unit: "mmol/g", base: 8.0, min: 5.0, max: 12.0, imp: 1.2 }
@@ -4738,86 +4717,86 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                 transitLabel = "지연 (만성 정체 / 변비)";
             }
 
-            // 4. 6대 임상 시나리오 판정 (Priority Decision Tree)
+            // 4. 6대 관찰·검토 패턴 분류 ([관찰 ➔ 관련 해석 ➔ 동반 조건 · 다음 확인사항])
             let scenarioId = 1;
-            let scenarioShort = "정상 장내 생태계 (Optimal)";
-            let scenarioName = "Scenario 1: 정상 장내 환경 (Optimal GI Balance)";
-            let scenarioDesc = "소장 소화·흡수와 대장 발효 균형이 완벽히 유지되는 최적의 장내 생태계 상태입니다.";
-            let rxFiber = "기본 표준량 유지 (1,000kcal당 3~5g, 균형 잡힌 프리바이오틱스 FOS/MOS)";
-            let rxWater = "기본 건/습식 비율 유지, 추가 온수 믹싱 불필요";
-            let rxProtein = "처방식 기본 단백질 기준 적용 유지";
+            let scenarioShort = "측정 항목 기준 범위 내 유지";
+            let scenarioName = "관찰 패턴 1: 측정한 항목에서 뚜렷한 이탈이 관찰되지 않음";
+            let scenarioDesc = "[관찰] 측정한 분변 마커에서 모형 예상 및 기준 범위로부터 뚜렷한 이탈이 관찰되지 않았습니다. [관련 해석] 현 급여 조건에서 영양성분 잔류 및 대장 대사 환경이 비교적 일정하게 유지되고 있습니다. [다음 확인사항] 실제 섭취량, 체중, 체형(BCS/MCS) 및 변 성상 경과를 함께 기록하며 현재 급여 계획을 유지합니다.";
+            let rxFiber = "현재 섬유소 구성 유지 가능성 검토 (1,000kcal당 3~5g 수준)";
+            let rxWater = "현재 건식·습식/화식 수분 배합 비율 유지";
+            let rxProtein = "기저 질환 영양 목표 범위 내에서 현 단백질 급원 유지 검토";
 
-            // Priority 1: Scenario 3 (대장 통과 과속)
+            // 패턴 3: 단백질 반응 증가 · 암모니아 비동반 (잔류–대사 불일치 검토 패턴)
             if (protein > 7.5 && ammonia <= 32.0 && blood < 10.0 && (transitState === "RAPID" || si_f < 10.0)) {
                 scenarioId = 3;
-                scenarioShort = "대장 통과 과속 (Rapid Transit)";
-                scenarioName = "Scenario 3: 대장 통과 시간 과속 (Rapid Transit / 연동 과항진)";
-                scenarioDesc = "소장의 단백질 소화·흡수력은 정상이나, 대장의 연동운동이 지나치게 빨라 장내 미생물이 단백질을 부패(암모니아 전환)시킬 시간적 여유조차 없이 단백질 원형 그대로 배출되었습니다. 사료 단백질 문제가 아닌 신경성 설사 또는 대장 과민 반응을 우선 고려해야 합니다.";
-                rxFiber = "불용성 섬유소 완전 배제, 점성형 수용성 섬유소(차전자피 등) 미세 증량하여 변 형태 유지";
-                rxWater = "과도한 액상 공급 제한, 습식 배합 비율 최적화 (배변 과속 방지)";
-                rxProtein = "단백질 총량은 유지하되, 소화율 90% 이상 고소화성 가수분해 원료 매칭";
+                scenarioShort = "단백질↑·암모니아↔ (잔류–대사 불일치)";
+                scenarioName = "관찰 패턴 3: 분변 단백질 반응 증가 · 암모니아 비동반 (잔류–대사 불일치 검토)";
+                scenarioDesc = "[관찰] 분변 단백질 반응은 증가했으나 암모니아는 동반 상승하지 않았습니다. [관련 해석] 단백질 출처(식이·숙주·미생물 미분리), 대장 미생물 이용 조건, 장관 접촉(통과) 시간 단축 또는 검사법 반응 차이와 연결해 검토합니다(빠른 통과나 단백소실성 장병증[PLE] 중 하나로 강제 단정하지 않습니다). [다음 확인사항] 배변 횟수·변 성상, 식단 단백질 원료 변경 시점 및 혈중 알부민 추이를 함께 확인합니다.";
+                rxFiber = "불용성 섬유소 과다 여부 점검 및 보수성 수용성 섬유소(차전자피 등) 조정 가능성 검토";
+                rxWater = "급격한 수분 변화 여부 점검 및 급여 횟수 분할 검토";
+                rxProtein = "소화율이 높은 가수분해 단백질 원료로의 조정 가능성 검토";
             }
-            // Priority 2: Scenario 4 (대장 하부 점막 누수 및 단백 소실)
+            // 패턴 4: 잠혈 반응 또는 단백질 반응 동반 (숙주·점막 유래 성분 검토 패턴)
             else if (blood >= 10.0 || (protein > 7.0 && ammonia <= 35.0 && (albLow || blood >= 5.0))) {
                 scenarioId = 4;
-                scenarioShort = "대장 하부 점막 누수 (Colonic PLE)";
-                scenarioName = "Scenario 4: 대장 하부 점막 누수 및 단백 소실 (Colonic PLE / 염증)";
-                scenarioDesc = "소장 소화 기능과 무관하게, 결장/직장 부위의 국소 미란·궤양 또는 림프관 확장으로 인해 혈중 단백질과 혈액이 대장 강내로 직접 유출되었습니다. (단백소실성 장병증)";
-                rxFiber = "점막 피복 및 상피 보호형 수용성 섬유소 적용, 장벽 미세순환 성분 보강";
-                rxWater = "온수 믹싱을 통한 부드러운 유동성 식사 구성 (점막 물리적 자극 최소화)";
-                rxProtein = "대장 점막 알러지/면역 반응을 최소화하는 단일 신원료(Novel Protein) 또는 초저분자 가수분해 단백질";
+                scenarioShort = "잠혈/단백질 반응 (숙주·점막 요인 검토)";
+                scenarioName = "관찰 패턴 4: 잠혈 반응 또는 단백질 반응 동반 (숙주 유래 성분 · 점막 상태 검토)";
+                scenarioDesc = "[관찰] 잠혈 반응 또는 저알부민 조건과 동반된 분변 단백질 반응이 관찰되었습니다. [관련 해석] 소화·대사 축과 별도로 상·하부 소화관 출혈 가능성, 숙주 점막/분비물 유래 단백질 기여 또는 식이 간섭 요인과 연결해 검토합니다(단독으로 대장염이나 PLE를 확진하지 않습니다). [다음 확인사항] NSAIDs·스테로이드 등 약물 복용 시점과 함께 검토하고, 육안적 혈변 유무 및 혈중 총단백/알부민 재검을 확인합니다.";
+                rxFiber = "점막 자극이 적은 완만 발효 수용성 섬유소 구성 검토";
+                rxWater = "충분한 수분 배합으로 물리적 소화관 자극 완화 검토";
+                rxProtein = "식이 항원성을 낮춘 가수분해 또는 단일 단백질 원료 후보안 검토";
             }
-            // Priority 3: Scenario 5 (탄수화물 흡수 부전 및 대장 삼투성 발효)
+            // 패턴 5: 전분 잔류 신호 및 산성화(pH↓) 동반 패턴
             else if (carbo > 8.5 && ph < 6.0) {
                 scenarioId = 5;
-                scenarioShort = "탄수화물 흡수부전 & 삼투성 발효";
-                scenarioName = "Scenario 5: 탄수화물 흡수 부전 및 대장 삼투성 발효";
-                scenarioDesc = "소장에서 탄수화물/전분 흡수가 실패하여 대장으로 넘어간 뒤, 발효균에 의해 급격한 유기산 생성 및 산성화가 발생하여 삼투성 설사를 유발했습니다.";
-                rxFiber = "발효 속도가 느린 완만 발효 수용성 섬유소로 전환 (급격한 가스/산성화 방지)";
-                rxWater = "수분 공급을 1일 다회로 분할 공급하여 삼투압 충격 최소화";
-                rxProtein = "식이 탄수화물(NFE) 비율을 대폭 축소하고 단백질 및 필수 지방 균형 재조정";
+                scenarioShort = "전분 잔류↑ + pH↓ (산성 발효 검토)";
+                scenarioName = "관찰 패턴 5: 전분 잔류 신호 증가 및 분변 산성화(pH↓) 동반 패턴";
+                scenarioDesc = "[관찰] 전분 잔류 신호(루골) 상승과 분변 pH 하회(산성화 방향)가 함께 관찰되었습니다. [관련 해석] 식이 전분 특성(저항성 전분·가공도), 소장계 전분 처리 조건 및 하류 대장 내 탄수화물 발효 산물 증가와 연결해 검토합니다(루골 반응만으로 탄수화물 흡수장애를 확정하지 않습니다). [다음 확인사항] 최근 탄수화물/고구마·곡류 간식 추가 여부 및 장내 가스·묽은변 동반 여부를 확인합니다.";
+                rxFiber = "급격한 발효를 유발하는 올리고당 과다 여부 점검 및 완만 발효 섬유소 검토";
+                rxWater = "삼투성 수분 변동을 고려해 다회 분할 급여 및 수분 섭취량 확인";
+                rxProtein = "영양 목표 내에서 가용성 탄수화물(NFE) 비중 조정 가능성 검토";
             }
-            // Priority 4: Scenario 6 (대장 만성 정체 / 거대결장)
+            // 패턴 6: 체류 시간 지연 조건 및 대사 환경 변화 동반 패턴
             else if (transitState === "STASIS" && (ph > 7.3 || ammonia < 12.0 || ammonia > 35.0) && protein <= 8.0) {
                 scenarioId = 6;
-                scenarioShort = "대장 만성 정체 (Megacolon)";
-                scenarioName = "Scenario 6: 대장 만성 정체 (Megacolon / 마비성 장폐색)";
-                scenarioDesc = "대장 내 체류 시간이 비정상적으로 길어져 수분이 과다 재흡수되고, 발효 기질 고갈 또는 부패성 산물이 만성 정체되었습니다.";
-                rxFiber = "차전자피 등 고보수성 수용성 섬유소 극대화 (+50% 상향, 변의 부피와 수분 유지)";
-                rxWater = "수분 공급량 및 추가 온수 믹싱 최대치 적용 (습식 사료 비율 80% 이상 강제)";
-                rxProtein = "장관 무력증 환축의 배변 부담을 줄이기 위한 초고소화성 조성 배합";
+                scenarioShort = "통과 지연 조건 + 대사 환경 변화";
+                scenarioName = "관찰 패턴 6: 장관 체류 시간 지연 조건 및 대사·화학적 환경 변화 검토";
+                scenarioDesc = "[관찰] 장관 통과 지연 관련 조건(약물·질환·연령)과 함께 분변 pH 또는 암모니아 대사 환경 변화가 관찰되었습니다. [관련 해석] 대장 내 체류 시간 증가에 따른 수분 재흡수 및 질소성 기질 발효 환경 변화와 연결해 검토합니다. [다음 확인사항] 인바인더·이뇨제 등 약물 복용 시점, 음수량, 배변 간격 및 분변 경도를 함께 확인합니다.";
+                rxFiber = "변의 수분 보유를 돕는 수용성 섬유소(차전자피 등) 보강 가능성 검토";
+                rxWater = "습식/화식 비중 상향 또는 온수 추가를 통한 일일 수분 섭취량 증대 검토";
+                rxProtein = "소화 부담이 적은 고소화성 단백질 구성 유지 검토";
             }
-            // Priority 5: Scenario 2 (소장 소화부전 및 대장 부패 발효)
+            // 패턴 2: 복수 영양성분 잔류 및 대사 환경 동반 변화
             else if (si_dys >= 20.0 && li_dys >= 20.0) {
                 scenarioId = 2;
-                scenarioShort = "소장 소화부전 + 대장 부패";
-                scenarioName = "Scenario 2: 소장 소화·흡수 불량 및 대장 부패 발효";
-                scenarioDesc = "소장에서 흡수되지 못한 미소화 단백질/지방이 대장으로 대량 유입되어 부패균에 의한 암모니아 및 요독성 대사산물이 급증했습니다.";
-                rxFiber = "수용성 섬유소 대폭 증량 (+30%), 대장 내 단쇄지방산(SCFA) 생성 촉진";
-                rxWater = "수분 공급량 표준 대비 +15% 상향 (대장 내 유해 부패물 배출 촉진)";
-                rxProtein = "고생물가 가수분해 단백질(Hydrolyzed Protein)로 전면 전환 (대장 유입 차단)";
+                scenarioShort = "잔류 패턴↑ + 대사 환경↑ (복합 변화)";
+                scenarioName = "관찰 패턴 2: 영양성분 잔류 신호 및 대장 대사 환경의 복합 변화 패턴";
+                scenarioDesc = "[관찰] 단백질·지방 등 영양성분 잔류 신호와 암모니아·pH 등 대장 대사 지표가 함께 변화했습니다. [관련 해석] 상류의 식이 기질 유입·소장계 처리 변화와 하류의 대장 미생물 대사 변화가 동시에 일어난 비배타적 복합 패턴으로 해석합니다. [다음 확인사항] 사료 혼합 비율(특히 고지방·고단백 사료 비중), 간식 급여 여부 및 췌장·신장 관련 혈액 지표를 함께 검토합니다.";
+                rxFiber = "대장 내 질소 대사 균형을 위한 발효성 수용성 섬유소 보강 검토";
+                rxWater = "대사 산물 배출 및 수분 균형을 위한 습식 배합비 검토";
+                rxProtein = "기저 질환 목표에 맞춘 저지방·고소화성 처방식 혼합 비율 조정 후보안 검토";
             }
 
-            // 5. 4분면 좌표 및 영역 판정
+            // 5. 4분면 좌표 및 영역 명칭 (진단 배제 · 관찰 중심 명명)
             let quadrantCode = "Q_NORMAL";
-            let quadrantTitle = "Q1: 정상 균형 영역 (Optimal GI Zone)";
+            let quadrantTitle = "기준 대비 뚜렷한 변화 적음";
             let quadrantColor = "emerald";
 
             if (si_dys < 25.0 && li_dys < 25.0) {
                 quadrantCode = "Q_NORMAL";
-                quadrantTitle = "Q1: 정상 균형 영역 (Optimal GI Zone)";
+                quadrantTitle = "기준 대비 뚜렷한 변화 적음";
                 quadrantColor = "emerald";
             } else if (si_dys >= 25.0 && li_dys < 25.0) {
                 quadrantCode = "Q_SI_PRIMARY";
-                quadrantTitle = "Q2: 소장 흡수부전 주도 영역 (Primary SI Malabsorption)";
+                quadrantTitle = "잔류 패턴 변화 중심 (소장계 처리·식이 검토)";
                 quadrantColor = "sky";
             } else if (si_dys < 25.0 && li_dys >= 25.0) {
                 quadrantCode = "Q_LI_PRIMARY";
-                quadrantTitle = "Q3: 대장 병태생리 주도 영역 (Colonic Dysfunction / Rapid Transit / PLE)";
+                quadrantTitle = "대사·화학적 변화 중심 (대장 환경 검토)";
                 quadrantColor = "amber";
             } else {
                 quadrantCode = "Q_COMBINED";
-                quadrantTitle = "Q4: 전장관 복합 부전 영역 (Combined SI-LI Dysfunction)";
+                quadrantTitle = "복합 변화 패턴 (잔류 + 대사 동반 변화)";
                 quadrantColor = "rose";
             }
 
@@ -5561,7 +5540,7 @@ try {
             ].sort((a, b) => b.val - a.val);
 
             document.getElementById('cdss-primary-culprit-banner').innerHTML =
-                `🎯 <strong>원인 감별 결론:</strong> 현재 장내환경 변화의 제1 주원인은 <span class="underline decoration-indigo-500 font-black text-indigo-800">${sortedCauses[0].name} (${sortedCauses[0].val}%)</span>이며, 제2 복합 요인은 <strong>${sortedCauses[1].name} (${sortedCauses[1].val}%)</strong>입니다.`;
+                `📌 <strong>변화와 함께 검토할 요인(참고치):</strong> 모형 가중치 편차 기준 <span class="underline decoration-indigo-500 font-black text-indigo-800">${sortedCauses[0].name} (${sortedCauses[0].val}%)</span> 및 <strong>${sortedCauses[1].name} (${sortedCauses[1].val}%)</strong>의 동반 여부를 우선 검토합니다.`;
 
             const aiComments = [...labInfo.labAlerts.map(a => `• ${a}`)];
             const dietActions = [];
@@ -5569,29 +5548,29 @@ try {
             const vetActions = [];
 
             if (evalMap.ammonia && evalMap.ammonia.statusCode === "COMPENSATED") {
-                aiComments.push(`• <strong>[단백질 대사 및 요독소 선방]</strong> 정상 기준으로는 암모니아(${evalMap.ammonia.meas} μmol/g)가 상승해 있으나, 환자의 질환·연령·혈액 가중치가 반영된 기대 기준치(${evalMap.ammonia.expected} μmol/g) 이내로 안정적으로 통제되고 있습니다.`);
+                aiComments.push(`• <strong>[질소 대사 마커 관찰]</strong> [관찰] 암모니아(${evalMap.ammonia.meas} μmol/g)가 일반 기준보다 높으나 모형 예상 범위(${evalMap.ammonia.expected} μmol/g) 이내입니다. ➔ [관련 해석] 기저 질환·연령·식이 조건에서 예상된 범위 내의 변화로 해석합니다. ➔ [다음 확인사항] 이전 개인 기준선 대비 증감 여부를 지속적으로 비교합니다.`);
             } else if (evalMap.ammonia && evalMap.ammonia.statusCode === "DECOMPENSATED") {
-                aiComments.push(`• <strong>[단백질 부패 발효 및 요독소 초과 경고]</strong> 분변 암모니아(${evalMap.ammonia.meas} μmol/g)가 환자 맞춤 기대치(${evalMap.ammonia.expected} μmol/g)마저 초과했습니다.`);
-                dietActions.push("• <strong>[단백질 부하 감량 & 간식 중단]</strong> 육포/트릿/츄르 등 일반 고단백 간식을 즉시 중단하고, 초고소화성 가수분해 사료 또는 저단백 처방식 비율을 +20% 상향하십시오.");
-                suppActions.push("• <strong>[최우선 추가]</strong> 장-신장 축 타깃 요독소 분해 프로바이오틱스(<strong>신장케어 레날맥스</strong>) 및 프리바이오틱스 증량");
-                vetActions.push(`• 혈중 BUN / Creatinine / SDMA 및 인 수치를 추적하고, 경구용 구강 요독소 흡착제(크레메진/아조딜) 투여량 증량을 검토하십시오.`);
+                aiComments.push(`• <strong>[질소 대사 마커 예상 범위 상회]</strong> [관찰] 분변 암모니아(${evalMap.ammonia.meas} μmol/g)가 모형 예상 범위(${evalMap.ammonia.expected} μmol/g) 밖으로 높게 관찰되었습니다. ➔ [관련 해석] 대장 내 질소성 기질 유입 증가, 체류 시간 변화 또는 요독성 질소 역확산 조건과 연결해 검토합니다. ➔ [다음 확인사항] 고단백 간식 급여 여부 및 신장 관련 혈액 지표 추이를 함께 확인합니다.`);
+                dietActions.push("• <strong>[식이 조정 후보안]</strong> 고단백 간식(육포·트릿 등) 급여가 있었다면 제한을 검토하고, 영양 목표 유지 하에 고소화성 가수분해 사료 또는 저단백 처방식 비중 조정을 후보안으로 검토합니다.");
+                suppActions.push("• <strong>[보조제 조정 가능성 검토]</strong> 장-신장 축 프로바이오틱스(레날맥스 등) 및 발효성 수용성 섬유소(프리바이오틱스) 병용 가능성을 수의사가 검토합니다.");
+                vetActions.push(`• <strong>[다음 확인사항]</strong> 혈중 BUN / Creatinine / SDMA 및 인 수치 추이를 대조하고, 구강 요독소 흡착제·인바인더 복용 순응도를 확인합니다.`);
             }
 
             if (evalMap.glucose && evalMap.glucose.meas >= 20.0) {
-                aiComments.push(`• <strong>[분변 포도당 검출 경고]</strong> 분변 포도당이 ${evalMap.glucose.meas} mg/dL 검출되었습니다(기대 상한 ${evalMap.glucose.expectedUpper} mg/dL). 소장 상피 SGLT1 수송체 흡수 저하 또는 당뇨/내분비·스테로이드 대사 부하를 시사합니다.`);
+                aiComments.push(`• <strong>[포도당 패드 반응 관찰]</strong> [관찰] 분변 포도당(${evalMap.glucose.meas} mg/dL) 반응이 관찰되었습니다(참고 상한 ${evalMap.glucose.expectedUpper} mg/dL). ➔ [관련 해석] 탐색적 단당류 잔류 신호로서 식이 당류 변화·소장 처리 조건 또는 내분비·약물(스테로이드 등) 조건과 함께 검토하며 단독으로 당뇨를 확진하지 않습니다.`);
             }
 
             if (evalMap.fat.statusCode === "DECOMPENSATED" || evalMap.absorption.statusCode === "DECOMPENSATED") {
-                aiComments.push(`• <strong>[지방 소화 한계 돌파 & 흡수 부전 심화]</strong> 미소화 지방(${evalMap.fat.meas}% DM)이 환자 기대치(${evalMap.fat.expected}%)마저 크게 초과하고 추정 흡수율(${evalMap.absorption.meas}%)이 기대치(${evalMap.absorption.expected}%) 아래로 떨어졌습니다. <strong>신장 처방식(k/d 등)의 높은 지질 함량이 ${isCat ? '고양이 췌장·담관(fPL)' : '만성 췌장염 환견(cPL)'}의 소화 한계를 넘어선 '식이+질병 복합 문제'</strong>가 핵심 원인입니다.`);
-                dietActions.push("• <strong>[믹스피딩 비율 70:30 재조정]</strong> 현재 50:50 혼합 비율에서 신장 사료(k/d)가 공급하는 지방량이 췌장의 소화 한계를 초과했습니다. <strong>[저지방 사료(i/d Low Fat / GI Low Fat) 70% : 신장 사료(k/d / Renal) 30%]</strong>으로 저지방 사료 비중을 즉시 상향하십시오.");
-                suppActions.push("• <strong>[최우선 증량/교체]</strong> 고역가 췌장 소화효소제(<strong>췌장케어 판크레딘</strong> — 리파아제 강화) 용량을 현 1.0배 ➔ <strong>1.5배로 증량</strong>하고, 담즙 유화가 불필요한 <strong>인지질 결합형 크릴오일(Krill Oil)</strong>로 오메가-3를 교체하십시오.");
-                vetActions.push(`• <strong>[췌장·신장 혈액 연계 처치]</strong> 혈중 ${isCat ? 'fPL 및 코발라민(B12)' : 'cPL'} 추적 모니터링과 함께, 신장 처방식 비율 축소(50%➔30%)에 따른 <strong>인 흡착제(Phosphate Binder) 용량을 20~30% 증량</strong> 처방하십시오.`);
+                aiComments.push(`• <strong>[지방 잔류 신호 증가 관찰]</strong> [관찰] 지방 잔류 신호(${evalMap.fat.meas}% DM)가 모형 예상 범위(${evalMap.fat.expected}%)를 상회하여 관찰되었습니다. ➔ [관련 해석] 식단 변경(고지방 신장 처방식 비중 등)과 시간적으로 함께 관찰된 변화이거나, ${isCat ? '고양이 췌장·담관(fPL)' : '췌장·담즙계(cPL)'} 소장계 지질 처리 조건 변화와 연결해 검토합니다. ➔ [다음 확인사항] 사료 지방 함량과 변 성상·체중 변화를 대조합니다.`);
+                dietActions.push("• <strong>[믹스피딩 비율 조정 후보안 (70:30)]</strong> 현재 혼합 식단에서 지방 유입 부담을 낮추기 위해 <strong>[저지방 처방식 70% : 신장 처방식 30%]</strong> 배합 후보안을 제시합니다. 수의사 검토 및 영양 조건 재확인 후 승인 시 적용하십시오.");
+                suppActions.push("• <strong>[보조제 조정 가능성 검토]</strong> 췌장 소화효소 보충제(판크레딘 등) 또는 인지질 결합형 오메가-3(크릴오일) 적용 가능성을 수의사가 검토합니다.");
+                vetActions.push(`• <strong>[다음 확인사항]</strong> 혈중 ${isCat ? 'fPL · 코발라민(B12)' : 'cPL · TLI'} 추이를 확인하고, 신장 처방식 비율 조정 시 식이 인(P) 섭취량 변화에 맞춘 인바인더 조정 필요성을 함께 검토합니다.`);
             }
 
             if (evalMap.blood.meas >= 10.0) {
-                aiComments.push(`• <strong>[약물/점막 요인에 의한 잠혈 검출]</strong> 분변 잠혈이 ${evalMap.blood.meas} ng/mL 검출되었습니다(기대 상한 ${evalMap.blood.expectedUpper} ng/mL). 사료 문제가 아닌 <strong>복용 약물(NSAIDs/스테로이드) 또는 요독성/염증성 위장관 미란</strong>이 원인입니다.`);
-                suppActions.push("• <strong>[장점막 복구 보강]</strong> 상피세포 재생 및 치밀이음부 복구를 위해 <strong>L-글루타민 + 아연-카르노신 + 보스웰리아/초록입홍합(관절케어 오스테오)</strong>로 항염 대체");
-                vetActions.push("• <strong>[약물 변경 및 점막 보호 처치]</strong> NSAIDs 복용 중이라면 즉시 휴약 또는 단클론항체 주사제(Librela/Solensia)로 대체를 검토하고, 위장관 점막보호제(<strong>Sucralfate</strong>)를 병용 처방하십시오.");
+                aiComments.push(`• <strong>[잠혈 반응 별도 확인]</strong> [관찰] 분변 잠혈(${evalMap.blood.meas} ng/mL)이 관찰되었습니다(참고 상한 ${evalMap.blood.expectedUpper} ng/mL). ➔ [관련 해석] 다른 마커가 안정적이더라도 상쇄하지 않고 별도로 다루며, 약물 변경 시점(NSAIDs·스테로이드 등), 점막 유래 성분 또는 식이 간섭 요인과 함께 검토합니다.`);
+                suppActions.push("• <strong>[보조제 조정 가능성 검토]</strong> 점막 보호 영양소(L-글루타민, 아연-카르노신 등) 및 위장관 자극이 적은 관절 보조제 대체 가능성을 검토합니다.");
+                vetActions.push("• <strong>[다음 확인사항]</strong> NSAIDs·스테로이드 투여 이력과 변의 육안적 혈흔 여부를 확인하고, 수의사 판단하에 점막보호제(Sucralfate 등) 또는 약물 조정을 검토합니다.");
             }
 
             if (aiComments.length === 0) {
@@ -5645,7 +5624,7 @@ try {
             if (badgeEl) badgeEl.innerText = cvResult.scenarioName.split(' / ')[0];
 
             const coordEl = document.getElementById('quadrant-coord-label');
-            if (coordEl) coordEl.innerText = `좌표 (SI ${cvResult.si_dys.toFixed(1)}, LI ${cvResult.li_dys.toFixed(1)})`;
+            if (coordEl) coordEl.innerText = `좌표 (X: ${cvResult.si_dys.toFixed(1)}, Y: ${cvResult.li_dys.toFixed(1)})`;
 
             const dotEl = document.getElementById('quadrant-patient-dot');
             if (dotEl) {
@@ -5654,12 +5633,12 @@ try {
             }
 
             const siValEl = document.getElementById('q-si-dys-val');
-            if (siValEl) siValEl.innerText = `${cvResult.si_dys.toFixed(1)}점 (${cvResult.si_dys < 25 ? '정상 양호' : (cvResult.si_dys < 50 ? '경도 이상' : '중증 소화부전')})`;
+            if (siValEl) siValEl.innerText = `${cvResult.si_dys.toFixed(1)} (${cvResult.si_dys < 25 ? '변화 적음' : (cvResult.si_dys < 50 ? '잔류 패턴 관찰' : '잔류 변화 뚜렷')})`;
             const siBarEl = document.getElementById('q-si-dys-bar');
             if (siBarEl) siBarEl.style.width = `${Math.min(100, cvResult.si_dys)}%`;
 
             const liValEl = document.getElementById('q-li-dys-val');
-            if (liValEl) liValEl.innerText = `${cvResult.li_dys.toFixed(1)}점 (${cvResult.li_dys < 25 ? '정상 안정' : (cvResult.li_dys < 50 ? '주의 경고' : '중증 부패/출혈')})`;
+            if (liValEl) liValEl.innerText = `${cvResult.li_dys.toFixed(1)} (${cvResult.li_dys < 25 ? '변화 적음' : (cvResult.li_dys < 50 ? '대사 변화 관찰' : '대사·화학 변화 뚜렷')})`;
             const liBarEl = document.getElementById('q-li-dys-bar');
             if (liBarEl) liBarEl.style.width = `${Math.min(100, cvResult.li_dys)}%`;
 
@@ -5699,7 +5678,7 @@ try {
             if (rxProteinEl) rxProteinEl.innerText = cvResult.rx.protein;
 
             // AI 코멘트 최상단에 2축 교차검증 결론 추가
-            aiComments.unshift(`• 🔬 <strong>[소장 vs 대장 2축 교차검증]</strong> ${cvResult.scenarioName} 판정 — ${cvResult.scenarioDesc.split('.')[0]}. (${cvResult.quadrantTitle})`);
+            aiComments.unshift(`• 🔬 <strong>[2축 패턴 요약]</strong> ${cvResult.scenarioName} (${cvResult.quadrantTitle}) — ${cvResult.scenarioDesc}`);
 
             const pathoResult = calculateGutPathoProbabilities({
                 score,
@@ -5761,7 +5740,7 @@ try {
 
             // AI 분석 코멘트에 4대 축 진단 요약 추가
             if (pathoResult.probs.none < 75.0) {
-                aiComments.unshift(`• 🎯 <strong>[장내 병태생리 4대 축 진단]</strong> 질병·약물·혈액 가중치 분해 결과 <strong>${pathoResult.primary.name}(${pathoResult.primary.prob}%)</strong>이(가) 현재 장내환경 저하의 핵심 병태 원인으로 산출되었습니다. (장운동: ${pathoResult.probs.motility}%, 장염: ${pathoResult.probs.inflammation}%, 장누수: ${pathoResult.probs.leak}%, 소화부전: ${pathoResult.probs.digestion}%, 안정: ${pathoResult.probs.none}%)`);
+                aiComments.push(`• 📊 <strong>[모형 가중치 참고]</strong> 입력된 질환·약물·혈액 조건에서는 <strong>${pathoResult.primary.name}</strong> 관련 기전 부하가 상대적으로 높게 계산되었으므로 임상 경과와 함께 참고하십시오.`);
             }
 
             document.getElementById('cdss-ai-comments-list').innerHTML = aiComments.map(c => `<div>${c}</div>`).join('');
@@ -5797,7 +5776,10 @@ try {
         }
 
         function applyCdssRecommendedMixRatio() {
-            // 건식+건식 또는 건식+습식 비율을 70:30으로 즉시 피드백 적용하고 Tab 2로 이동
+            if (!confirm("🩺 [수의사 후보안 승인 확인]\n제시된 믹스피딩 조정 후보안(저지방 처방식 70% : 신장 처방식 30%)의 영양 조건을 검토하셨습니까?\n승인하시면 Tab 2(믹스피딩 설계) 화면에 해당 후보 비율이 반영됩니다.")) {
+                return;
+            }
+            // 수의사 승인 후 건식+건식 비율을 70:30으로 반영하고 Tab 2로 이동
             currentFeedingMode = "DRY_DRY";
             currentCustomRatios = { dry1: 70, dry2: 30 };
             ["DRY_WET_FRESH", "DRY_WET", "DRY_DRY", "FRESH_ONLY"].forEach(m => {
@@ -7121,8 +7103,8 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="static/supabase_config.js"></script>
 <script src="static/supabase_auth_pet.js"></script>
-<script src="static/gut-pattern-review.js?v=20261103_08"></script>
-<script src="static/guardian_portal.js?v=20261103_08"></script>
+<script src="static/gut-pattern-review.js?v=20261103_09"></script>
+<script src="static/guardian_portal.js?v=20261103_09"></script>
     <script>
         // 초기 CDSS 자동 시뮬레이션 보장
         document.addEventListener('DOMContentLoaded', function() {

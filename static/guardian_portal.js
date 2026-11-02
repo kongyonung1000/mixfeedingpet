@@ -339,12 +339,15 @@
         return GUARDIAN_CONSULT_CONCERNS.includes(guardianState.profile.healthConcern);
     }
 
+    window.setGuardianVetPrescribedDer = function (val) {
+        const num = parseFloat(val);
+        guardianState.profile.vetPrescribedDerKcal = (!isNaN(num) && num >= 20) ? Math.round(num) : null;
+        refreshAllGuardianCalculations();
+    };
+
     function computeGuardianEnergy() {
-        if (isGuardianConsultVet()) {
-            guardianState.energy = { rer: 0, der: 0, idealWeightKg: 0, factor: 0, maxTreatKcal: 0, perMealKcal: 0, consultVet: true, fecalNote: "수의사와 상담하세요." };
-            return guardianState.energy;
-        }
         const p = guardianState.profile;
+        const consultVet = isGuardianConsultVet();
         const w = Math.max(0.5, parseFloat(p.weightKg) || 4.5);
         const bcs = parseInt(p.bcs) || 5;
         const idealW = Math.round((w / (1.0 + (bcs - 5) * 0.10)) * 100) / 100;
@@ -373,20 +376,26 @@
         else if (p.activity === "high") factor = Math.round((factor + 0.2) * 10) / 10;
         else if (p.activity === "very_high") factor = Math.round((factor + 0.5) * 10) / 10;
 
-        // 변 상태(흡수율) 및 Step 5 분변키트 흡수율 보정
-        let fecalNote = "정상 소화 흡수율 (92~95%)";
+        // 변 상태 관찰 메모 (패드 결과로 목표 열량을 자동 증감하지 않고 관찰 기록으로만 활용)
+        let fecalNote = "배변 점수 3.5 (정상 형태 관찰) — 현재 급여 계획 유지 및 반응 기록 권장";
         if (p.fecalScore >= 6.0) {
-            fecalNote = "수양성/설사 변 상태 감지 — 소화 부담 완화를 위해 저지방·고소화성 배합 권장";
+            fecalNote = "수양성/설사 변 상태 기록됨 — 수분 섭취와 동반 증상을 기록하고 반복 시 수의사에게 공유하세요";
         } else if (p.fecalScore >= 4.5) {
-            fecalNote = "무른 변 상태 감지 — 간식/토핑을 5% 이내로 줄이고 식이섬유 밸런스 조절 권장";
+            fecalNote = "무른 변 상태 기록됨 — 최근 간식·토핑이나 사료 변경 이력을 함께 점검해 보세요";
+        } else if (p.fecalScore <= 2.5) {
+            fecalNote = "단단하고 건조한 변 상태 기록됨 — 일일 음수량과 습식/수분 공급량을 확인해 주세요";
         }
 
-        let der = Math.round(rer * factor);
-        if (guardianState.fecalKit && guardianState.fecalKit.applyAbsorptionToDiet) {
-            const abs = Math.max(60, Math.min(98, parseFloat(guardianState.fecalKit.estimatedAbsorption) || 93.0));
-            const absRatio = 90.0 / abs; // 정상 흡수율(90%) 대비 보정
-            der = Math.round(der * Math.min(1.18, Math.max(0.88, absRatio)));
-            fecalNote = `[Step 5 분변키트 연동됨] 추정 소화 흡수율 ${abs.toFixed(1)}% 반영 (목표 열량 자동 보정)`;
+        // 수의사 처방/연결 목표 열량 확인 (수의사용 CDSS 스냅샷 또는 보호자 직접 입력값)
+        const vetSnapshotDer = window._latestRecommendationSnapshot?.energy?.adjusted_der_kcal
+            ? Math.round(parseFloat(window._latestRecommendationSnapshot.energy.adjusted_der_kcal))
+            : null;
+        const vetLinkedDer = p.vetPrescribedDerKcal || vetSnapshotDer || null;
+        const vetPlanLinked = Boolean(vetLinkedDer && vetLinkedDer >= 20);
+
+        let der = vetPlanLinked ? vetLinkedDer : Math.round(rer * factor);
+        if (vetPlanLinked && rer > 0) {
+            factor = Math.round((der / rer) * 100) / 100;
         }
 
         const maxTreatKcal = Math.round(der * 0.10 * 10) / 10;
@@ -400,6 +409,8 @@
             factor,
             maxTreatKcal,
             perMealKcal,
+            consultVet,
+            vetPlanLinked,
             fecalNote
         };
         return guardianState.energy;
@@ -750,7 +761,7 @@
 
         const ind = document.getElementById("current-portal-indicator");
         if (ind) {
-            ind.innerText = "현재 화면: 🐾 보호자용 믹스피딩 & 화식·역추적 포털";
+            ind.innerText = "현재 화면: 🐾 보호자용 믹스피딩 급여계획 · 섭취/반응 기록 포털";
             ind.className = "font-bold text-emerald-300";
         }
         const gBtn = document.getElementById("top-switch-guardian-btn");
@@ -789,7 +800,7 @@
                                 <span class="px-2.5 py-0.5 rounded-full bg-amber-300 text-slate-950 text-[11px] font-black">보호자 맞춤형 이지 케어</span>
                                 <span class="text-xs text-emerald-100">AAFCO · FEDIAF 국제 영양 기준 연동</span>
                             </div>
-                            <h1 class="text-xl sm:text-2xl font-black tracking-tight mt-0.5">우리 아이 맞춤 믹스피딩 · 화식 DIY · 사료 역추적 스튜디오</h1>
+                            <h1 class="text-xl sm:text-2xl font-black tracking-tight mt-0.5">우리 아이 맞춤 믹스피딩 급여계획 · 섭취/반응 기록 · 영양 비교 스튜디오</h1>
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -847,6 +858,39 @@
 
             <!-- 메인 컨텐츠 영역 -->
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+                <!-- [보호자 첫 화면 4대 핵심 흐름 요약 바] -->
+                <section id="g-core-4flow-banner" class="bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-950 text-white rounded-3xl p-5 sm:p-6 shadow-md border border-emerald-500/30 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/15 pb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black">보호자 핵심 4단계 흐름</span>
+                            <h2 class="text-sm sm:text-base font-black text-white">오늘 급여량 확인부터 섭취·변 상태 기록, 기간별 비교, 수의사 상담 연결까지 한눈에 관리하세요</h2>
+                        </div>
+                        <span id="g-core-vet-plan-status-badge" class="px-3 py-1 rounded-full bg-white/15 text-emerald-200 text-xs font-bold">일반 건강 기준 참고 계산 중</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <div onclick="scrollToGuardianSection('g-step4-sec')" class="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 cursor-pointer transition space-y-1">
+                            <div class="text-amber-300 font-black">① 오늘 먹일 양 (급여계획)</div>
+                            <div id="g-flow1-today-amount" class="text-sm font-black text-white">끼니별 급여 그램(g) 자동 산출</div>
+                            <p class="text-[11px] text-emerald-100/80">주식·습식·화식 급여 그램수와 간식 10% 이내 한도 확인</p>
+                        </div>
+                        <div onclick="scrollToGuardianSection('g-step5-sec')" class="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 cursor-pointer transition space-y-1">
+                            <div class="text-emerald-300 font-black">② 실제 섭취 및 반응 기록</div>
+                            <div id="g-flow2-reaction-summary" class="text-sm font-black text-white">변 점수 3.5 · 패드 반응 안정</div>
+                            <p class="text-[11px] text-emerald-100/80">실제 먹은 양, 남긴 양, 변 상태 및 분변 패드 색상 반응 기록</p>
+                        </div>
+                        <div onclick="saveGuardianPadRecordToHistory()" class="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 cursor-pointer transition space-y-1">
+                            <div class="text-sky-300 font-black">③ 이전 급여기간과의 비교</div>
+                            <div id="g-flow3-history-compare" class="text-sm font-black text-white">클릭하여 오늘 기록 저장·비교</div>
+                            <p class="text-[11px] text-emerald-100/80">사료·배합 변경 전후의 체중, 변 상태, 패드 반응 추이 비교</p>
+                        </div>
+                        <div onclick="sendGuardianDataToVetCdss()" class="p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 cursor-pointer transition space-y-1">
+                            <div class="text-purple-300 font-black">④ 다음 행동 안내</div>
+                            <div id="g-flow4-next-action" class="text-sm font-black text-white">현재 급여 계획 유지 및 기록 지속</div>
+                            <p class="text-[11px] text-emerald-100/80">계획 유지 · 추가 관찰 기록 · 반복 변화 시 수의사 검토 요청</p>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- ================================================================== -->
                 <!-- [STEP 1] 랜딩 및 기초 프로필 페이지 (Easy Q&A Assessment) -->
@@ -1645,10 +1689,10 @@
                                     </span>
                                 </div>
                                 <h3 class="text-lg md:text-xl font-black text-slate-900 mt-2">
-                                    1~4단계 일반사료 영양소 역추적 & 2·3종 사료 믹스피딩 프로그램
+                                    비공개 영양정보 모형 추정(탐색 비교) & 2·3종 사료 믹스피딩 프로그램
                                 </h3>
                                 <p class="text-xs md:text-sm text-slate-600 mt-1">
-                                    사료 공학 전용 원재료 DB(54종) + 일반 식재료 DB(117종 통합) · PAVA 순서/1% 앵커/수분 손실 페널티 · 3-트랙(아미노산 12종·TDF 식이섬유·미네랄) · 글로벌 18대 아키타입 보정을 통해 사료 성분을 역추적하고, <strong>2종(α·V̂<sub>A</sub> + β·V̂<sub>B</sub>) 또는 3종(α·V̂<sub>A</sub> + β·V̂<sub>B</sub> + γ·V̂<sub>C</sub>)</strong> 사료를 안전 마진 내에서 믹스피딩합니다.
+                                    사료 공학 전용 원재료 DB(54종) + 일반 식재료 DB(117종 통합) · PAVA 순서/1% 앵커/수분 손실 페널티 · 3-트랙(아미노산 12종·TDF 식이섬유·미네랄) · 글로벌 18대 아키타입 보정을 통해 비공개 영양정보를 가정하여 탐색적으로 비교하고(제조사 확정 성분표 아님), <strong>2종(α·V̂<sub>A</sub> + β·V̂<sub>B</sub>) 또는 3종(α·V̂<sub>A</sub> + β·V̂<sub>B</sub> + γ·V̂<sub>C</sub>)</strong> 사료를 안전 마진 내에서 믹스피딩합니다.
                                 </p>
                             </div>
 
@@ -1836,11 +1880,22 @@
                         </div>
                     </div>
 
-                    <!-- 2. 생애주기 맞춤 AAFCO / FEDIAF 영양 적정성 신호등 리포트 (Green / Yellow / Red) -->
+                    <!-- 2. 확인된 영양 항목 범위 점검 리포트 & 자료 출처 5단계 안내 -->
                     <div class="space-y-3">
                         <div class="flex flex-wrap items-center justify-between gap-2">
-                            <h3 class="text-sm font-black text-slate-800"><i class="fa-solid fa-traffic-light text-emerald-600 mr-1.5"></i>2. 생애주기 맞춤 AAFCO / FEDIAF 영양 적정성 신호등 리포트 (Dry Matter 기준)</h3>
-                            <span class="text-[11px] text-slate-500">🟢 Green(적정 범위) · 🟡 Yellow(경계/주의) · 🔴 Red(부족 또는 과잉 경고)</span>
+                            <h3 class="text-sm font-black text-slate-800"><i class="fa-solid fa-traffic-light text-emerald-600 mr-1.5"></i>2. 확인된 영양 항목 목표 범위 점검 리포트 (실급여 건물 합산 % DM 기준)</h3>
+                            <span class="text-[11px] text-slate-500">🟢 확인 항목 목표 이내 · 🟡 목표 경계(원자료 확인) · 🔴 확인 항목 목표 밖 (※ 미공개 미량영양소는 별도 확인 필요)</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <strong>📌 영양 정보 출처 5단계 구분:</strong>
+                                <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">① 제조사 공개값</span>
+                                <span class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-bold">② 포장지 보증성분(최소/최대)</span>
+                                <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">③ 계산 추정값(NFE·Atwater)</span>
+                                <span class="px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">④ 모형 추정값(역추정 탐색)</span>
+                                <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">⑤ 확인되지 않음</span>
+                            </div>
+                            <span class="text-slate-500">초록 표시라도 '확인된 항목이 기준 범위 내'임을 뜻하며 전체 완전균형을 단정하지 않습니다.</span>
                         </div>
                         <div id="g-dash-traffic-lights" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs"></div>
                     </div>
@@ -1887,8 +1942,8 @@
                         <div class="flex items-center space-x-3">
                             <span class="px-3 py-1 rounded-full bg-teal-600 text-white text-xs font-black">STEP 5</span>
                             <div>
-                                <h2 class="text-xl font-black text-slate-900">🧪 분변키트 검사 결과 입력 & 우리 아이 장내 환경 쉬운 해설</h2>
-                                <p class="text-xs text-slate-500">아직 키트가 없어도 상단 <strong class="text-teal-700">[체험 시나리오 버튼]</strong>을 눌러 장내 환경 분석과 맞춤 유산균·식단 코칭을 미리 체험해 보세요!</p>
+                                <h2 class="text-xl font-black text-slate-900">🧪 분변 패드 색상·반응 기록 & 급여 변화 관찰 가이드</h2>
+                                <p class="text-xs text-slate-500">분변 패드 반응은 세균 수나 소화 흡수율을 직접 진단하지 않으며, <strong class="text-teal-700">급여 기록과 함께 변 상태 변화를 관찰·비교하고 수의사에게 공유</strong>하는 보조 기록 도구입니다.</p>
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -2030,7 +2085,7 @@
                                 <div class="flex items-center space-x-2">
                                     <div class="text-sm font-black text-slate-800 flex items-center space-x-1.5">
                                         <i class="fa-solid fa-chart-pie text-teal-600"></i>
-                                        <span>장내 불균형 주의 단계 및 쉬운 해설 리포트</span>
+                                        <span>분변 패드 관찰 요약 및 급여 기록 비교 리포트</span>
                                     </div>
                                     <span class="text-[11px] text-teal-700 font-bold">(클릭하여 결과 보기)</span>
                                 </div>
@@ -2052,12 +2107,12 @@
                                     </div>
                                     <div class="flex items-center space-x-3 bg-white/10 px-4 py-2.5 rounded-2xl border border-white/15">
                                         <div class="text-center">
-                                            <div class="text-[10px] text-emerald-200 font-bold">장내 환경 점수</div>
+                                            <div class="text-[10px] text-emerald-200 font-bold">패드 안정 지수</div>
                                             <div class="text-2xl font-black text-amber-300"><span id="g-kit-score-num">94</span><span class="text-xs font-normal text-white">/100</span></div>
                                         </div>
                                         <div class="h-8 w-px bg-white/20"></div>
                                         <div class="text-center">
-                                            <div class="text-[10px] text-emerald-200 font-bold">추정 소화 흡수율</div>
+                                            <div class="text-[10px] text-emerald-200 font-bold">관찰 기록 일치도</div>
                                             <div class="text-2xl font-black text-emerald-300"><span id="g-kit-abs-num">93.0</span><span class="text-xs font-normal text-white">%</span></div>
                                         </div>
                                     </div>
@@ -2066,8 +2121,8 @@
                                 <!-- 유익균 vs 유해균 장내 생태계 밸런스 바 -->
                                 <div class="space-y-1.5">
                                     <div class="flex justify-between text-[11px] font-bold">
-                                        <span class="text-emerald-300">🌱 유익균 (유산균·비피더스균) <span id="g-kit-good-pct">78%</span></span>
-                                        <span class="text-rose-300">🦠 부패·유해균 및 독소 부담 <span id="g-kit-bad-pct">22%</span></span>
+                                        <span class="text-emerald-300">📊 측정 패드 안정 반응 비율 (※ 패드만으로 미생물 구성을 판단하지 않음) <span id="g-kit-good-pct">78%</span></span>
+                                        <span class="text-rose-300">🔎 급여 기록과 함께 검토할 변화 신호 <span id="g-kit-bad-pct">22%</span></span>
                                     </div>
                                     <div class="w-full h-3.5 bg-rose-500/40 rounded-full overflow-hidden flex border border-white/20">
                                         <div id="g-kit-good-bar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-300" style="width: 78%;"></div>
@@ -2084,15 +2139,15 @@
                             <!-- 맞춤 식단 & 유산균·보조제 홈케어 가이드 -->
                             <div class="bg-amber-50/90 border-2 border-amber-200 rounded-2xl p-4 space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <div class="text-sm font-black text-amber-950">💊 분변키트 결과 기반 맞춤 식단 & 유산균 홈케어 처방</div>
+                                    <div class="text-sm font-black text-amber-950">📋 분변 패드 반응 & 급여 기록 점검 가이드 (관찰·비교 중심)</div>
                                     <span class="text-[11px] font-bold text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded-lg">맞춤 액션 플랜</span>
                                 </div>
                                 <div id="g-kit-care-guide" class="space-y-2 text-xs text-slate-800"></div>
 
                                 <div class="pt-2 border-t border-amber-200/80 flex flex-wrap items-center justify-between gap-2">
-                                    <button type="button" onclick="toggleApplyKitAbsorptionToDiet()" id="g-kit-apply-abs-btn" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-black shadow-sm transition flex items-center space-x-1.5">
-                                        <i class="fa-solid fa-bolt"></i>
-                                        <span>⚡ 추정 소화 흡수율을 Step 1·4 하루 사료 급여량에 반영하기</span>
+                                    <button type="button" onclick="saveGuardianPadRecordToHistory()" id="g-kit-apply-abs-btn" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-black shadow-sm transition flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-clock-rotate-left"></i>
+                                        <span>📋 현재 패드 반응과 급여 기록을 비교 이력에 저장하기 (급여량 자동 변경 안 함)</span>
                                     </button>
                                     <button type="button" onclick="sendGuardianDataToVetCdss()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-sm transition flex items-center space-x-1.5">
                                         <i class="fa-solid fa-user-doctor"></i>
@@ -2490,25 +2545,145 @@
         alert("✅ 포장지 텍스트에서 보증성분 수치와 원재료 목록을 성공적으로 추출했습니다!");
     };
 
-    window.runGuardianImageOCR = async function (event) {
+    window.runGuardianImageOCR = async function (event, targetSlot = "primary") {
         const file = event.target.files?.[0];
         if (!file) return;
-        const statusEl = document.getElementById("g-ocr-status");
-        if (statusEl) statusEl.innerText = "⏳ AI OCR이 포장지 글자를 판독 중입니다...";
-        try {
-            if (typeof Tesseract !== "undefined") {
-                const res = await Tesseract.recognize(file, "kor+eng");
-                const txt = res?.data?.text || "";
-                const area = document.getElementById("g-ocr-textarea");
-                if (area) area.value = txt;
-                if (statusEl) statusEl.innerText = "✅ OCR 스캔 완료! 성분을 자동 추출합니다.";
-                parseGuardianOcrText();
-            } else {
-                if (statusEl) statusEl.innerText = "⚠️ OCR 모듈 로드 대기 중입니다. 우측 텍스트창을 이용해 주세요.";
-            }
-        } catch (err) {
-            if (statusEl) statusEl.innerText = "⚠️ 이미지 인식 중 오류가 발생했습니다.";
+        const statusEl = document.getElementById(targetSlot === "secondary" ? "g-ocr-status-secondary" : "g-ocr-status");
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="inline-flex items-center text-indigo-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1.5"></i> 백엔드 AI Vision이 사료 라벨 영양성분을 정밀 판독 중입니다...</span>';
         }
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            // 1. 고정밀 백엔드 AI OCR API 호출 (Gemini Vision + EasyOCR Hybrid)
+            const resp = await fetch("/api/ocr/feed", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!resp.ok) {
+                throw new Error(`서버 응답 오류 (HTTP ${resp.status})`);
+            }
+
+            const data = await resp.json();
+            if (!data || data.success === false) {
+                throw new Error(data?.error || "라벨 영양성분 판독에 실패했습니다.");
+            }
+
+            // 2. 추출 데이터 폼 자동 입력 및 상태 업데이트
+            const ga = data.guaranteed_analysis || {};
+            const me = data.metabolic_energy || {};
+
+            if (targetSlot === "secondary") {
+                // 믹스피딩 서브 사료 (습식/화식 등)
+                if (statusEl) statusEl.innerHTML = `✅ <strong>${data.name || '믹스사료'}</strong> 판독 완료! (${data.feed_type || '습식'})`;
+                window.applyOcrToSecondaryFood(data);
+            } else {
+                // 주 사료 (기본 건식)
+                const nameInp = document.getElementById("g-manual-dry-name");
+                if (nameInp && data.name) nameInp.value = data.name;
+
+                const brandInp = document.getElementById("g-manual-dry-brand");
+                if (brandInp && data.company) brandInp.value = data.company;
+
+                const pInp = document.getElementById("g-manual-dry-protein");
+                if (pInp && ga.crude_protein_pct != null) pInp.value = ga.crude_protein_pct;
+
+                const fInp = document.getElementById("g-manual-dry-fat");
+                if (fInp && ga.crude_fat_pct != null) fInp.value = ga.crude_fat_pct;
+
+                const fibInp = document.getElementById("g-manual-dry-fiber");
+                if (fibInp && ga.crude_fiber_pct != null) fibInp.value = ga.crude_fiber_pct;
+
+                const ashInp = document.getElementById("g-manual-dry-ash");
+                if (ashInp && ga.crude_ash_pct != null) ashInp.value = ga.crude_ash_pct;
+
+                const caInp = document.getElementById("g-manual-dry-ca");
+                if (caInp && ga.calcium_pct != null) caInp.value = ga.calcium_pct;
+
+                const phInp = document.getElementById("g-manual-dry-p");
+                if (phInp && ga.phosphorus_pct != null) phInp.value = ga.phosphorus_pct;
+
+                const moistInp = document.getElementById("g-manual-dry-moisture");
+                if (moistInp && ga.moisture_pct != null) moistInp.value = ga.moisture_pct;
+
+                const meInp = document.getElementById("g-manual-dry-kcal");
+                if (meInp && me.kcal_per_kg) meInp.value = me.kcal_per_kg;
+
+                const area = document.getElementById("g-ocr-textarea");
+                if (area && data.ingredients_text) area.value = data.ingredients_text;
+
+                if (statusEl) {
+                    const estText = me.is_estimated ? " (Atwater 산식 산출)" : "";
+                    statusEl.innerHTML = `✅ <strong>${data.name || '사료'}</strong> 판독 완료! (단백 ${ga.crude_protein_pct}%, 지방 ${ga.crude_fat_pct}%, ME ${me.kcal_per_kg}kcal/kg${estText})`;
+                }
+
+                // 수동 입력 상태 반영 및 재계산
+                onGuardianDryFoodManualChange();
+            }
+
+            // 믹스피딩 계산기 결과 실시간 리프레시
+            refreshAllGuardianCalculations(true);
+
+        } catch (err) {
+            console.error("[runGuardianImageOCR Error]", err);
+            // Fallback: 브라우저 Tesseract
+            if (typeof Tesseract !== "undefined") {
+                if (statusEl) statusEl.innerText = "⚠️ 서버 연결 지연: 브라우저 로컬 엔진으로 재시도 중...";
+                try {
+                    const res = await Tesseract.recognize(file, "kor+eng");
+                    const txt = res?.data?.text || "";
+                    const area = document.getElementById("g-ocr-textarea");
+                    if (area) area.value = txt;
+                    if (statusEl) statusEl.innerText = "✅ 로컬 스캔 완료! 성분을 자동 추출합니다.";
+                    parseGuardianOcrText();
+                } catch (tErr) {
+                    if (statusEl) statusEl.innerText = "⚠️ 이미지 인식 중 오류가 발생했습니다: " + err.message;
+                }
+            } else {
+                if (statusEl) statusEl.innerText = "⚠️ 이미지 판독 오류: " + err.message;
+            }
+        }
+    };
+
+    // 믹스피딩 보조사료(습식/화식)에 OCR 결과 적용 함수
+    window.applyOcrToSecondaryFood = function (data) {
+        const ga = data.guaranteed_analysis || {};
+        const me = data.metabolic_energy || {};
+        const customWet = {
+            id: "custom_ocr_wet_" + Date.now(),
+            name: data.name || "AI OCR 등록 믹스사료",
+            brand: data.company || "커스텀",
+            type: data.feed_type || "습식",
+            protein_af: ga.crude_protein_pct || 8.5,
+            fat_af: ga.crude_fat_pct || 5.0,
+            fiber_af: ga.crude_fiber_pct || 1.5,
+            ash_af: ga.crude_ash_pct || 2.0,
+            moisture_af: ga.moisture_pct || 80.0,
+            ca_af: ga.calcium_pct || 0.25,
+            p_af: ga.phosphorus_pct || 0.20,
+            kcal_per_kg: me.kcal_per_kg || 1050
+        };
+
+        // 메뉴 1(건식+습식)에 등록
+        guardianState.menu1.selectedWetId = customWet.id;
+        if (!COMMERCIAL_WET_FOODS.some(w => w.id === customWet.id)) {
+            COMMERCIAL_WET_FOODS.unshift(customWet);
+        }
+
+        // 습식 선택 셀렉트박스 갱신
+        const wetSel = document.getElementById("g-m1-wet-select");
+        if (wetSel) {
+            const opt = document.createElement("option");
+            opt.value = customWet.id;
+            opt.text = `[📸 AI OCR] ${customWet.name} (${customWet.kcal_per_kg} kcal/kg)`;
+            opt.selected = true;
+            wetSel.add(opt, wetSel.options[0]);
+        }
+
+        refreshAllGuardianCalculations(true);
     };
 
     // =========================================================================
@@ -3108,32 +3283,32 @@
                     if (grid) {
                         b = document.createElement("div");
                         b.id = "g-consult-banner";
-                        b.className = "mt-3 p-4 rounded-2xl bg-rose-600 text-white text-center text-lg font-black shadow-lg";
+                        b.className = "mt-3 p-4 rounded-2xl bg-indigo-950 text-white border-2 border-indigo-400 shadow-md";
                         grid.insertAdjacentElement("afterend", b);
                     }
                 }
-                if (b) b.innerHTML = "🩺 수의사와 상담하세요.<div class='text-xs font-bold mt-1'>관리 중인 질환이 선택되어 기초대사량·DER·급여량·간식·이상체중 계산을 제공하지 않습니다.</div>";
+                if (b) {
+                    const statusTxt = energy.vetPlanLinked
+                        ? `✅ 수의사 급여계획 목표 열량(${energy.der} kcal/일) 연결됨`
+                        : `⚠️ 수의사 급여계획 목표 미설정 (현재 일반 생리적 참고 열량 ${energy.der} kcal/일 기준으로 계산 중)`;
+                    b.innerHTML = `
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="text-sm font-black text-amber-300">🩺 [질환 관리 환자 · 수의사 급여계획 연결 모드] (${statusTxt})</div>
+                                <p class="text-xs text-indigo-100">질환 관리 중인 반려동물은 단독 처방 대신 <strong>담당 수의사가 설정한 목표 열량·처방식·배합 비율</strong>을 연결하여 급여 그램(g) 계산과 섭취·변 상태 기록을 이어갈 수 있습니다.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs bg-white/10 p-2 rounded-xl border border-white/20">
+                                <span class="font-bold text-indigo-200">수의사 지정 목표 열량(kcal/일):</span>
+                                <input type="number" step="5" min="20" placeholder="예: ${energy.der}" value="${guardianState.profile.vetPrescribedDerKcal || ''}" onchange="setGuardianVetPrescribedDer(this.value)" class="w-24 px-2 py-1 rounded-lg bg-white text-slate-900 font-black text-right">
+                                <button type="button" onclick="setGuardianVetPrescribedDer(null)" class="px-2 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold">초기화</button>
+                            </div>
+                        </div>
+                    `;
+                }
             } else if (b) {
                 b.remove();
             }
         })();
-        if (energy.consultVet) {
-            const MSG = "수의사와 상담하세요.";
-            const st = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
-            ["g-out-rer","g-out-der","g-out-permeal","g-out-maxtreat","g-out-idealw"].forEach(id => st(id, 0));
-            st("g-out-factor", 0);
-            st("g-out-bcs-comment", MSG);
-            st("g-dash-target-der", "0 kcal/일");
-            st("g-dash-cal-breakdown", MSG);
-            st("g-dash-active-menu-badge", MSG);
-            const fb = document.getElementById("g-out-fecal-banner");
-            if (fb && fb.firstElementChild) fb.firstElementChild.innerHTML = "🩺 <strong>" + MSG + "</strong> 선택하신 질환은 맞춤 칼로리·사료·간식 계산을 제공하지 않습니다.";
-            const box = '<div class="col-span-full p-4 rounded-xl bg-rose-50 border-2 border-rose-300 text-rose-800 font-black text-sm">🩺 ' + MSG + ' (DER/MER·급여량·간식/토핑 0)</div>';
-            ["g-dash-schedule-cards","g-dash-traffic-lights","g-dash-water-advice","g-m4-gauge-banner","g-m1-summary-box","g-m2-summary-box"].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = box; });
-            const gb = document.getElementById("g-dash-gauge-bar"); if (gb) gb.style.width = "0%";
-            const gs = document.getElementById("g-dash-gauge-status"); if (gs) gs.innerText = "🩺 " + MSG;
-            return;
-        }
         if (!skipStep6Sync && typeof window.Step6MultiMixController !== "undefined" && guardianState.initialized) {
             isSyncingStep6 = true;
             window.Step6MultiMixController.syncFromHostEnvironment();
@@ -3217,8 +3392,28 @@
         let waterFromFoodMl = 0;
         let menuBadgeText = "건식 + 습식 배합";
 
+        // [단일 표준 혼합 공식]: 각 제품의 실제 급여 중량(g) -> 각 제품의 건물 중량(DM g) 및 영양소 절대량(g) 산출 -> 전체 건물량(Total DM g) 기준으로 환산
+        function blendByActualDryMatterGrams(g1, m1, g2, m2) {
+            const dm1 = Math.max(0, g1 * ((100.0 - (m1.moisture_af || 10.0)) / 100.0));
+            const dm2 = Math.max(0, g2 * ((100.0 - (m2.moisture_af || 75.0)) / 100.0));
+            const totalDmG = Math.max(0.001, dm1 + dm2);
+            const pAbsG = dm1 * (m1.p_dm / 100.0) + dm2 * (m2.p_dm / 100.0);
+            const fAbsG = dm1 * (m1.f_dm / 100.0) + dm2 * (m2.f_dm / 100.0);
+            const nfeAbsG = dm1 * (m1.nfe_dm / 100.0) + dm2 * (m2.nfe_dm / 100.0);
+            const caAbsG = dm1 * (m1.ca_dm / 100.0) + dm2 * (m2.ca_dm / 100.0);
+            const phosAbsG = dm1 * (m1.phos_dm / 100.0) + dm2 * (m2.phos_dm / 100.0);
+            return {
+                totalDmG: Math.round(totalDmG * 10) / 10,
+                p_dm: (pAbsG / totalDmG) * 100.0,
+                f_dm: (fAbsG / totalDmG) * 100.0,
+                nfe_dm: (nfeAbsG / totalDmG) * 100.0,
+                ca_dm: (caAbsG / totalDmG) * 100.0,
+                phos_dm: (phosAbsG / totalDmG) * 100.0
+            };
+        }
+
         if (guardianState.activeMenu === 1) {
-            menuBadgeText = "메뉴 1: 건식 + 습식 배합";
+            menuBadgeText = "메뉴 1: 건식 + 습식 배합 (실급여 건물 합산 기준)";
             const wet = COMMERCIAL_WET_AND_FRESH.find(x => x.id === guardianState.menu1.wetFoodId) || COMMERCIAL_WET_AND_FRESH[0];
             const wetM = calcDryFoodMetrics(wet);
             const rDry = guardianState.menu1.dryRatioPct / 100.0;
@@ -3230,19 +3425,20 @@
             subGrams = Math.round((subKcal / (wetM.kcal_per_kg / 1000.0)) * 10) / 10;
             subLabel = wet.name;
 
-            mixP_dm = dryMetrics.p_dm * rDry + wetM.p_dm * rWet;
-            mixF_dm = dryMetrics.f_dm * rDry + wetM.f_dm * rWet;
-            mixNfe_dm = dryMetrics.nfe_dm * rDry + wetM.nfe_dm * rWet;
-            mixCa_dm = dryMetrics.ca_dm * rDry + wetM.ca_dm * rWet;
-            mixPhos_dm = dryMetrics.phos_dm * rDry + wetM.phos_dm * rWet;
+            const blended = blendByActualDryMatterGrams(mainGrams, dryMetrics, subGrams, wetM);
+            mixP_dm = blended.p_dm;
+            mixF_dm = blended.f_dm;
+            mixNfe_dm = blended.nfe_dm;
+            mixCa_dm = blended.ca_dm;
+            mixPhos_dm = blended.phos_dm;
             waterFromFoodMl = Math.round(mainGrams * (dryMetrics.moisture_af / 100) + subGrams * (wetM.moisture_af / 100));
 
             const m1Box = document.getElementById("g-m1-summary-box");
             if (m1Box) {
-                m1Box.innerHTML = `✅ 1일 총 급여량: 건식 <strong class="text-blue-700">${mainGrams}g</strong> (${mainKcal}kcal) + 습식 <strong class="text-emerald-700">${subGrams}g</strong> (${subKcal}kcal) · 식사 내 수분 섭취 <strong>${waterFromFoodMl}ml</strong>`;
+                m1Box.innerHTML = `✅ 1일 총 급여량: 건식 <strong class="text-blue-700">${mainGrams}g</strong> (${mainKcal}kcal) + 습식 <strong class="text-emerald-700">${subGrams}g</strong> (${subKcal}kcal) · 총 건물량 <strong>${blended.totalDmG}g DM</strong> · 식사 내 수분 <strong>${waterFromFoodMl}ml</strong>`;
             }
         } else if (guardianState.activeMenu === 2) {
-            menuBadgeText = "메뉴 2: 건식 + 화식 배합";
+            menuBadgeText = "메뉴 2: 건식 + 화식 배합 (실급여 건물 합산 기준)";
             const fresh = COMMERCIAL_WET_AND_FRESH.find(x => x.id === guardianState.menu2.freshFoodId) || COMMERCIAL_WET_AND_FRESH[3];
             const freshM = calcDryFoodMetrics(fresh);
             const rDry = guardianState.menu2.dryRatioPct / 100.0;
@@ -3254,19 +3450,20 @@
             subGrams = Math.round((subKcal / (freshM.kcal_per_kg / 1000.0)) * 10) / 10;
             subLabel = fresh.name;
 
-            mixP_dm = dryMetrics.p_dm * rDry + freshM.p_dm * rFresh;
-            mixF_dm = dryMetrics.f_dm * rDry + freshM.f_dm * rFresh;
-            mixNfe_dm = dryMetrics.nfe_dm * rDry + freshM.nfe_dm * rFresh;
-            mixCa_dm = dryMetrics.ca_dm * rDry + freshM.ca_dm * rFresh;
-            mixPhos_dm = dryMetrics.phos_dm * rDry + freshM.phos_dm * rFresh;
+            const blended = blendByActualDryMatterGrams(mainGrams, dryMetrics, subGrams, freshM);
+            mixP_dm = blended.p_dm;
+            mixF_dm = blended.f_dm;
+            mixNfe_dm = blended.nfe_dm;
+            mixCa_dm = blended.ca_dm;
+            mixPhos_dm = blended.phos_dm;
             waterFromFoodMl = Math.round(mainGrams * (dryMetrics.moisture_af / 100) + subGrams * (freshM.moisture_af / 100));
 
             const m2Box = document.getElementById("g-m2-summary-box");
             if (m2Box) {
-                m2Box.innerHTML = `✅ 1일 총 급여량: 건식 <strong class="text-blue-700">${mainGrams}g</strong> (${mainKcal}kcal) + 맞춤 화식 <strong class="text-amber-700">${subGrams}g</strong> (${subKcal}kcal)`;
+                m2Box.innerHTML = `✅ 1일 총 급여량: 건식 <strong class="text-blue-700">${mainGrams}g</strong> (${mainKcal}kcal) + 맞춤 화식 <strong class="text-amber-700">${subGrams}g</strong> (${subKcal}kcal) · 총 건물량 <strong>${blended.totalDmG}g DM</strong>`;
             }
         } else if (guardianState.activeMenu === 3) {
-            menuBadgeText = "메뉴 3: 건식 + 단일 원재료 배합";
+            menuBadgeText = "메뉴 3: 건식 + 단일 원재료 배합 (실급여 건물 합산 기준)";
             const raw = SINGLE_RAW_INGREDIENTS.find(x => x.id === guardianState.menu3.rawIngId) || SINGLE_RAW_INGREDIENTS[0];
             const rRaw = guardianState.menu3.rawRatioPct / 100.0;
             const rDry = 1.0 - rRaw;
@@ -3284,11 +3481,20 @@
             const rawPhos_dm = (raw.p_mg / 1000.0) / dmf;
             const rawNfe_dm = Math.max(0, 100 - rawP_dm - rawF_dm - 2.0);
 
-            mixP_dm = dryMetrics.p_dm * rDry + rawP_dm * rRaw;
-            mixF_dm = dryMetrics.f_dm * rDry + rawF_dm * rRaw;
-            mixNfe_dm = dryMetrics.nfe_dm * rDry + rawNfe_dm * rRaw;
-            mixCa_dm = dryMetrics.ca_dm * rDry + rawCa_dm * rRaw;
-            mixPhos_dm = dryMetrics.phos_dm * rDry + rawPhos_dm * rRaw;
+            const rawMetrics = {
+                moisture_af: raw.moisture,
+                p_dm: rawP_dm,
+                f_dm: rawF_dm,
+                nfe_dm: rawNfe_dm,
+                ca_dm: rawCa_dm,
+                phos_dm: rawPhos_dm
+            };
+            const blended = blendByActualDryMatterGrams(mainGrams, dryMetrics, subGrams, rawMetrics);
+            mixP_dm = blended.p_dm;
+            mixF_dm = blended.f_dm;
+            mixNfe_dm = blended.nfe_dm;
+            mixCa_dm = blended.ca_dm;
+            mixPhos_dm = blended.phos_dm;
             waterFromFoodMl = Math.round(mainGrams * (dryMetrics.moisture_af / 100) + subGrams * (raw.moisture / 100));
 
             const m3Alert = document.getElementById("g-m3-distortion-alert");
@@ -3415,23 +3621,32 @@
             }
         ];
 
+        const sourceTagForItem = (title) => {
+            if (guardianState.activeMenu === 6) return "④ 모형 추정값 포함";
+            if (title.includes("NFE")) return "③ 계산 추정값 (NFE)";
+            if (guardianState.foodInputMode === "db_search") return "① 제조사/DB · ② 보증성분";
+            return "② 포장지 보증성분 입력";
+        };
+
         const tlGrid = document.getElementById("g-dash-traffic-lights");
         if (tlGrid) {
             tlGrid.innerHTML = trafficItems.map(item => {
                 const styles = item.status === "GREEN"
-                    ? { bg: "bg-emerald-50/70 border-emerald-300", dot: "🟢 적정", text: "text-emerald-900", badge: "bg-emerald-100 text-emerald-800" }
+                    ? { bg: "bg-emerald-50/70 border-emerald-300", dot: "🟢 확인항목 목표이내", text: "text-emerald-900", badge: "bg-emerald-100 text-emerald-800" }
                     : (item.status === "YELLOW"
-                        ? { bg: "bg-amber-50/80 border-amber-300", dot: "🟡 주의", text: "text-amber-900", badge: "bg-amber-100 text-amber-800" }
-                        : { bg: "bg-rose-50/80 border-rose-300", dot: "🔴 경고", text: "text-rose-900", badge: "bg-rose-100 text-rose-800" });
+                        ? { bg: "bg-amber-50/80 border-amber-300", dot: "🟡 목표 경계/검토", text: "text-amber-900", badge: "bg-amber-100 text-amber-800" }
+                        : { bg: "bg-rose-50/80 border-rose-300", dot: "🔴 확인항목 목표밖", text: "text-rose-900", badge: "bg-rose-100 text-rose-800" });
+                const srcTag = sourceTagForItem(item.title);
                 return `
                     <div class="p-3.5 rounded-2xl border ${styles.bg} flex flex-col justify-between space-y-1.5">
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between gap-1">
                             <span class="font-bold text-slate-600 text-[11px]">${item.title}</span>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${styles.badge}">${styles.dot}</span>
                         </div>
                         <div class="text-lg font-black ${styles.text}">${item.val}</div>
                         <div class="text-[10px] text-slate-500 font-semibold">${item.target}</div>
                         <div class="text-[10px] font-bold ${styles.text}">${item.desc}</div>
+                        <div class="pt-1 border-t border-slate-200/70 text-[10px] text-slate-500 font-semibold">출처: ${srcTag}</div>
                     </div>
                 `;
             }).join("");
@@ -3506,6 +3721,25 @@
             mixCaP,
             waterFromFoodMl
         };
+        // 상단 4대 핵심 흐름 배너 실시간 업데이트
+        const vetBadge = document.getElementById("g-core-vet-plan-status-badge");
+        if (vetBadge) {
+            if (energy.consultVet) {
+                vetBadge.innerText = energy.vetPlanLinked
+                    ? `🩺 질환 관리 모드 (수의사 지정 목표 ${energy.der} kcal/일 연결됨)`
+                    : `🩺 질환 관리 모드 (목표 미설정 · 일반 참고 ${energy.der} kcal/일 표시)`;
+                vetBadge.className = "px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-xs font-black";
+            } else {
+                vetBadge.innerText = `🟢 일반 건강 관리 (${energy.der} kcal/일 · 하루 ${meals}끼)`;
+                vetBadge.className = "px-3 py-1 rounded-full bg-white/15 text-emerald-200 text-xs font-bold";
+            }
+        }
+        setTxt("g-flow1-today-amount", `하루 총 ${mainGrams}g${subGrams > 0 ? ' + 배합 ' + subGrams + 'g' : ''} (1끼 ${mainPerMealG}g)`);
+        setTxt("g-flow2-reaction-summary", `배변 점수 ${guardianState.profile.fecalScore} · 패드 기록 연동`);
+        const savedHist = JSON.parse(localStorage.getItem("guardian_pad_feeding_history_v1") || "[]");
+        setTxt("g-flow3-history-compare", savedHist.length > 0 ? `저장된 기록 ${savedHist.length}건 (최근: ${savedHist[0].date})` : "클릭하여 오늘 급여·반응 기록 저장");
+        setTxt("g-flow4-next-action", energy.consultVet ? "수의사에게 급여·패드 기록 공유 권장" : (calRatioPct > 110 ? "간식·토핑을 10% 이내로 조절 권장" : "현재 급여 계획 유지 및 반응 기록 지속"));
+
         if (typeof renderUnifiedDashboardAndSchemas === "function") {
             renderUnifiedDashboardAndSchemas();
         }
@@ -3661,20 +3895,27 @@
         evaluateGuardianFecalKit();
     };
 
-    window.toggleApplyKitAbsorptionToDiet = function () {
-        guardianState.fecalKit.applyAbsorptionToDiet = !guardianState.fecalKit.applyAbsorptionToDiet;
-        const btn = document.getElementById("g-kit-apply-abs-btn");
-        if (btn) {
-            if (guardianState.fecalKit.applyAbsorptionToDiet) {
-                btn.className = "px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-sm transition flex items-center space-x-1.5";
-                btn.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>✅ 추정 소화 흡수율(${guardianState.fecalKit.estimatedAbsorption.toFixed(1)}%)이 하루 급여량에 반영됨 (클릭 시 해제)</span>`;
-            } else {
-                btn.className = "px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-black shadow-sm transition flex items-center space-x-1.5";
-                btn.innerHTML = `<i class="fa-solid fa-bolt"></i><span>⚡ 추정 소화 흡수율을 Step 1·4 하루 사료 급여량에 반영하기</span>`;
-            }
-        }
+    window.saveGuardianPadRecordToHistory = function () {
+        const fk = guardianState.fecalKit;
+        const hist = JSON.parse(localStorage.getItem("guardian_pad_feeding_history_v1") || "[]");
+        const entry = {
+            date: new Date().toLocaleDateString("ko-KR"),
+            petName: guardianState.profile.name,
+            weightKg: guardianState.profile.weightKg,
+            fecalScore: guardianState.profile.fecalScore,
+            phValue: fk.phValue,
+            ammonia: fk.ammonia,
+            undigestedFat: fk.undigestedFat,
+            reducingSugar: fk.reducingSugar,
+            mucosalInflam: fk.mucosalInflam,
+            derKcal: guardianState.energy?.der || 0
+        };
+        hist.unshift(entry);
+        localStorage.setItem("guardian_pad_feeding_history_v1", JSON.stringify(hist.slice(0, 30)));
         refreshAllGuardianCalculations();
+        alert(`✅ [${entry.date}] 오늘 급여량(${entry.derKcal} kcal/일)과 변 상태(점수 ${entry.fecalScore})·패드 반응(pH ${entry.phValue})이 이전 기간 비교 이력에 저장되었습니다.\n(※ 패드 결과로 하루 목표 사료량을 자동 변경하지 않습니다.)`);
     };
+    window.toggleApplyKitAbsorptionToDiet = window.saveGuardianPadRecordToHistory;
 
     function evaluateGuardianFecalKit() {
         const fk = guardianState.fecalKit;
@@ -3743,17 +3984,17 @@
         const sub = document.getElementById("g-kit-subline");
 
         if (score >= 85) {
-            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🟢 황금 장내 환경"; }
-            if (head) head.innerText = "유익균이 활발하고 소화 흡수력이 매우 훌륭해요!";
-            if (sub) sub.innerText = "장내 산도(약산성)와 소화 효소 기능이 균형을 이루어 영양소가 알차게 흡수되고 있습니다.";
+            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🟢 패드 반응 안정"; }
+            if (head) head.innerText = "측정한 패드 반응에 큰 변화가 관찰되지 않았습니다.";
+            if (sub) sub.innerText = "현재 패드만으로 미생물 구성을 단정하지 않으며, 현재 급여 계획과 배변 상태를 꾸준히 기록해 주세요.";
         } else if (score >= 68) {
-            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🟡 장내 불균형 주의 단계"; }
-            if (head) head.innerText = "소화되지 않은 영양소가 장내 가스와 독소를 만들고 있어요.";
-            if (sub) sub.innerText = "간식·육류 비율이나 전분/지방 소화 부담을 조절하고 맞춤 유산균 급여를 시작해 주세요.";
+            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🟡 급여 기록과 함께 검토할 변화"; }
+            if (head) head.innerText = "급여 기록과 함께 검토할 패드 반응 변화가 있습니다.";
+            if (sub) sub.innerText = "수분 섭취, 최근 간식·토핑 비율, 사료 변경 여부를 먼저 확인하고 필요 시 수의사와 상의하세요.";
         } else {
-            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-rose-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🔴 집중 장 케어 & 식단 교정 필요"; }
-            if (head) head.innerText = "소화 흡수력이 떨어지고 장 점막과 유익균이 지쳐 있어요!";
-            if (sub) sub.innerText = "저지방·고소화성 화식/습식 배합으로 장 부담을 줄이고, 점막 자극이 지속되면 수의사 상담을 권장합니다.";
+            if (pill) { pill.className = "px-2.5 py-0.5 rounded-full bg-rose-400 text-slate-950 text-[11px] font-black"; pill.innerText = "🔴 반복 결과 · 수의사 공유 권장"; }
+            if (head) head.innerText = "반복 결과와 동반 증상을 수의사에게 공유하세요.";
+            if (sub) sub.innerText = "패드 반응 변화가 반복되거나 무른 변·점액·구토·식욕 저하가 동반되면 급여 기록과 함께 수의사 진료를 권장합니다.";
         }
 
         // 4대 장내 환경 항목별 쉬운 해설 카드 생성
@@ -3874,24 +4115,24 @@
             `).join("");
         }
 
-        // 맞춤 식단 & 유산균·보조제 홈케어 처방 가이드 생성
+        // 패드 반응 & 급여 기록 점검 가이드 생성 (진단·처방 문구 배제, 관찰·기록·수의사 공유 중심)
         const careEl = document.getElementById("g-kit-care-guide");
         if (careEl) {
             const tips = [];
             if (fk.ammonia !== "normal" || fk.indole !== "normal" || fk.phLevel === "alkaline") {
-                tips.push(`🥩 <strong>단백질 부패·악취 케어 식단:</strong> 육포·건조 고기 간식을 즉시 줄이고(Step 3의 4번 토핑 제어기 5% 이내), 유익균의 먹이가 되는 <strong>수용성 식이섬유(찐 단호박·양배추)</strong>와 <strong>고농도 프로바이오틱스(유산균)</strong>를 급여해 장내 pH를 약산성으로 낮춰주세요.`);
+                tips.push(`🥩 <strong>알칼리성·암모니아 패드 반응 관찰 시:</strong> 최근 육류 간식(육포·건조간식)이나 고단백 토핑 급여량이 늘었는지 급여 기록을 먼저 확인하세요. 간식 비율을 하루 열량의 10% 이내로 유지하며 다음 배변 시 재확인해 보세요.`);
             }
             if (fk.undigestedFat !== "neg") {
-                tips.push(`🍗 <strong>지방 소화불량 케어 식단:</strong> 기름기가 많은 사료나 간식은 췌장과 담낭에 무리를 줍니다. 위 Step 3에서 <strong>[2. 건식+화식 (슬림 닭안심 저지방 화식)]</strong>을 50:50으로 배합하거나 <strong>소화효소(리파아제 포함)</strong> 보조제를 함께 급여해 보세요.`);
+                tips.push(`🍗 <strong>지방 잔류 패드 반응 관찰 시:</strong> 기름기가 많은 간식이나 식단 변경이 있었는지 확인하고, 무른 변이나 구토 등 동반 증상이 있으면 기록과 함께 수의사와 상의하세요.`);
             }
             if (fk.reducingSugar !== "normal" || fk.phLevel === "acidic") {
-                tips.push(`🌾 <strong>탄수화물 과발효·가스 케어:</strong> 고구마·빵·과일 간식이나 곡물 함량이 너무 높은 사료가 장내 가스를 만들고 있어요. 소화가 잘되는 백미·귀리 죽 형태나 수분 함량이 높은 습식 파우치 배합을 추천합니다.`);
+                tips.push(`🌾 <strong>산성·환원당 패드 반응 관찰 시:</strong> 고구마·과일 등 탄수화물 간식 급여량이나 급격한 사료 교체 여부를 점검하고, 수분 섭취와 변 점수를 함께 기록해 주세요.`);
             }
             if (fk.mucosalInflam !== "neg" || fk.mucusSeen !== "no") {
-                tips.push(`🛡️ <strong>장 점막 진정 & 면역 케어:</strong> 장 점막 세포의 회복을 돕는 <strong>L-글루타민, 정제 오메가-3(EPA/DHA), 장 점막 보호 유산균(S. boulardii 등)</strong>을 챙겨주시고, 양성 반응이 지속되면 오른쪽 아래 버튼으로 <strong>수의사용 정밀 CDSS</strong>에 데이터를 보내 진료를 받아보세요.`);
+                tips.push(`🛡️ <strong>잠혈·점막 자극 패드 반응 또는 점액변 관찰 시:</strong> 반복 결과와 동반 증상(배변 횟수, 점액, 혈변, 식욕 변화)을 기록하여 오른쪽 아래 버튼으로 <strong>수의사에게 공유하고 진료 상담</strong>을 받으세요.`);
             }
             if (tips.length === 0) {
-                tips.push(`✨ <strong>황금 장내 환경 유지 팁:</strong> 현재 식단의 소화 흡수율(${abs.toFixed(1)}%)과 유익균 밸런스가 매우 이상적입니다! 지금 급여 중인 주식+습식/화식 비율을 유지하시고, 데일리 유산균과 충분한 음수량만 꾸준히 챙겨주세요.`);
+                tips.push(`✨ <strong>안정적인 패드 반응 기록:</strong> 측정한 패드 반응에 큰 변화가 관찰되지 않았습니다. 현재 급여 계획과 수분 섭취량을 유지하면서 이전 급여기간과 비교 기록을 이어가세요.`);
             }
             careEl.innerHTML = tips.map(t => `<div class="p-2.5 rounded-xl bg-white border border-amber-200/80 leading-relaxed">${t}</div>`).join("");
         }
