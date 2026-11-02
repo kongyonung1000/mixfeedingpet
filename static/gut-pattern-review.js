@@ -26,11 +26,6 @@
       axis: "수분 보존·삼투 균형 검토",
       note: "수분 보유 및 삼투 특성을 검토하는 탐색 지표. 인돌 대체 마커."
     },
-    lactate: {
-      label: "젖산",
-      axis: "탐색적 대사 정보",
-      note: "증감만으로 유익균량이나 건강 상태를 확정하지 않음."
-    },
     protein: {
       label: "단백질 반응",
       axis: "위치·출처 미분리",
@@ -62,7 +57,6 @@
     ph: "-",
     ammonia: "μmol/g",
     sg: "-",
-    lactate: "mmol/g",
     protein: "% DM",
     fat: "% DM",
     carbo: "% DM",
@@ -74,7 +68,6 @@
     ph: 0.3,
     ammonia: 5.0,
     sg: "",
-    lactate: 2.0,
     protein: 1.5,
     fat: 1.5,
     carbo: 1.5,
@@ -86,7 +79,6 @@
     ph: 6.6,
     ammonia: 21.5,
     sg: 1.025,
-    lactate: 8.2,
     protein: 5.2,
     fat: 4.1,
     carbo: 6.3,

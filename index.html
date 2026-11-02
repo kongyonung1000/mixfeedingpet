@@ -1509,7 +1509,7 @@
                         <span class="w-2.5 h-6 bg-emerald-600 rounded-full"></span>
                         <div>
                             <h2 class="text-lg font-bold text-slate-800">복용 중인 약물 & 간식 급여 선택 (Medication & Treat Weight Matrix)</h2>
-                            <p class="text-xs text-slate-500">다중 약물 복용 시 주 요인(100%) + 부차 요인 감쇠 결합(감쇠계수 α = 0.40) 수식으로 장내환경 9대 마커 기대 기준치를 자동 보정합니다.</p>
+                            <p class="text-xs text-slate-500">다중 약물 복용 시 주 요인(100%) + 부차 요인 감쇠 결합(감쇠계수 α = 0.40) 수식으로 장내환경 분변 마커 기대 기준치를 자동 보정합니다.</p>
                         </div>
                     </div>
                     <span class="text-xs font-extrabold px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">장내환경 가중치 축 ③ 약물 연동 (개·고양이 분리 반영)</span>
@@ -2017,33 +2017,6 @@
                 </div>
             </div>
 
-            <!-- NEW IN TAB 2: 4대 축(나이·식이·약물·질병) 가중치 기반 장내환경 8대 분변 마커 사전 추정치 (Expected Baseline - White Theme) -->
-            <div class="bg-white text-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-                <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3.5 gap-3">
-                    <div class="flex items-center space-x-3">
-                        <span class="p-2.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-xl shadow-sm">
-                            <i class="fa-solid fa-microscope text-lg"></i>
-                        </span>
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <h2 class="text-base font-black text-slate-800">장내환경 8대 분변 마커 환자 맞춤형 사전 추정치 (Expected Baseline)</h2>
-                                <span class="px-2 py-0.5 text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">신규 가중치 수식 적용</span>
-                            </div>
-                            <p class="text-xs text-slate-500 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치(α = 0.40 감쇠 결합)로 추정한 이 환견의 분변 8대 마커(pH·암모니아·포도당·잠혈·단백·탄수·지방·흡수율) 예상 기준선입니다.</p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="switchTab('monitoring-tab')" class="px-4 py-2.5 bg-slate-100 hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 font-black rounded-xl text-xs shadow-sm flex items-center space-x-2 transition transform active:scale-95">
-                        <i class="fa-solid fa-magnifying-glass-chart"></i>
-                        <span>장내환경 8대 마커 + CDSS 열기 (Tab 4)</span>
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-
-                <div id="tab2-gut-baseline-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 text-xs">
-                    <!-- Dynamically populated by runGutEnvironmentCDSS() -->
-                </div>
-            </div>
-
             <!-- Therapeutic Supplement Pairing Section (영양제 임상 조율 섹션) -->
             <div class="bg-gradient-to-br from-amber-50/80 via-orange-50/50 to-amber-100/60 rounded-2xl p-6 shadow-sm border border-amber-200">
                 <div class="flex flex-wrap items-center justify-between border-b border-amber-200/70 pb-4 mb-4">
@@ -2173,7 +2146,7 @@
                         </span>
                         <div>
                             <div class="flex items-center space-x-2">
-                                <h2 class="text-lg font-black text-slate-900">장내환경 9대 마커 다차원 가중치 결합 & 원인 분해(Differential Attribution) CDSS</h2>
+                                <h2 class="text-lg font-black text-slate-900">장내환경 분변 마커 다차원 가중치 결합 & 원인 분해(Differential Attribution) CDSS</h2>
                                 <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">α=0.40 감쇠결합 수식 탑재</span>
                             </div>
                             <p class="text-xs text-slate-500 mt-0.5">4대 축(품종/나이 · 식이 믹스피딩 · 약물 15종 · 질병 28종)과 지표별 카테고리 민감도(Ck)를 결합해 환견 맞춤 기대치를 산출하고, 실측 마커 이상이 <strong>식이/약물/질병/나이/기타</strong> 중 누구의 책임인지 정량 분해합니다.</p>
@@ -2243,7 +2216,7 @@
                             <span class="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-xs font-black shadow-sm">축 ⑤ 혈액 / 바이오마커 가중치 (1.20 ~ 1.60)</span>
                             <div>
                                 <h3 class="text-sm font-black text-rose-950">혈액검사(Blood Biomarker) 이상 소견 체크박스 (🐶 강아지 / 🐱 고양이 구분 반영)</h3>
-                                <p class="text-[11px] text-rose-700 mt-0.5">업그레이드된 엑셀 파일의 혈액검사 가중치 항목을 <strong>체크(✓)</strong>하시면 다차원 감쇠결합(α=0.40)을 통해 장내환경 9대 마커 기대 기준치에 즉시 반영됩니다.</p>
+                                <p class="text-[11px] text-rose-700 mt-0.5">업그레이드된 엑셀 파일의 혈액검사 가중치 항목을 <strong>체크(✓)</strong>하시면 다차원 감쇠결합(α=0.40)을 통해 장내환경 분변 마커 기대 기준치에 즉시 반영됩니다.</p>
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-1.5">
@@ -2262,7 +2235,7 @@
                     <!-- 🐶 강아지 전용 혈액/마커 체크박스 그리드 (엑셀 변수기준(개) R063~R077 완벽 반영) -->
                     <div id="lab-checkbox-panel-dog" class="space-y-2">
                         <div class="flex items-center justify-between text-xs font-extrabold text-blue-900 bg-blue-100/70 px-3 py-1.5 rounded-lg">
-                            <span>🐶 강아지(Canine) 혈액 / 바이오마커 가중치 항목 (체크 시 장내환경 9대 마커 자동 보정)</span>
+                            <span>🐶 강아지(Canine) 혈액 / 바이오마커 가중치 항목 (체크 시 장내환경 분변 마커 자동 보정)</span>
                             <span class="text-[11px] text-blue-700 font-semibold">엑셀 『변수기준(개)』 시트 100% 동기화</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
@@ -2377,7 +2350,7 @@
                     <!-- 🐱 고양이 전용 혈액/마커 체크박스 그리드 (엑셀 변수기준 (고양이) R063~R076 완벽 반영) -->
                     <div id="lab-checkbox-panel-cat" class="space-y-2 hidden">
                         <div class="flex items-center justify-between text-xs font-extrabold text-rose-900 bg-rose-100/70 px-3 py-1.5 rounded-lg">
-                            <span>🐱 고양이(Feline) 혈액 / 바이오마커 가중치 항목 (체크 시 장내환경 9대 마커 자동 보정)</span>
+                            <span>🐱 고양이(Feline) 혈액 / 바이오마커 가중치 항목 (체크 시 장내환경 분변 마커 자동 보정)</span>
                             <span class="text-[11px] text-rose-700 font-semibold">엑셀 『변수기준 (고양이)』 시트 100% 동기화</span>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
@@ -2741,7 +2714,7 @@
                     <div class="p-5 rounded-2xl bg-gradient-to-r from-indigo-50 via-blue-50 to-sky-50 border border-indigo-200 space-y-2">
                         <div class="text-sm font-black text-indigo-950 flex items-center space-x-2">
                             <i class="fa-solid fa-robot text-indigo-600"></i>
-                            <span>💡 9대 분변 마커 + 혈액검사 가중치(ΔW_Lab) 교차 검증 AI 분석 코멘트</span>
+                            <span>💡 분변 마커 + 혈액검사 가중치(ΔW_Lab) 교차 검증 AI 분석 코멘트</span>
                         </div>
                         <div id="cdss-ai-comments-list" class="space-y-1.5 text-xs text-indigo-900 leading-relaxed pl-1"></div>
                     </div>
@@ -4009,7 +3982,7 @@
         }
 
         // =========================================================================
-        // 장내환경 9대 마커 다차원 가중치 결합 + 제5축 혈액검사 가중치(ΔW_Lab) & 원인 분해 CDSS 엔진
+        // 장내환경 분변 마커 다차원 가중치 결합 + 제5축 혈액검사 가중치(ΔW_Lab) & 원인 분해 CDSS 엔진
         // 문헌 및 데이터 근거:
         // 1. 장내환경 변수에 따른 가중치 상관관계.xlsx (변수기준(개), 변수기준 (고양이), 마커기준, 정상범위)
         // 2. 믹스피딩 가중치의 근거.docx (다차원 감쇠 결합 수식 α=0.40, 카테고리 민감도 C_k)
@@ -4322,7 +4295,7 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             return total;
         }
 
-        // 제5축: 혈액검사 체크박스(강아지 15종 / 고양이 14종) 기반 9대 분변 마커 가중치(ΔW_Lab) 산출기
+        // 제5축: 혈액검사 체크박스(강아지 15종 / 고양이 14종) 기반 분변 마커 가중치(ΔW_Lab) 산출기
         function computeLabWeightDeltas() {
             const sp = document.getElementById('patient-species')?.value || currentCdssState.species || '개';
             const isCat = (sp === '고양이');
@@ -4360,7 +4333,7 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             });
 
             if (checkedLabItems.length > 0) {
-                labAlerts.push(`🧪 <strong>[${isCat ? '🐱 고양이' : '🐶 강아지'} 혈액검사 체크 가중치 작동 (${checkedLabItems.length}건)]</strong> 선택하신 <strong>${checkedLabItems.join(', ')}</strong> 항목의 엑셀 가중치가 다차원 감쇠결합(α=0.40)으로 장내환경 9대 마커 기대 기준치에 반영되었습니다.`);
+                labAlerts.push(`🧪 <strong>[${isCat ? '🐱 고양이' : '🐶 강아지'} 혈액검사 체크 가중치 작동 (${checkedLabItems.length}건)]</strong> 선택하신 <strong>${checkedLabItems.join(', ')}</strong> 항목의 엑셀 가중치가 다차원 감쇠결합(α=0.40)으로 장내환경 분변 마커 기대 기준치에 반영되었습니다.`);
             }
 
             if (checkedLabItems.some(x => x.includes("BUN / Creatinine") || x.includes("SDMA"))) {
