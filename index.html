@@ -719,7 +719,7 @@
                 </button>
                 <button onclick="switchTab('monitoring-tab')" id="btn-monitoring-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-microscope text-indigo-600"></i>
-                    <span>4. 장내환경 9대 마커 + 혈액 CDSS</span>
+                    <span>4. 장내환경 8대 마커 + CDSS</span>
                 </button>
                 <button onclick="switchTab('records-tab')" id="btn-records-tab" class="tab-btn py-3.5 px-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center space-x-2 border-b-2 border-transparent transition whitespace-nowrap">
                     <i class="fa-solid fa-clock-rotate-left text-emerald-600"></i>
@@ -2017,7 +2017,7 @@
                 </div>
             </div>
 
-            <!-- NEW IN TAB 2: 4대 축(나이·식이·약물·질병) 가중치 기반 장내환경 9대 분변 마커 사전 추정치 (Expected Baseline - White Theme) -->
+            <!-- NEW IN TAB 2: 4대 축(나이·식이·약물·질병) 가중치 기반 장내환경 8대 분변 마커 사전 추정치 (Expected Baseline - White Theme) -->
             <div class="bg-white text-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
                 <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3.5 gap-3">
                     <div class="flex items-center space-x-3">
@@ -2026,20 +2026,20 @@
                         </span>
                         <div>
                             <div class="flex items-center space-x-2">
-                                <h2 class="text-base font-black text-slate-800">장내환경 9대 분변 마커 환자 맞춤형 사전 추정치 (Expected Baseline)</h2>
+                                <h2 class="text-base font-black text-slate-800">장내환경 8대 분변 마커 환자 맞춤형 사전 추정치 (Expected Baseline)</h2>
                                 <span class="px-2 py-0.5 text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">신규 가중치 수식 적용</span>
                             </div>
-                            <p class="text-xs text-slate-500 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치(α = 0.40 감쇠 결합)로 추정한 이 환견의 분변 9대 마커 예상 기준선입니다.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">선택하신 <strong>품종/나이 · 위 믹스피딩 식단 · 복용 약물(15종) · 복합 질병(28종)</strong> 가중치(α = 0.40 감쇠 결합)로 추정한 이 환견의 분변 8대 마커(pH·암모니아·포도당·잠혈·단백·탄수·지방·흡수율) 예상 기준선입니다.</p>
                         </div>
                     </div>
                     <button type="button" onclick="switchTab('monitoring-tab')" class="px-4 py-2.5 bg-slate-100 hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 font-black rounded-xl text-xs shadow-sm flex items-center space-x-2 transition transform active:scale-95">
                         <i class="fa-solid fa-magnifying-glass-chart"></i>
-                        <span>장내환경 9대 마커 + 혈액 CDSS 열기 (Tab 4)</span>
+                        <span>장내환경 8대 마커 + CDSS 열기 (Tab 4)</span>
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
 
-                <div id="tab2-gut-baseline-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-2.5 text-xs">
+                <div id="tab2-gut-baseline-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 text-xs">
                     <!-- Dynamically populated by runGutEnvironmentCDSS() -->
                 </div>
             </div>
@@ -2159,7 +2159,7 @@
             </div>
         </section>
 
-        <!-- TAB 4: 장내환경 9대 마커 가중치 CDSS & 분변키트/혈액검사 피드백 -->
+        <!-- TAB 4: 장내환경 8대 마커 가중치 CDSS & 분변키트/혈액검사 피드백 -->
         <section id="monitoring-tab" class="tab-content space-y-6 hidden">
 
 
@@ -3018,8 +3018,12 @@
             if (typeof window.syncStickyTopBars === 'function') {
                 window.syncStickyTopBars();
             }
-            if ((tabId === 'monitoring-tab' || tabId === 'tab-gut-cdss') && typeof runGutEnvironmentCDSS === 'function') {
-                runGutEnvironmentCDSS();
+            if (tabId === 'monitoring-tab' || tabId === 'tab-gut-cdss' || tabId === 'feeding-tab') {
+                if (typeof syncGutCdssFromCurrentTabs === 'function') {
+                    syncGutCdssFromCurrentTabs(true);
+                } else if (typeof runGutEnvironmentCDSS === 'function') {
+                    runGutEnvironmentCDSS();
+                }
             }
             if (window.scrollY > 140) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4011,18 +4015,20 @@
         // 2. 믹스피딩 가중치의 근거.docx (다차원 감쇠 결합 수식 α=0.40, 카테고리 민감도 C_k)
         // 3. 혈액/마커 체크박스 (개 15종 / 고양이 14종) + 정량 혈액 수치 연동 가중치(ΔW_Lab)
         // =========================================================================
-        const CDSS_MARKERS = ["ph", "ammonia", "indole", "lactate", "blood", "protein", "carbo", "fat", "absorption"];
+        const CDSS_MARKERS = ["ph", "ammonia", "glucose", "blood", "protein", "carbo", "fat", "absorption"];
 
         const CDSS_MARKER_INFO = {
             ph:         { name: "① 분변 pH", unit: "-", base: 6.5, min: 6.0, max: 7.0, imp: 1.0 },
             ammonia:    { name: "② 암모니아 (NH₃)", unit: "μmol/g", base: 20.0, min: 10.0, max: 30.0, imp: 1.5 },
-            indole:     { name: "③ 인돌 (Indole)", unit: "μg/g", base: 15.0, min: 5.0, max: 25.0, imp: 1.5 },
-            lactate:    { name: "④ 젖산 (Lactate)", unit: "mmol/g", base: 8.0, min: 5.0, max: 12.0, imp: 1.2 },
-            blood:      { name: "⑤ 잠혈 (Blood)", unit: "ng/mL", base: 0.0, min: 0.0, max: 10.0, imp: 2.5 },
-            protein:    { name: "⑥ 미소화 단백질", unit: "% DM", base: 5.0, min: 2.0, max: 8.0, imp: 1.2 },
-            carbo:      { name: "⑦ 미소화 탄수화물", unit: "% DM", base: 6.0, min: 3.0, max: 10.0, imp: 1.0 },
-            fat:        { name: "⑧ 미소화 지방", unit: "% DM", base: 4.0, min: 1.0, max: 7.0, imp: 1.4 },
-            absorption: { name: "⑨ 추정 흡수율", unit: "%", base: 85.0, min: 80.0, max: 95.0, imp: 1.8 }
+            glucose:    { name: "③ 포도당 (Glucose)", unit: "mg/dL", base: 0.0, min: 0.0, max: 20.0, imp: 1.5 },
+            blood:      { name: "④ 잠혈 (Blood)", unit: "ng/mL", base: 0.0, min: 0.0, max: 10.0, imp: 2.5 },
+            protein:    { name: "⑤ 미소화 단백질", unit: "% DM", base: 5.0, min: 2.0, max: 8.0, imp: 1.2 },
+            carbo:      { name: "⑥ 미소화 탄수화물", unit: "% DM", base: 6.0, min: 3.0, max: 10.0, imp: 1.0 },
+            fat:        { name: "⑦ 미소화 지방", unit: "% DM", base: 4.0, min: 1.0, max: 7.0, imp: 1.4 },
+            absorption: { name: "⑧ 추정 흡수율", unit: "%", base: 85.0, min: 80.0, max: 95.0, imp: 1.8 },
+            // 하위 호환성용 유지
+            indole:     { name: "인돌 (Indole)", unit: "μg/g", base: 15.0, min: 5.0, max: 25.0, imp: 1.5 },
+            lactate:    { name: "젖산 (Lactate)", unit: "mmol/g", base: 8.0, min: 5.0, max: 12.0, imp: 1.2 }
         };
 
         // 시트2: 마커기준 (카테고리 민감도 매트릭스 C_k + 혈액검사 민감도 lab)
@@ -4035,7 +4041,8 @@
             protein:    { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.7 },
             carbo:      { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.3 },
             fat:        { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.9 },
-            absorption: { age: 1.1, size: 0.9, diet: 1.2, drug: 1.3, disease: 1.7, lab: 1.8 }
+            absorption: { age: 1.1, size: 0.9, diet: 1.2, drug: 1.3, disease: 1.7, lab: 1.8 },
+            glucose:    { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.5 }
         };
 
         // ===========================================================================
@@ -4589,11 +4596,15 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
 
         function syncGutCdssFromCurrentTabs(runAfter = true) {
             const species = document.getElementById('patient-species')?.value || '개';
+            const patient_name = document.getElementById('patient-name')?.value || '환자';
             const age_years = parseFloat(document.getElementById('patient-age')?.value) || 11.0;
             const weight_kg = parseFloat(document.getElementById('patient-weight')?.value) || 5.0;
 
             const drugs = [];
             document.querySelectorAll('input[name="cdss-drug"]:checked').forEach(el => drugs.push(el.value));
+            document.querySelectorAll('input[name="drug"]:checked').forEach(el => {
+                if (!drugs.includes(el.value)) drugs.push(el.value);
+            });
 
             const diseases = [];
             if (document.getElementById('dis-heart')?.checked) {
@@ -4617,14 +4628,14 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             }
             if (document.getElementById('dis-tumor')?.checked) diseases.push("종양 (전신/악성)");
 
-            // 강아지 전용 질환 체크 반영
+            // 강아지 전용 질환
             if (document.getElementById('dis-hypothyroid')?.checked) diseases.push("갑상선기능저하증");
             if (document.getElementById('dis-addison')?.checked) diseases.push("에디슨 (부신피질기능저하)");
             if (document.getElementById('dis-otitis')?.checked) diseases.push("만성외이염 (알러지 기반)");
             if (document.getElementById('dis-disc')?.checked) diseases.push("디스크");
             if (document.getElementById('dis-pda')?.checked) diseases.push("기타 심장병(PDA 등)");
 
-            // 고양이 전용 질환 체크 반영
+            // 고양이 전용 질환
             if (document.getElementById('dis-hyperthyroid')?.checked) diseases.push("갑상선기능항진증");
             if (document.getElementById('dis-cat-triaditis')?.checked) diseases.push("3복강염 (Triaditis: 췌장염+담관염+IBD)");
             if (document.getElementById('dis-cat-lymphoma')?.checked) diseases.push("소화기 림프종 (GI Lymphoma, 소형/대형세포)");
@@ -4649,397 +4660,62 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             const exDis = document.getElementById('cdss-extra-dis')?.value;
             if (exDis && exDis !== "없음") diseases.push(exDis);
 
-            // 식단 구성 추정
+            // 식단 구성 추정: Tab 2의 실제 사료 믹스 결과 우선 반영
             const diet_mix = [];
-            const hasCkd = document.getElementById('dis-ckd')?.checked;
-            const hasPanc = document.getElementById('dis-pancreas')?.checked || document.getElementById('dis-cat-triaditis')?.checked;
-            const hasIbd = document.getElementById('dis-ibd')?.checked;
             const treatGiven = document.getElementById('cdss-treat-given')?.checked;
 
-            if (hasCkd && hasPanc) {
-                const r1 = (currentCustomRatios.dry1 || currentCustomRatios.dry || 50) / 100.0;
-                const r2 = Math.max(0.1, 1.0 - r1);
-                diet_mix.push({ label: `저지방사료 (${Math.round(r1*100)}%)`, profile: "저지방사료", ratio: r1 });
-                diet_mix.push({ label: `신장처방식 (${Math.round(r2*100)}%)`, profile: "신장처방식 (저단백·고지방 k/d·레날)", ratio: r2 });
-            } else if (hasCkd) {
-                diet_mix.push({ label: "신장처방식 (저단백·고지방)", profile: "신장처방식 (저단백·고지방 k/d·레날)", ratio: 0.70 });
-                diet_mix.push({ label: "습식 (캔/파우치)", profile: "습식 (캔/파우치)", ratio: 0.30 });
-            } else if (hasPanc) {
-                diet_mix.push({ label: "저지방사료 (Low Fat)", profile: "저지방사료", ratio: 0.80 });
-                diet_mix.push({ label: "화식 (신선식)", profile: "화식 (신선식)", ratio: 0.20 });
-            } else if (hasIbd) {
-                diet_mix.push({ label: "가수분해사료", profile: "가수분해사료", ratio: 1.0 });
-            } else {
-                diet_mix.push({ label: "중단백 처방식", profile: "중단백사료 (표준)", ratio: 1.0 });
-            }
-
-            if (treatGiven) {
-                diet_mix.push({ label: "간식 (육포/트릿/츄르)", profile: "간식 (트릿/육포 등)", ratio: 0.25 });
-            }
-
-            if (typeof buildCdssDietMixFromActiveItems === 'function' && hasCustomDietOverrideActive()) {
+            if (typeof buildCdssDietMixFromActiveItems === 'function') {
                 const customMix = buildCdssDietMixFromActiveItems(treatGiven);
                 if (customMix && customMix.length > 0) {
-                    diet_mix.length = 0;
                     customMix.forEach(cm => diet_mix.push(cm));
                 }
             }
-            currentCdssState = { species, age_years, weight_kg, diet_mix, drugs, diseases };
-            if (runAfter) runGutEnvironmentCDSS();
-        }
 
-        // =========================================================================
-        // [신규] 소장 vs 대장 2축 4분면(Quadrants) 교차검증 & 6대 임상 시나리오 CDSS 엔진
-        // 문헌 근거: 장내환경 추론 알고리즘 4분면.docx
-        // - 소장 구획 (SI): 미소화 단백질, 미소화 지방, 미소화 탄수화물 + 혈액 cPL/담즙산
-        // - 대장 구획 (LI): 분변 암모니아, 분변 잠혈, 분변 pH + 연동운동(과속/정상/정체)
-        // =========================================================================
-        function evaluateSmallLargeIntestineCrossValidation(data) {
-            const protein = data.protein !== undefined ? data.protein : 5.0;
-            const fat = data.fat !== undefined ? data.fat : 4.0;
-            const carbo = data.carbo !== undefined ? data.carbo : 6.0;
-            const ammonia = data.ammonia !== undefined ? data.ammonia : 20.0;
-            const blood = data.blood !== undefined ? data.blood : 0.0;
-            const ph = data.ph !== undefined ? data.ph : 6.5;
-            const transitScore = data.transitScore !== undefined ? data.transitScore : 1.0;
-            const labCpl = !!data.labCpl;
-            const labBile = !!data.labBile;
-            const albLow = !!data.albLow;
+            // fallback if no active items
+            if (diet_mix.length === 0) {
+                const hasCkd = document.getElementById('dis-ckd')?.checked;
+                const hasPanc = document.getElementById('dis-pancreas')?.checked || document.getElementById('dis-cat-triaditis')?.checked;
+                const hasIbd = document.getElementById('dis-ibd')?.checked;
 
-            // 1. 소장 구획 이상도 (SI Dys Score: 0 ~ 100)
-            const si_p = Math.max(0.0, (protein - 8.0) / 8.0) * 40.0;
-            const si_f = Math.max(0.0, (fat - 7.0) / 7.0) * 40.0;
-            const si_c = Math.max(0.0, (carbo - 10.0) / 10.0) * 25.0;
-            const si_lab = (labCpl ? 30.0 : 0.0) + (labBile ? 25.0 : 0.0);
-            const si_dys = Math.min(100.0, Math.round((si_p + si_f + si_c + si_lab) * 10) / 10);
-
-            // 2. 대장 구획 이상도 (LI Dys Score: 0 ~ 100)
-            const li_a = Math.max(0.0, (ammonia - 30.0) / 25.0) * 45.0;
-            const li_b = Math.min(50.0, (blood / 10.0) * 40.0);
-            const li_ph = (Math.abs(ph - 6.5) / 1.5) * 30.0;
-            const li_dys = Math.min(100.0, Math.round((li_a + li_b + li_ph) * 10) / 10);
-
-            // 3. 연동운동 및 통과속도 분류
-            let transitState = "NORMAL";
-            let transitLabel = "정상 (표준 통과시간)";
-            if (transitScore > 1.15) {
-                transitState = "RAPID";
-                transitLabel = "과항진 (과속 통과)";
-            } else if (transitScore < 0.85) {
-                transitState = "STASIS";
-                transitLabel = "지연 (만성 정체 / 변비)";
-            }
-
-            // 4. 6대 임상 시나리오 판정 (Priority Decision Tree)
-            let scenarioId = 1;
-            let scenarioShort = "정상 장내 생태계 (Optimal)";
-            let scenarioName = "Scenario 1: 정상 장내 환경 (Optimal GI Balance)";
-            let scenarioDesc = "소장 소화·흡수와 대장 발효 균형이 완벽히 유지되는 최적의 장내 생태계 상태입니다.";
-            let rxFiber = "기본 표준량 유지 (1,000kcal당 3~5g, 균형 잡힌 프리바이오틱스 FOS/MOS)";
-            let rxWater = "기본 건/습식 비율 유지, 추가 온수 믹싱 불필요";
-            let rxProtein = "처방식 기본 단백질 기준 적용 유지";
-
-            // Priority 1: Scenario 3 (대장 통과 과속)
-            // 소장 단백질은 검출되었으나 암모니아는 정상/낮음 (연동 과속)
-            if (protein > 7.5 && ammonia <= 32.0 && blood < 10.0 && (transitState === "RAPID" || si_f < 10.0)) {
-                scenarioId = 3;
-                scenarioShort = "대장 통과 과속 (Rapid Transit)";
-                scenarioName = "Scenario 3: 대장 통과 시간 과속 (Rapid Transit / 연동 과항진)";
-                scenarioDesc = "소장의 단백질 소화·흡수력은 정상이나, 대장의 연동운동이 지나치게 빨라 장내 미생물이 단백질을 부패(암모니아 전환)시킬 시간적 여유조차 없이 단백질 원형 그대로 배출되었습니다. 사료 단백질 문제가 아닌 신경성 설사 또는 대장 과민 반응을 우선 고려해야 합니다.";
-                rxFiber = "불용성 섬유소 완전 배제, 점성형 수용성 섬유소(차전자피 등) 미세 증량하여 변 형태 유지";
-                rxWater = "과도한 액상 공급 제한, 습식 배합 비율 최적화 (배변 과속 방지)";
-                rxProtein = "단백질 총량은 유지하되, 소화율 90% 이상 고소화성 가수분해 원료 매칭";
-            }
-            // Priority 2: Scenario 4 (대장 하부 점막 누수 및 단백 소실)
-            else if (blood >= 10.0 || (protein > 7.0 && ammonia <= 35.0 && (albLow || blood >= 5.0))) {
-                scenarioId = 4;
-                scenarioShort = "대장 하부 점막 누수 (Colonic PLE)";
-                scenarioName = "Scenario 4: 대장 하부 점막 누수 및 단백 소실 (Colonic PLE / 염증)";
-                scenarioDesc = "소장 소화 기능과 무관하게, 결장/직장 부위의 국소 미란·궤양 또는 림프관 확장으로 인해 혈중 단백질과 혈액이 대장 강내로 직접 유출되었습니다. (단백소실성 장병증)";
-                rxFiber = "점막 피복 및 상피 보호형 수용성 섬유소 적용, 장벽 미세순환 성분 보강";
-                rxWater = "온수 믹싱을 통한 부드러운 유동성 식사 구성 (점막 물리적 자극 최소화)";
-                rxProtein = "대장 점막 알러지/면역 반응을 최소화하는 단일 신원료(Novel Protein) 또는 초저분자 가수분해 단백질";
-            }
-            // Priority 3: Scenario 5 (탄수화물 흡수 부전 및 대장 삼투성 발효)
-            else if (carbo > 8.5 && ph < 6.0) {
-                scenarioId = 5;
-                scenarioShort = "탄수화물 흡수부전 & 삼투성 발효";
-                scenarioName = "Scenario 5: 탄수화물 흡수 부전 및 대장 삼투성 발효";
-                scenarioDesc = "소장에서 탄수화물/전분 흡수가 실패하여 대장으로 넘어간 뒤, 유산균 및 발효균에 의해 급격한 젖산 생성 및 산성화가 발생하여 삼투성 설사를 유발했습니다.";
-                rxFiber = "발효 속도가 느린 완만 발효 수용성 섬유소로 전환 (급격한 가스/산성화 방지)";
-                rxWater = "수분 공급을 1일 다회로 분할 공급하여 삼투압 충격 최소화";
-                rxProtein = "식이 탄수화물(NFE) 비율을 대폭 축소하고 단백질 및 필수 지방 균형 재조정";
-            }
-            // Priority 4: Scenario 6 (대장 만성 정체 / 거대결장)
-            else if (transitState === "STASIS" && (ph > 7.3 || ammonia < 12.0 || ammonia > 35.0) && protein <= 8.0) {
-                scenarioId = 6;
-                scenarioShort = "대장 만성 정체 (Megacolon)";
-                scenarioName = "Scenario 6: 대장 만성 정체 (Megacolon / 마비성 장폐색)";
-                scenarioDesc = "대장 내 체류 시간이 비정상적으로 길어져 수분이 과다 재흡수되고, 발효 기질 고갈 또는 부패성 산물이 만성 정체되었습니다.";
-                rxFiber = "차전자피 등 고보수성 수용성 섬유소 극대화 (+50% 상향, 변의 부피와 수분 유지)";
-                rxWater = "수분 공급량 및 추가 온수 믹싱 최대치 적용 (습식 사료 비율 80% 이상 강제)";
-                rxProtein = "장관 무력증 환축의 배변 부담을 줄이기 위한 초고소화성 조성 배합";
-            }
-            // Priority 5: Scenario 2 (소장 소화부전 및 대장 부패 발효)
-            else if (si_dys >= 20.0 && li_dys >= 20.0) {
-                scenarioId = 2;
-                scenarioShort = "소장 소화부전 + 대장 부패";
-                scenarioName = "Scenario 2: 소장 소화·흡수 불량 및 대장 부패 발효";
-                scenarioDesc = "소장에서 흡수되지 못한 미소화 단백질/지방이 대장으로 대량 유입되어 부패균에 의한 암모니아 및 요독성 대사산물이 급증했습니다.";
-                rxFiber = "수용성 섬유소 대폭 증량 (+30%), 대장 내 단쇄지방산(SCFA) 생성 촉진";
-                rxWater = "수분 공급량 표준 대비 +15% 상향 (대장 내 유해 부패물 배출 촉진)";
-                rxProtein = "고생물가 가수분해 단백질(Hydrolyzed Protein)로 전면 전환 (대장 유입 차단)";
-            }
-
-            // 5. 4분면 좌표 및 영역 판정
-            let quadrantCode = "Q_NORMAL";
-            let quadrantTitle = "Q1: 정상 균형 영역 (Optimal GI Zone)";
-            let quadrantColor = "emerald";
-
-            if (si_dys < 25.0 && li_dys < 25.0) {
-                quadrantCode = "Q_NORMAL";
-                quadrantTitle = "Q1: 정상 균형 영역 (Optimal GI Zone)";
-                quadrantColor = "emerald";
-            } else if (si_dys >= 25.0 && li_dys < 25.0) {
-                quadrantCode = "Q_SI_PRIMARY";
-                quadrantTitle = "Q2: 소장 흡수부전 주도 영역 (Primary SI Malabsorption)";
-                quadrantColor = "sky";
-            } else if (si_dys < 25.0 && li_dys >= 25.0) {
-                quadrantCode = "Q_LI_PRIMARY";
-                quadrantTitle = "Q3: 대장 병태생리 주도 영역 (Colonic Dysfunction / Rapid Transit / PLE)";
-                quadrantColor = "amber";
-            } else {
-                quadrantCode = "Q_COMBINED";
-                quadrantTitle = "Q4: 전장관 복합 부전 영역 (Combined SI-LI Dysfunction)";
-                quadrantColor = "rose";
-            }
-
-            const dotX = Math.max(5.0, Math.min(95.0, (si_dys / 100.0) * 90.0 + 5.0));
-            const dotY = Math.max(5.0, Math.min(95.0, 95.0 - (li_dys / 100.0) * 90.0));
-
-            return {
-                si_dys,
-                li_dys,
-                transitState,
-                transitLabel,
-                scenarioId,
-                scenarioShort,
-                scenarioName,
-                scenarioDesc,
-                quadrantCode,
-                quadrantTitle,
-                quadrantColor,
-                dotX,
-                dotY,
-                rx: {
-                    fiber: rxFiber,
-                    water: rxWater,
-                    protein: rxProtein
+                if (hasCkd && hasPanc) {
+                    const r1 = (currentCustomRatios?.dry1 || currentCustomRatios?.dry || 50) / 100.0;
+                    const r2 = Math.max(0.1, 1.0 - r1);
+                    diet_mix.push({ label: `저지방사료 (${Math.round(r1*100)}%)`, profile: "저지방사료", ratio: r1 });
+                    diet_mix.push({ label: `신장처방식 (${Math.round(r2*100)}%)`, profile: "신장처방식 (저단백·고지방 k/d·레날)", ratio: r2 });
+                } else if (hasCkd) {
+                    diet_mix.push({ label: "신장처방식 (저단백·고지방)", profile: "신장처방식 (저단백·고지방 k/d·레날)", ratio: 0.70 });
+                    diet_mix.push({ label: "습식 (캔/파우치)", profile: "습식 (캔/파우치)", ratio: 0.30 });
+                } else if (hasPanc) {
+                    diet_mix.push({ label: "저지방사료 (Low Fat)", profile: "저지방사료", ratio: 0.80 });
+                    diet_mix.push({ label: "화식 (신선식)", profile: "화식 (신선식)", ratio: 0.20 });
+                } else if (hasIbd) {
+                    diet_mix.push({ label: "가수분해사료", profile: "가수분해사료", ratio: 1.0 });
+                } else {
+                    diet_mix.push({ label: "중단백 처방식", profile: "중단백사료 (표준)", ratio: 1.0 });
                 }
-            };
-        }
 
-        // =========================================================================
-        // [신규] 장내 병태생리 4대 축(장운동·장염·장누수·소화액분비) + 해당없음 확률 산출 CDSS 엔진
-        // 문헌 및 근거: 장내환경 변수 가중치 상관관계 개·고양이 통합완성본-v2 엑셀 기준
-        // =========================================================================
-        function calculateGutPathoProbabilities(context) {
-            const {
-                score = 50.0,
-                ageW = {},
-                sizeW = {},
-                dietW = {},
-                drugWList = [],
-                disWList = [],
-                labInfo = {},
-                evalMap = {},
-                st = {}
-            } = context;
-
-            // 1) 연령 & 체급 편차
-            const d_age = {
-                mot: Math.max(0.0, 1.0 - (ageW.motility !== undefined ? ageW.motility : 1.0)),
-                dig: Math.max(0.0, 1.0 - (ageW.digestion !== undefined ? ageW.digestion : 1.0)),
-                leak: Math.max(0.0, (ageW.leak !== undefined ? ageW.leak : 1.0) - 1.0),
-                inf: Math.max(0.0, (ageW.inflammation !== undefined ? ageW.inflammation : 1.0) - 1.0)
-            };
-            const d_size = {
-                mot: Math.max(0.0, 1.0 - (sizeW.motility !== undefined ? sizeW.motility : 1.0)),
-                dig: Math.max(0.0, 1.0 - (sizeW.digestion !== undefined ? sizeW.digestion : 1.0)),
-                leak: Math.max(0.0, (sizeW.leak !== undefined ? sizeW.leak : 1.0) - 1.0),
-                inf: Math.max(0.0, (sizeW.inflammation !== undefined ? sizeW.inflammation : 1.0) - 1.0)
-            };
-            const d_diet = {
-                mot: Math.max(0.0, 1.0 - (dietW.motility !== undefined ? dietW.motility : 1.0)),
-                dig: Math.max(0.0, 1.0 - (dietW.digestion !== undefined ? dietW.digestion : 1.0)),
-                leak: Math.max(0.0, (dietW.leak !== undefined ? dietW.leak : 1.0) - 1.0),
-                inf: Math.max(0.0, (dietW.inflammation !== undefined ? dietW.inflammation : 1.0) - 1.0)
-            };
-
-            // 2) 약물 & 질병 감쇠결합 (alpha = 0.40)
-            const d_drug = {
-                mot: attenuateGroupDelta(drugWList, "motility", 0.40, true),
-                dig: attenuateGroupDelta(drugWList, "digestion", 0.40, true),
-                leak: attenuateGroupDelta(drugWList, "leak", 0.40, false),
-                inf: attenuateGroupDelta(drugWList, "inflammation", 0.40, false)
-            };
-            const d_dis = {
-                mot: attenuateGroupDelta(disWList, "motility", 0.40, true),
-                dig: attenuateGroupDelta(disWList, "digestion", 0.40, true),
-                leak: attenuateGroupDelta(disWList, "leak", 0.40, false),
-                inf: attenuateGroupDelta(disWList, "inflammation", 0.40, false)
-            };
-
-            // 3) 혈액검사 체크 가중치 연동
-            const isCat = (st.species === '고양이' || window.activeLabSpeciesTab === '고양이');
-            const labDictMap = isCat ? CDSS_LAB_MARKER_WEIGHTS_CAT : CDSS_LAB_MARKER_WEIGHTS_DOG;
-            const checkedLabItems = labInfo.checkedLabItems || [];
-            const labWList = checkedLabItems.map(item => labDictMap[item]).filter(Boolean);
-            const d_lab = {
-                mot: attenuateGroupDelta(labWList, "motility", 0.40, true),
-                dig: attenuateGroupDelta(labWList, "digestion", 0.40, true),
-                leak: attenuateGroupDelta(labWList, "leak", 0.40, false),
-                inf: attenuateGroupDelta(labWList, "inflammation", 0.40, false)
-            };
-
-            // 4) 9대 분변 마커 실측치 기반 부하 가산
-            let fecal_mot = 0.0, fecal_dig = 0.0, fecal_leak = 0.0, fecal_inf = 0.0;
-            if (evalMap) {
-                if (evalMap.blood && evalMap.blood.meas >= 10.0) {
-                    const bRatio = Math.min(2.5, evalMap.blood.meas / 10.0);
-                    fecal_leak += 0.40 * bRatio;
-                    fecal_inf  += 0.35 * bRatio;
-                }
-                if (evalMap.absorption && evalMap.absorption.meas < 80.0) {
-                    const aDrop = (80.0 - evalMap.absorption.meas) / 20.0;
-                    fecal_dig  += 0.40 * aDrop;
-                    fecal_leak += 0.20 * aDrop;
-                }
-                if ((evalMap.ammonia && evalMap.ammonia.meas > 30.0) || (evalMap.indole && evalMap.indole.meas > 25.0)) {
-                    fecal_inf += 0.25;
-                    fecal_mot += 0.20;
-                }
-                if ((evalMap.fat && evalMap.fat.meas > 7.0) || (evalMap.protein && evalMap.protein.meas > 8.0)) {
-                    fecal_dig += 0.50;
+                if (treatGiven) {
+                    diet_mix.push({ label: "간식 (육포/트릿/츄르)", profile: "간식 (트릿/육포 등)", ratio: 0.25 });
                 }
             }
 
-            // 5) 4대 축 종합 위험 부하 점수 (Raw Risk Scores)
-            const r_mot = (d_age.mot * 0.4) + (d_size.mot * 0.4) + (d_diet.mot * 0.5) + (d_drug.mot * 2.4) + (d_dis.mot * 1.1) + (d_lab.mot * 1.2) + fecal_mot;
-            const r_inf = (d_age.inf * 0.4) + (d_size.inf * 0.4) + (d_diet.inf * 0.5) + (d_drug.inf * 0.8) + (d_dis.inf * 1.0) + (d_lab.inf * 1.0) + fecal_inf;
-            const r_leak = ((d_age.leak * 0.4) + (d_size.leak * 0.4) + (d_diet.leak * 0.5) + (d_drug.leak * 0.8) + (d_dis.leak * 1.0) + (d_lab.leak * 1.0) + fecal_leak) * 0.68;
-            const r_dig = (d_age.dig * 0.4) + (d_size.dig * 0.4) + (d_diet.dig * 0.5) + (d_drug.dig * 0.8) + (d_dis.dig * 1.2) + (d_lab.dig * 1.2) + fecal_dig;
+            currentCdssState = { patient_name, species, age_years, weight_kg, diet_mix, drugs, diseases };
 
-            const r_sum = r_mot + r_inf + r_leak + r_dig;
-
-            // 6) 5개 항목 확률 산출: [장누수, 장염, 장소화액분비, 장운동, 해당없음]
-            let p_none = 0.0;
-            if (score >= 85.0 && r_sum < 0.25) {
-                p_none = Math.max(0.0, Math.min(95.0, (score - 70.0) * 3.0 - (r_sum * 120.0)));
-            } else if (score >= 75.0 && r_sum < 0.45) {
-                p_none = Math.max(0.0, Math.min(40.0, (score - 75.0) * 2.5 - (r_sum * 50.0)));
-            } else {
-                p_none = 0.0;
+            // 상단 분변 해석 모듈 DOM 필드 실시간 동기화
+            const gprPatient = document.getElementById('gpr-patient');
+            if (gprPatient) gprPatient.value = patient_name;
+            const gprDiet = document.getElementById('gpr-diet');
+            if (gprDiet && diet_mix.length > 0) {
+                gprDiet.value = diet_mix.map(d => d.label).join(" + ");
             }
-            p_none = Math.round(p_none * 10) / 10;
-
-            const rem_pct = 100.0 - p_none;
-            let p_mot = 0, p_inf = 0, p_leak = 0, p_dig = 0;
-            if (r_sum > 0.001) {
-                p_mot = Math.round((r_mot / r_sum) * rem_pct);
-                p_inf = Math.round((r_inf / r_sum) * rem_pct);
-                p_leak = Math.round((r_leak / r_sum) * rem_pct);
-                p_dig = Math.round((r_dig / r_sum) * rem_pct);
-                const diff = rem_pct - (p_mot + p_inf + p_leak + p_dig);
-                p_mot += Math.round(diff);
-            } else {
-                p_none = 100.0;
+            const gprMed = document.getElementById('gpr-medication');
+            if (gprMed) {
+                gprMed.value = drugs.length > 0 ? drugs.join(", ") : "복용 약물 없음";
             }
 
-            // 7) 5개 항목 구조화
-            const items = [
-                {
-                    key: "motility",
-                    name: "장관 운동 저하 (장운동)",
-                    subName: "Dysmotility",
-                    prob: p_mot,
-                    color: "indigo",
-                    icon: "fa-stopwatch",
-                    desc: "평활근 허혈, 전해질 불균형(저칼륨), 이뇨제 탈수 및 장관 정체"
-                },
-                {
-                    key: "inflammation",
-                    name: "장 점막 염증 (장염)",
-                    subName: "Uremic Enteritis",
-                    prob: p_inf,
-                    color: "rose",
-                    icon: "fa-fire",
-                    desc: "요독성 위장염, 미세혈전, 부패 부산물(인돌·암모니아)에 의한 염증"
-                },
-                {
-                    key: "leak",
-                    name: "장벽 누수 증후군 (장누수)",
-                    subName: "Leaky Gut",
-                    prob: p_leak,
-                    color: "amber",
-                    icon: "fa-shield-halved",
-                    desc: "점막 Tight junction 붕괴, 심부전 저관류/울혈 및 내독소(LPS) 유입"
-                },
-                {
-                    key: "digestion",
-                    name: "단순 소화·흡수 부전 (장소화액분비)",
-                    subName: "Mal-digestion",
-                    prob: p_dig,
-                    color: "sky",
-                    icon: "fa-vial-circle-check",
-                    desc: "췌장 외분비 리파아제 결핍, 담즙 울체, 융모 위축 및 삼투성 부담"
-                },
-                {
-                    key: "none",
-                    name: "해당 없음 (정상 안정)",
-                    subName: "Normal / Stable",
-                    prob: p_none,
-                    color: "emerald",
-                    icon: "fa-circle-check",
-                    desc: "4대 병태생리 위험이 없으며 장내 생태계가 안정적으로 유지됨"
-                }
-            ];
-
-            const sortedNonNone = [...items.slice(0, 4)].sort((a, b) => b.prob - a.prob);
-            const primary = sortedNonNone[0];
-
-            // 8) 수의사 및 보호자 행동 유도(Actionable Trigger) 명확한 문장 생성
-            let triggerHtml = "";
-            if (p_none >= 75.0) {
-                triggerHtml = `✅ <strong>[정상 안정 유지]</strong> 4대 장내 병태생리 위험이 감지되지 않으며(안정 확률 ${p_none}%), 장관 연동운동, 점막 투과도 및 소화효소 분비가 정상 생리 범위 내에서 안정적으로 유지되고 있습니다.`;
-            } else if (primary.key === "motility") {
-                triggerHtml = `🎯 <strong>[약물 원인 트리거 (의학적 재평가 권고)]</strong><br>
-"현재 장 운동성 저하(<strong>${p_mot}%</strong>)의 가장 높은 기여 요인은 이뇨제 투여에 의한 미세 탈수 및 혈중 칼륨(K) 저하 가능성, 그리고 인바인더 복용에 따른 장 내용물 정체로 추정됩니다. 주치의와 전해질 수치 확인 및 이뇨제 용량 조절, 변비 예방 완하제 병용을 상의하세요."<br><br>
-🥣 <strong>[식이(믹스피딩) 처방 트리거]</strong><br>
-"소화 흡수율 자체(${p_dig}%)보다는 <strong>요독성 점막 염증(${p_inf}%)</strong>과 <strong>장 누수(${p_leak}%)</strong> 비율이 높습니다. 단백질 총량을 무리하게 낮추기보다 생물가가 높고 암모니아 생성이 적은 고소화성 가수분해 단백질로 믹스 비율을 변경하십시오. 정체된 대장 내 부패균 증식을 억제하고 장벽 상피를 보호하기 위해, 수용성 섬유소(단쇄지방산 생성용 비피더스 프리바이오틱스)를 식이 1,000kcal당 1.5g 증량하는 배합을 제안합니다."`;
-            } else if (primary.key === "inflammation") {
-                triggerHtml = `🎯 <strong>[점막 염증 트리거 (요독성 위장염 관리)]</strong><br>
-"장 점막 염증(<strong>${p_inf}%</strong>)과 장 누수(<strong>${p_leak}%</strong>)가 주원인입니다. 혈중 요독소의 장관 내 역확산(Urea influx)과 부패 발효를 차단하기 위해 단백질 총량을 무리하게 낮추기보다 생물가가 높은 초고소화성 가수분해 단백질로 믹스 비율을 변경하십시오. 장-신장 축 요독소 흡착 프로바이오틱스(신장케어 레날맥스)를 증량하고 수용성 섬유소 배합을 강화하십시오."`;
-            } else if (primary.key === "leak") {
-                triggerHtml = `🎯 <strong>[장 누수·허혈 트리거 (점막 보호 처치)]</strong><br>
-"장벽 투과도 증가 / 장 누수(<strong>${p_leak}%</strong>)가 주원인으로 판정되었습니다. 심혈관 울혈/저관류 또는 NSAIDs/약물 유발성 Tight junction 손상 위험이 높습니다. 장 점막 상피세포 보호제(Sucralfate) 투여와 함께, 치밀이음부 복구를 돕는 L-글루타민, 아연-카르노신, 정제 오메가-3 보강을 권고합니다."`;
-            } else if (primary.key === "digestion") {
-                triggerHtml = `🎯 <strong>[소화효소 분비 부전 트리거 (식이 믹스 재조정)]</strong><br>
-"단순 염증보다 췌장 외분비/소화액 분비 저하(<strong>${p_dig}%</strong>)가 핵심 원인입니다. 현재 급여 중인 사료의 지방 함량이 췌장 소화 한계를 초과했을 가능성이 높으므로, 저지방 사료(i/d Low Fat 등) 비율을 70% 이상으로 상향하고 고역가 췌장 소화효소제(판크레딘) 1.5배 증량을 권장합니다."`;
+            if (runAfter) {
+                runGutEnvironmentCDSS();
             }
-
-            return {
-                probs: {
-                    motility: p_mot,
-                    inflammation: p_inf,
-                    leak: p_leak,
-                    digestion: p_dig,
-                    none: p_none
-                },
-                items,
-                primary,
-                triggerHtml
-            };
         }
 
         function runGutEnvironmentCDSS() {
@@ -5143,9 +4819,11 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
 
                 let expected = 0.0;
                 let expectedUpper = 0.0;
-                if (m === "blood") {
-                    expected = Math.round(Math.max(0.0, (w_total - 1.0) * 10.0) * 10) / 10;
-                    expectedUpper = Math.round(Math.max(10.0, 10.0 * w_total) * 10) / 10;
+                if (m === "blood" || m === "glucose") {
+                    const factor = (m === "glucose") ? 15.0 : 10.0;
+                    const baseUpper = (m === "glucose") ? 20.0 : 10.0;
+                    expected = Math.round(Math.max(0.0, (w_total - 1.0) * factor) * 10) / 10;
+                    expectedUpper = Math.round(Math.max(baseUpper, baseUpper * w_total) * 10) / 10;
                 } else if (m === "ammonia" || m === "indole") {
                     const baseExp = Math.round(info.base * w_total * 10) / 10;
                     expectedUpper = Math.round(info.max * (1.0 + Math.max(0.0, w_total - 1.0) * 0.45) * 10) / 10;
@@ -5449,15 +5127,16 @@ try {
             const tab2Grid = document.getElementById('tab2-gut-baseline-grid');
             if (tab2Grid) {
                 tab2Grid.innerHTML = CDSS_MARKERS.map(m => {
-                    const info = CDSS_MARKER_INFO[m];
-                    const ev = evalMap[m];
-                    const expStr = m === 'blood' ? `< ${ev.expectedUpper}` : `${ev.expected}`;
+                    const info = CDSS_MARKER_INFO[m] || { name: m, min: 0, max: 0, unit: '-' };
+                    const ev = evalMap[m] || { expected: 0, expectedUpper: 0, w_total: 1.0 };
+                    const expStr = (m === 'blood' || m === 'glucose') ? `< ${ev.expectedUpper}` : `${ev.expected}`;
+                    const normStr = m === 'blood' ? '< 10' : (m === 'glucose' ? '< 20' : `${info.min}~${info.max}`);
                     const wColor = ev.w_total > 1.15 ? 'text-amber-600' : (ev.w_total < 0.90 ? 'text-sky-600' : 'text-emerald-600');
                     return `
-                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
                             <div>
-                                <div class="text-[11px] font-extrabold text-slate-700 truncate">${info.name}</div>
-                                <div class="text-[10px] text-slate-400">정상: ${m==='blood'?'<10':`${info.min}~${info.max}`}</div>
+                                <div class="text-[11px] font-black text-slate-800 truncate">${info.name}</div>
+                                <div class="text-[10px] text-slate-400">정상: ${normStr}</div>
                             </div>
                             <div class="mt-2 pt-1.5 border-t border-slate-200">
                                 <div class="text-sm font-black text-slate-900">${expStr} <span class="text-[10px] font-normal text-slate-500">${info.unit !== '-' ? info.unit : ''}</span></div>
@@ -7112,5 +6791,19 @@ try {
             }, 300);
         });
     </script>
+
+        // Tab 1 환자 정보 실시간 동기화 이벤트 바인딩
+        document.addEventListener('DOMContentLoaded', function() {
+            ['patient-name', 'patient-species', 'patient-age', 'patient-weight', 'patient-breed'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', () => syncGutCdssFromCurrentTabs(true));
+                    el.addEventListener('change', () => syncGutCdssFromCurrentTabs(true));
+                }
+            });
+            // 초기 동기화 1회 실행
+            setTimeout(() => { if (typeof syncGutCdssFromCurrentTabs === 'function') syncGutCdssFromCurrentTabs(true); }, 300);
+        });
+
 </body>
 </html>

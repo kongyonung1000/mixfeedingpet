@@ -736,19 +736,26 @@
     const root = mount();
     if (!root) return;
 
-    // 환자 기본 정보 입력란 동기화 (비어있는 경우만)
+    // 환자 기본 정보 입력란 동기화 (Tab 1-2 변경사항 실시간 반영)
     const ctx = getAutoContextValues();
     const patEl = document.getElementById("gpr-patient");
-    if (patEl && (!patEl.value || patEl.value === "밍키 (환자-001)")) {
-      patEl.value = ctx.patientName;
+    if (patEl) {
+      const livePat = context.patient_name || ctx.patientName;
+      if (livePat) patEl.value = livePat;
     }
     const dietEl = document.getElementById("gpr-diet");
-    if (dietEl && (!dietEl.value || dietEl.value === "표준 처방식 혼합 급여")) {
-      dietEl.value = ctx.dietMix;
+    if (dietEl) {
+      const liveDiet = (context.diet_mix && context.diet_mix.length > 0)
+        ? context.diet_mix.map(d => d.label || d.name).join(" + ")
+        : ctx.dietMix;
+      if (liveDiet) dietEl.value = liveDiet;
     }
     const medEl = document.getElementById("gpr-medication");
-    if (medEl && (!medEl.value || medEl.value === "복용 약물 없음")) {
-      medEl.value = ctx.drugs;
+    if (medEl) {
+      const liveDrugs = (context.drugs && context.drugs.length > 0)
+        ? context.drugs.join(", ")
+        : ctx.drugs;
+      if (liveDrugs) medEl.value = liveDrugs;
     }
 
     element("gpr-context").textContent =
