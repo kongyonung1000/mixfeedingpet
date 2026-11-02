@@ -581,7 +581,7 @@
         if (!document.getElementById("global-portal-switcher-bar")) {
             const switcherBar = document.createElement("div");
             switcherBar.id = "global-portal-switcher-bar";
-            switcherBar.className = "bg-slate-900 text-white border-b border-slate-800 px-4 py-2 text-xs sticky top-0 z-[60]";
+            switcherBar.className = "bg-slate-900 text-white border-b border-slate-800 px-3 sm:px-4 py-1.5 sm:py-2 text-xs relative lg:sticky top-0 z-[60]";
             switcherBar.innerHTML = `
                 <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center space-x-2">
@@ -846,43 +846,43 @@
                 </div>
 
             </div>
-            <!-- 5단계 스텝 바로가기 바 (스크롤 시 상단 고정) -->
-            <div id="guardian-sticky-step-bar" class="bg-emerald-900/95 backdrop-blur-md border-b border-emerald-700/60 sticky top-[38px] z-[55] shadow-md">
+            <!-- 5단계 스텝 바로가기 바 (모바일에서는 슬림한 1줄 가로 스크롤, 데스크탑에서는 5열 카드) -->
+            <div id="guardian-sticky-step-bar" class="bg-emerald-900/95 backdrop-blur-md border-b border-emerald-700/60 sticky top-0 lg:top-[38px] z-[55] shadow-md">
                 <div>
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 grid grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
-                        <button type="button" onclick="scrollToGuardianSection('g-step1-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
-                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">1</span>
+                    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-1.5 lg:py-2.5 flex flex-nowrap lg:grid lg:grid-cols-5 gap-1.5 lg:gap-2 overflow-x-auto no-scrollbar text-xs">
+                        <button type="button" onclick="scrollToGuardianSection('g-step1-sec')" class="px-2.5 py-1.5 lg:p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-1.5 lg:space-x-2.5 shrink-0 whitespace-nowrap">
+                            <span class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0 text-[11px] lg:text-xs">1</span>
                             <div>
-                                <div class="font-black text-white">[Step 1] 기초 프로필 & Q&A</div>
-                                <div class="text-[11px] text-emerald-200">체형(BCS/MCS) · RER/DER 산출</div>
+                                <div class="font-black text-white text-[11px] lg:text-xs">Step 1 · 기초 프로필</div>
+                                <div class="hidden lg:block text-[11px] text-emerald-200">체형(BCS/MCS) · RER/DER 산출</div>
                             </div>
                         </button>
-                        <button type="button" onclick="scrollToGuardianSection('g-step2-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
-                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">2</span>
+                        <button type="button" onclick="scrollToGuardianSection('g-step2-sec')" class="px-2.5 py-1.5 lg:p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-1.5 lg:space-x-2.5 shrink-0 whitespace-nowrap">
+                            <span class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0 text-[11px] lg:text-xs">2</span>
                             <div>
-                                <div class="font-black text-white">[Step 2] 사료 데이터 입력</div>
-                                <div class="text-[11px] text-emerald-200">DB 검색 · OCR 스캔 · 직접 입력</div>
+                                <div class="font-black text-white text-[11px] lg:text-xs">Step 2 · 사료 입력</div>
+                                <div class="hidden lg:block text-[11px] text-emerald-200">DB 검색 · OCR 스캔 · 직접 입력</div>
                             </div>
                         </button>
-                        <button type="button" onclick="scrollToGuardianSection('g-step3-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
-                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">3</span>
+                        <button type="button" onclick="scrollToGuardianSection('g-step3-sec')" class="px-2.5 py-1.5 lg:p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-1.5 lg:space-x-2.5 shrink-0 whitespace-nowrap">
+                            <span class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0 text-[11px] lg:text-xs">3</span>
                             <div>
-                                <div class="font-black text-white">[Step 3] 6대 믹스피딩 프로그램</div>
-                                <div class="text-[11px] text-emerald-200">배합기 · 토핑10% · 화식DIY · 역추적</div>
+                                <div class="font-black text-white text-[11px] lg:text-xs">Step 3 · 6대 믹스피딩</div>
+                                <div class="hidden lg:block text-[11px] text-emerald-200">배합기 · 토핑10% · 화식DIY · 탐색</div>
                             </div>
                         </button>
-                        <button type="button" onclick="scrollToGuardianSection('g-step4-sec')" class="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-2.5">
-                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">4</span>
+                        <button type="button" onclick="scrollToGuardianSection('g-step4-sec')" class="px-2.5 py-1.5 lg:p-2 rounded-xl bg-white/15 hover:bg-white/25 text-left transition flex items-center space-x-1.5 lg:space-x-2.5 shrink-0 whitespace-nowrap">
+                            <span class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0 text-[11px] lg:text-xs">4</span>
                             <div>
-                                <div class="font-black text-white">[Step 4] 신호등 리포트 & 급여표</div>
-                                <div class="text-[11px] text-emerald-200">칼로리 게이지 · 아침/저녁 스케줄</div>
+                                <div class="font-black text-white text-[11px] lg:text-xs">Step 4 · 급여표 & 리포트</div>
+                                <div class="hidden lg:block text-[11px] text-emerald-200">칼로리 게이지 · 아침/저녁 스케줄</div>
                             </div>
                         </button>
-                        <button type="button" onclick="scrollToGuardianSection('g-step5-sec')" class="p-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/35 border border-amber-300/40 text-left transition flex items-center space-x-2.5 col-span-2 lg:col-span-1">
-                            <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0">5</span>
+                        <button type="button" onclick="scrollToGuardianSection('g-step5-sec')" class="px-2.5 py-1.5 lg:p-2 rounded-xl bg-amber-400/25 hover:bg-amber-400/35 border border-amber-300/40 text-left transition flex items-center space-x-1.5 lg:space-x-2.5 shrink-0 whitespace-nowrap">
+                            <span class="w-5 h-5 lg:w-6 lg:h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center shrink-0 text-[11px] lg:text-xs">5</span>
                             <div>
-                                <div class="font-black text-amber-200">[Step 5] 분변키트 & 장내환경</div>
-                                <div class="text-[11px] text-emerald-100">키트 결과 입력 · 장내환경 쉬운 해설</div>
+                                <div class="font-black text-amber-200 text-[11px] lg:text-xs">Step 5 · 분변패드 기록</div>
+                                <div class="hidden lg:block text-[11px] text-emerald-100">패드 반응 기록 · 이전 기간 비교</div>
                             </div>
                         </button>
                     </div>
