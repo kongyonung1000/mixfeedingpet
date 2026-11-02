@@ -160,12 +160,23 @@
     <script>
         (function() {
             const MASTER_USER = "vet";
-            const MASTER_HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4"; // mixfeeding7582
-            const DEFAULT_INVITE_CODE = "vet1004"; // 기본 수의사 전용 가입 승인코드
-            const INVITE_CODE_KEY = "vet_saas_invite_code";
+            const MASTER_HASH = "968fb906ea88477e067a827ad14efe23d5813f09947ffe70507a8a154ebad5a4";
+            const DEFAULT_INVITE_HASH = "0235725f3ab22380c6874034e3ebbf5aa6083656c8bf05ad9ad2a9cfb367b294";
+            const INVITE_CODE_KEY = "vet_saas_invite_code_hash";
             const USERS_KEY = "vet_saas_registered_users";
             const BANNED_USERS_KEY = "vet_saas_banned_users";
             const SESSION_KEY = "vet_mix_auth_user";
+            let _failedLoginAttempts = 0;
+            let _loginLockUntil = 0;
+
+            function escapeHtmlSafe(str) {
+                return String(str ?? "")
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#39;");
+            }
 
             // SHA-256 해시 계산기
             async function sha256(str) {
@@ -174,13 +185,13 @@
                 return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
             }
 
-            // 현재 유효한 수의사 가입 승인코드 가져오기 (기본값: vet1004)
-            function getActiveInviteCode() {
+            // 현재 유효한 수의사 가입 승인코드 해시 가져오기
+            function getActiveInviteCodeHash() {
                 try {
-                    const customCode = localStorage.getItem(INVITE_CODE_KEY);
-                    return (customCode && customCode.trim()) ? customCode.trim() : DEFAULT_INVITE_CODE;
+                    const customHash = localStorage.getItem(INVITE_CODE_KEY);
+                    return (customHash && customHash.trim()) ? customHash.trim() : DEFAULT_INVITE_HASH;
                 } catch(e) {
-                    return DEFAULT_INVITE_CODE;
+                    return DEFAULT_INVITE_HASH;
                 }
             }
 
@@ -281,25 +292,42 @@
                     pHash = "";
                 }
 
-                // 1) 마스터 관리자 계정 검증 (해시 일치 또는 직접 비밀번호 일치)
+                // 0-1) 로그인 시도 횟수 제한 확인 (Brute-force 방어)
+                if (Date.now() < _loginLockUntil) {
+                    const waitSec = Math.ceil((_loginLockUntil - Date.now()) / 1000);
+                    if (alertBox) {
+                        alertBox.textContent = `보안을 위해 로그인이 일시 잠겼습니다. ${waitSec}초 후 다시 시도해주세요.`;
+                        alertBox.style.display = "block";
+                    }
+                    return false;
+                }
+
+                // 1) 마스터 관리자 계정 검증 (SHA-256 해시 전용)
                 const isMasterUser = (u.toLowerCase() === MASTER_USER.toLowerCase());
-                const isMasterPass = (p === "mixfeeding7582") || (pHash === MASTER_HASH);
+                const isMasterPass = Boolean(pHash && pHash === MASTER_HASH);
 
                 if (isMasterUser && isMasterPass) {
+                    _failedLoginAttempts = 0;
                     const masterProfile = { id: MASTER_USER, name: "대표 수의사 (관리자)", clinic: "하국동물의료원", role: "admin", createdAt: "2026-10-18" };
                     grantSession(masterProfile);
                     return false;
                 }
 
-                // 2) 가입 회원 검증
+                // 2) 가입 회원 검증 (SHA-256 해시 전용)
                 const users = getRegisteredUsers();
                 const found = users.find(user => user.id.toLowerCase() === u.toLowerCase());
-                if (found && (found.passwordHash === pHash || found.plainPassword === p)) {
+                if (found && pHash && found.passwordHash === pHash) {
+                    _failedLoginAttempts = 0;
                     grantSession(found);
                     return false;
                 }
 
-                // 인증 실패
+                // 인증 실패 카운트 및 잠금
+                _failedLoginAttempts += 1;
+                if (_failedLoginAttempts >= 5) {
+                    _loginLockUntil = Date.now() + 60000;
+                    _failedLoginAttempts = 0;
+                }
                 if (alertBox) {
                     alertBox.textContent = "아이디 또는 비밀번호가 올바르지 않습니다.";
                     alertBox.style.display = "block";
@@ -326,8 +354,9 @@
                 alertBox.style.display = "none";
                 successBox.style.display = "none";
 
-                const requiredInviteCode = getActiveInviteCode();
-                if (!inviteCode || (inviteCode.toLowerCase() !== requiredInviteCode.toLowerCase() && inviteCode.toLowerCase() !== DEFAULT_INVITE_CODE.toLowerCase())) {
+                const inputInviteHash = inviteCode ? await sha256(inviteCode.toLowerCase()) : "";
+                const requiredInviteHash = getActiveInviteCodeHash();
+                if (!inviteCode || (inputInviteHash !== requiredInviteHash && inputInviteHash !== DEFAULT_INVITE_HASH)) {
                     alertBox.innerHTML = "🚫 <strong>수의사 전용 가입 승인코드가 일치하지 않습니다.</strong><br>수의사가 아닌 일반인은 가입할 수 없으며, 승인코드는 관리자에게 문의해주세요.";
                     alertBox.style.display = "block";
                     const codeField = document.getElementById("signup-invite-code");
@@ -395,10 +424,17 @@
                 document.getElementById("signin-pass").focus();
             };
 
-            // 세션 부여 & 화면 잠금 해제
+            // 세션 부여 & 화면 잠금 해제 (보안을 위해 sessionStorage에만 최소 프로필 저장)
             function grantSession(userProfile) {
-                try { localStorage.setItem(SESSION_KEY, JSON.stringify(userProfile)); } catch(e) {}
-                try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(userProfile)); } catch(e) {}
+                const safeSessionProfile = {
+                    id: escapeHtmlSafe(userProfile.id),
+                    name: escapeHtmlSafe(userProfile.name),
+                    clinic: escapeHtmlSafe(userProfile.clinic || "수의사"),
+                    role: userProfile.role === "admin" ? "admin" : "member",
+                    loginAt: Date.now()
+                };
+                try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+                try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(safeSessionProfile)); } catch(e) {}
                 const shield = document.getElementById("private-gate-shield");
                 if (shield) {
                     shield.style.setProperty("display", "none", "important");
@@ -447,20 +483,18 @@
                 const container = document.getElementById("members-table-container");
                 const users = getRegisteredUsers();
                 const bannedUsers = getBannedUsers();
-                const activeCode = getActiveInviteCode();
-
                 let html = `
-                    <!-- 1. 수의사 전용 가입 승인코드 설정 박스 -->
+                    <!-- 1. 수의사 전용 가입 승인코드 설정 박스 (암호화 해시 저장) -->
                     <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
                         <div>
                             <div style="font-size: 13px; font-weight: 800; color: #1e3a8a;">
-                                <i class="fa-solid fa-key" style="margin-right: 5px; color: #2563eb;"></i>현재 수의사 가입 승인코드:
-                                <span style="font-family: monospace; font-size: 15px; background: #ffffff; color: #1d4ed8; padding: 2px 10px; border-radius: 6px; border: 1px solid #93c5fd; margin-left: 4px;">${activeCode}</span>
+                                <i class="fa-solid fa-key" style="margin-right: 5px; color: #2563eb;"></i>수의사 가입 승인코드 보안 상태:
+                                <span style="font-family: monospace; font-size: 12px; background: #ffffff; color: #1d4ed8; padding: 2px 10px; border-radius: 6px; border: 1px solid #93c5fd; margin-left: 4px;">SHA-256 암호화 보호됨</span>
                             </div>
-                            <div style="font-size: 11.5px; color: #475569; margin-top: 4px;">동료 수의사에게만 이 코드(<strong>${activeCode}</strong>)를 알려주세요. 코드를 모르면 외부인은 절대 회원가입할 수 없습니다.</div>
+                            <div style="font-size: 11.5px; color: #475569; margin-top: 4px;">보안을 위해 승인코드는 평문으로 표시되지 않으며 SHA-256 해시로만 검증됩니다.</div>
                         </div>
                         <div style="display: flex; gap: 6px; align-items: center;">
-                            <input type="text" id="admin-new-invite-code" value="${activeCode}" placeholder="새 승인코드" style="padding: 6px 10px; border: 1px solid #93c5fd; border-radius: 8px; font-size: 12px; width: 110px; font-weight: 700; color: #1e293b;">
+                            <input type="password" id="admin-new-invite-code" placeholder="새 승인코드 입력" style="padding: 6px 10px; border: 1px solid #93c5fd; border-radius: 8px; font-size: 12px; width: 130px; font-weight: 700; color: #1e293b;">
                             <button type="button" onclick="updateInviteCodeByAdmin()" style="background: #2563eb; color: white; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">코드 변경</button>
                         </div>
                     </div>
@@ -496,7 +530,7 @@
                     html += `
                         <tr>
                             <td colspan="6" style="padding: 20px; text-align: center; color: #94a3b8;">
-                                아직 회원가입한 일반 회원이 없습니다.<br>승인코드(<strong>${activeCode}</strong>)로 가입한 회원이 이곳에 표시됩니다.
+                                아직 회원가입한 일반 회원이 없습니다.<br>수의사 전용 승인코드로 가입한 회원이 이곳에 표시됩니다.
                             </td>
                         </tr>
                     `;
@@ -557,16 +591,18 @@
                 document.getElementById("members-modal").style.display = "none";
             };
 
-            // 관리자: 가입 승인코드 변경
-            window.updateInviteCodeByAdmin = function() {
+            // 관리자: 가입 승인코드 변경 (SHA-256 해시 저장)
+            window.updateInviteCodeByAdmin = async function() {
                 const inp = document.getElementById("admin-new-invite-code");
                 const newCode = (inp?.value || "").trim();
-                if (!newCode || newCode.length < 3) {
-                    alert("승인코드는 최소 3자 이상 입력해주세요.");
+                if (!newCode || newCode.length < 4) {
+                    alert("승인코드는 최소 4자 이상 입력해주세요.");
                     return;
                 }
-                localStorage.setItem(INVITE_CODE_KEY, newCode);
-                alert(`✅ 수의사 전용 가입 승인코드가 '${newCode}'(으)로 변경되었습니다!`);
+                const newHash = await sha256(newCode.toLowerCase());
+                localStorage.setItem(INVITE_CODE_KEY, newHash);
+                localStorage.removeItem("vet_saas_invite_code");
+                alert("✅ 수의사 전용 가입 승인코드가 안전하게 암호화(SHA-256)되어 변경되었습니다!");
                 openMembersModal();
             };
 
@@ -7103,31 +7139,26 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="static/supabase_config.js"></script>
 <script src="static/supabase_auth_pet.js"></script>
-<script src="static/gut-pattern-review.js?v=20261103_09"></script>
-<script src="static/guardian_portal.js?v=20261103_09"></script>
+<script src="static/gut-pattern-review.js?v=20261103_11"></script>
+<script src="static/guardian_portal.js?v=20261103_11"></script>
     <script>
-        // 초기 CDSS 자동 시뮬레이션 보장
+        // 초기 CDSS 자동 시뮬레이션 및 Tab 1 환자 정보 실시간 동기화 이벤트 바인딩
         document.addEventListener('DOMContentLoaded', function() {
+            ['patient-name', 'patient-species', 'patient-age', 'patient-weight', 'patient-breed'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', () => { if (typeof syncGutCdssFromCurrentTabs === 'function') syncGutCdssFromCurrentTabs(true); });
+                    el.addEventListener('change', () => { if (typeof syncGutCdssFromCurrentTabs === 'function') syncGutCdssFromCurrentTabs(true); });
+                }
+            });
             setTimeout(function() {
-                if (typeof runGutEnvironmentCDSS === 'function') {
+                if (typeof syncGutCdssFromCurrentTabs === 'function') {
+                    syncGutCdssFromCurrentTabs(true);
+                } else if (typeof runGutEnvironmentCDSS === 'function') {
                     runGutEnvironmentCDSS();
                 }
             }, 300);
         });
     </script>
-
-        // Tab 1 환자 정보 실시간 동기화 이벤트 바인딩
-        document.addEventListener('DOMContentLoaded', function() {
-            ['patient-name', 'patient-species', 'patient-age', 'patient-weight', 'patient-breed'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', () => syncGutCdssFromCurrentTabs(true));
-                    el.addEventListener('change', () => syncGutCdssFromCurrentTabs(true));
-                }
-            });
-            // 초기 동기화 1회 실행
-            setTimeout(() => { if (typeof syncGutCdssFromCurrentTabs === 'function') syncGutCdssFromCurrentTabs(true); }, 300);
-        });
-
 </body>
 </html>

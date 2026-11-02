@@ -613,7 +613,20 @@
             `;
             document.body.insertBefore(switcherBar, document.body.firstChild);
         }
-        if (shield) {
+        const hasValidVetSession = (function() {
+            try {
+                const raw = sessionStorage.getItem("vet_mix_auth_user");
+                if (!raw) return false;
+                const parsed = JSON.parse(raw);
+                return Boolean(parsed && parsed.id);
+            } catch (e) {
+                return false;
+            }
+        })();
+        if (!hasValidVetSession) {
+            setVetElementsVisibility(false);
+        }
+        if (shield && !hasValidVetSession) {
             backToDualPortalCards();
             shield.style.setProperty("display", "flex", "important");
         }
@@ -695,6 +708,26 @@
     }
 
     window.enterVetPortalDirect = function () {
+        let validVet = false;
+        try {
+            const raw = sessionStorage.getItem("vet_mix_auth_user");
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                validVet = Boolean(parsed && parsed.id);
+            }
+        } catch (e) {
+            validVet = false;
+        }
+        if (!validVet) {
+            setVetElementsVisibility(false);
+            const shield = document.getElementById("private-gate-shield");
+            if (shield) {
+                shield.style.setProperty("display", "flex", "important");
+                if (typeof showVetLoginFormInGate === "function") showVetLoginFormInGate();
+            }
+            return;
+        }
+
         const shield = document.getElementById("private-gate-shield");
         if (shield) shield.style.setProperty("display", "none", "important");
 
@@ -1221,22 +1254,57 @@
                         </div>
                     </div>
 
-                    <!-- 방식 2: 포장지 뒷면 AI OCR 스캔 -->
-                    <div id="g-ingest-panel-ocr" class="hidden bg-indigo-50/50 p-5 rounded-2xl border border-indigo-200 space-y-4">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <label class="block text-xs font-black text-indigo-950">📷 사료 포장지 뒷면(등록성분량/원재료명) 사진 업로드</label>
-                                <div class="flex items-center space-x-2">
-                                    <input type="file" id="g-ocr-file" accept="image/*" onchange="runGuardianImageOCR(event)" class="text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
-                                    <span id="g-ocr-status" class="text-xs font-bold text-indigo-700"></span>
-                                </div>
-                                <p class="text-[11px] text-slate-500">포장지 사진을 선택하면 AI OCR(Tesseract)이 조단백·조지방·칼슘·인 수치와 원재료 순서를 자동으로 읽어옵니다.</p>
+                    <!-- 방식 2: 포장지 뒷면 AI OCR 스캔 (주사료 + 믹스피딩 사료 듀얼 업로드 지원) -->
+                    <div id="g-ingest-panel-ocr" class="hidden bg-gradient-to-br from-indigo-50/70 via-sky-50/50 to-blue-50/70 p-5 rounded-2xl border-2 border-indigo-200 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between border-b border-indigo-100 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shadow"><i class="fa-solid fa-camera"></i></span>
+                                <h3 class="text-sm font-black text-indigo-950">스마트폰 AI 사료 라벨 판독기 (Vision OCR)</h3>
                             </div>
-                            <div class="space-y-2">
-                                <label class="block text-xs font-black text-indigo-950">📋 또는 포장지 성분/원재료 텍스트 붙여넣기 후 자동 파싱</label>
-                                <textarea id="g-ocr-textarea" rows="3" placeholder="예: 조단백질 27% 이상, 조지방 16% 이상, 조섬유 3.5% 이하, 조회분 7.0% 이하, 칼슘 1.0% 이상, 인 0.8% 이상, 수분 10% 이하 / 원재료: 생닭고기, 쌀, 완두콩, 단호박, 어유..." class="w-full p-2.5 rounded-xl border border-indigo-300 text-xs"></textarea>
-                                <button type="button" onclick="parseGuardianOcrText()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shadow">
-                                    🔍 텍스트에서 영양소 & 원재료 순서 자동 추출
+                            <span class="text-[11px] font-bold text-indigo-600 bg-white px-2.5 py-1 rounded-full border border-indigo-200">Gemini 2.5 Vision + Atwater 산식 탑재</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- [슬롯 1: 주식 사료 라벨 스캔] -->
+                            <div class="bg-white p-4 rounded-xl border border-indigo-200 shadow-xs space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-black text-slate-800 flex items-center">
+                                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] flex items-center justify-center mr-1.5 font-bold">1</span>
+                                        주 사료 (주식 건식/습식) 포장지 촬영
+                                    </label>
+                                    <span class="text-[10.5px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded">기본 주식</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 leading-tight">사료 뒷면의 <strong>[등록성분량 / 성분분석치]</strong> 사진을 찍거나 앨범에서 선택하세요.</p>
+                                <div class="space-y-1.5">
+                                    <input type="file" id="g-ocr-file" accept="image/*" capture="environment" onchange="runGuardianImageOCR(event, 'primary')" class="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                                    <div id="g-ocr-status" class="text-xs font-bold min-h-[20px] text-blue-700"></div>
+                                </div>
+                            </div>
+
+                            <!-- [슬롯 2: 믹스피딩 사료 라벨 스캔] -->
+                            <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-xs space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-black text-slate-800 flex items-center">
+                                        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] flex items-center justify-center mr-1.5 font-bold">2</span>
+                                        믹스피딩 사료 (습식캔/화식/파우치) 촬영
+                                    </label>
+                                    <span class="text-[10.5px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">믹스 대상</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 leading-tight">함께 섞어 먹일 <strong>[습식캔/화식 포장지 라벨]</strong> 사진을 찍으면 믹스 배합기에 자동 등록됩니다.</p>
+                                <div class="space-y-1.5">
+                                    <input type="file" id="g-ocr-file-secondary" accept="image/*" capture="environment" onchange="runGuardianImageOCR(event, 'secondary')" class="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer">
+                                    <div id="g-ocr-status-secondary" class="text-xs font-bold min-h-[20px] text-emerald-700"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 텍스트 직접 붙여넣기 보조 도구 -->
+                        <div class="bg-white/80 p-3.5 rounded-xl border border-indigo-100 space-y-2">
+                            <label class="block text-xs font-bold text-slate-700">📋 또는 성분/원재료 텍스트를 직접 붙여넣어 자동 파싱</label>
+                            <div class="flex gap-2">
+                                <textarea id="g-ocr-textarea" rows="2" placeholder="예: 조단백질 27% 이상, 조지방 16% 이상, 조섬유 3.5% 이하, 조회분 7.0% 이하, 칼슘 1.0% 이상, 인 0.8% 이상, 수분 10% 이하 / 원재료: 생닭고기, 쌀, 완두콩, 단호박, 어유..." class="w-full p-2 rounded-lg border border-indigo-200 text-xs focus:border-indigo-500 outline-none"></textarea>
+                                <button type="button" onclick="parseGuardianOcrText()" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs whitespace-nowrap self-stretch">
+                                    추출 ➔
                                 </button>
                             </div>
                         </div>
