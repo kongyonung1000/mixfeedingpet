@@ -2,7 +2,7 @@
 Flask Backend Web Server & REST API for Prescription Diet Recommendation System.
 Includes Bioavailability & Fecal Kit AI Calibration Engine.
 """
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
 import os
 import sys
 import hashlib
@@ -56,39 +56,24 @@ def verify_credentials(user: str, pwd: str) -> bool:
 
 @app.before_request
 def require_login():
-    # 정적 파일 및 로그인/로그아웃 페이지는 허용
-    if request.path.startswith('/static') or request.path in ['/login', '/logout']:
-        return None
-    if not session.get('authenticated'):
-        if request.path.startswith('/api'):
-            return jsonify({"error": "인증이 필요한 비공개 서비스입니다."}), 401
-        return redirect(url_for('login'))
+    return None
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
-        if verify_credentials(username, password):
-            session['authenticated'] = True
-            session.permanent = True
-            return redirect(url_for('index'))
-        return render_template('login.html', error="아이디 또는 비밀번호가 올바르지 않습니다.")
-    if session.get('authenticated'):
-        return redirect(url_for('index'))
-    return render_template('login.html')
+    return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 loader = get_data_loader()
 optimizer = MixFeedingOptimizer(loader)
 
 @app.route('/')
 def index():
-    return render_template('index.html', disease_list=list(DISEASE_GUIDELINES.keys()))
+    root_dir = os.path.abspath(os.path.dirname(__file__))
+    return send_from_directory(root_dir, 'index.html')
 
 @app.route('/api/diseases', methods=['GET'])
 def get_diseases():
@@ -398,6 +383,177 @@ from core.gut_cdss import (
 )
 
 gut_cdss_engine = GutEnvironmentCDSS(attenuation_alpha=0.40)
+from core.nutrition_consultant import NutritionConsultantService
+from core.fecal_vision import FecalKitVisionParser
+from core.smart_chart_parser import SmartChartParser
+from core.feed_ocr import FeedOCRParser
+from core.custom_mix_simulation import CustomMixSimulator
+import base64
+
+feed_ocr_parser = FeedOCRParser()
+smart_chart_parser = SmartChartParser()
+fecal_vision_parser = FecalKitVisionParser()
+nutrition_consultant_service = NutritionConsultantService()
+
+@app.route('/api/consult/guardian', methods=['POST'])
+def consult_guardian():
+    """
+    보호자용 AI 영양 코치 상담 엔드포인트.
+    """
+    data = request.json or {}
+    question = data.get('question', '').strip()
+    context = data.get('context', {})
+    if not question:
+        return jsonify({"success": False, "error": "질문 내용을 입력해주세요."}), 400
+
+    result = nutrition_consultant_service.consult_guardian(question, context)
+    return jsonify(result)
+
+@app.route('/api/consult/vet', methods=['POST'])
+def consult_vet_cdss():
+    """
+    수의사용 임상 영양학 CDSS 및 문헌(SACN, NRC, IRIS) 근거 검색 엔드포인트.
+    """
+    data = request.json or {}
+    question = data.get('question', '').strip()
+    context = data.get('context', {})
+    if not question:
+        return jsonify({"success": False, "error": "임상 질의를 입력해주세요."}), 400
+
+    result = nutrition_consultant_service.consult_vet_cdss(question, context)
+    return jsonify(result)
+
+
+@app.route('/api/fecal-kit/analyze', methods=['POST'])
+def analyze_fecal_kit_image():
+    """
+    분변키트 마커 종이패드 사진 업로드 및 색분해 장내환경 판독 엔드포인트.
+    """
+    image_bytes = None
+    mime_type = "image/jpeg"
+
+    if 'file' in request.files:
+        uploaded_file = request.files['file']
+        image_bytes = uploaded_file.read()
+        mime_type = uploaded_file.mimetype or "image/jpeg"
+    elif request.is_json:
+        req_data = request.json or {}
+        b64_str = req_data.get('image_base64', '')
+        if ',' in b64_str:
+            header, b64_str = b64_str.split(',', 1)
+            if 'image/png' in header:
+                mime_type = 'image/png'
+            elif 'image/webp' in header:
+                mime_type = 'image/webp'
+        if b64_str:
+            try:
+                image_bytes = base64.b64decode(b64_str)
+            except Exception as e:
+                return jsonify({"success": False, "error": f"Base64 디코딩 실패: {str(e)}"}), 400
+
+    if not image_bytes:
+        return jsonify({"success": False, "error": "분변키트 이미지 데이터가 없습니다."}), 400
+
+    analysis_res = fecal_vision_parser.parse_from_image_bytes(image_bytes, mime_type=mime_type)
+    if not analysis_res.get("success"):
+        return jsonify(analysis_res), 400
+
+    # CDSS 엔진과 즉시 연동 (장내환경 종합 평가)
+    markers = analysis_res.get("markers", {})
+    age_years = float(request.form.get('age_years') or 11.0)
+    weight_kg = float(request.form.get('weight_kg') or 5.0)
+
+    try:
+        baseline = gut_cdss_engine.compute_expected_baseline(
+            age_years=age_years,
+            weight_kg=weight_kg,
+            diet_weights_with_ratios=[],
+            selected_drugs=[],
+            selected_diseases=[]
+        )
+        evaluation = gut_cdss_engine.evaluate_and_attribute(
+            measurements=markers,
+            baseline_result=baseline,
+            selected_drugs=[],
+            selected_diseases=[]
+        )
+        analysis_res["cdss_baseline"] = baseline
+        analysis_res["cdss_evaluation"] = evaluation
+    except Exception as e:
+        analysis_res["cdss_error"] = str(e)
+
+    return jsonify(analysis_res)
+
+
+@app.route('/api/chart/parse', methods=['POST'])
+def parse_clinical_chart():
+    """
+    수의사 자연어 진료 기록(SOAP / 임상 노트) 파싱 및 계산기 파라미터 자동 추출 엔드포인트.
+    """
+    data = request.json or {}
+    text = data.get('text', '').strip()
+    if not text:
+        return jsonify({"success": False, "error": "진료 기록 텍스트를 입력해주세요."}), 400
+
+    result = smart_chart_parser.parse_text(text)
+    return jsonify(result)
+
+
+@app.route('/api/ocr/feed', methods=['POST'])
+def ocr_feed_label():
+    image_bytes = None
+    mime_type = 'image/jpeg'
+
+    if 'file' in request.files:
+        uploaded_file = request.files['file']
+        image_bytes = uploaded_file.read()
+        mime_type = uploaded_file.mimetype or 'image/jpeg'
+    elif request.is_json:
+        req_data = request.json or {}
+        b64_str = req_data.get('image_base64', '')
+        if ',' in b64_str:
+            header, b64_str = b64_str.split(',', 1)
+            if 'image/png' in header:
+                mime_type = 'image/png'
+            elif 'image/webp' in header:
+                mime_type = 'image/webp'
+        if b64_str:
+            try:
+                image_bytes = base64.b64decode(b64_str)
+            except Exception as e:
+                return jsonify({'success': False, 'error': f'Base64 디코딩 실패: {str(e)}'}), 400
+
+    if not image_bytes:
+        return jsonify({'success': False, 'error': '업로드된 이미지 파일 또는 base64 데이터가 없습니다.'}), 400
+
+    result = feed_ocr_parser.parse_from_image_bytes(image_bytes, mime_type=mime_type)
+    return jsonify(result)
+
+@app.route('/api/simulate-custom-mix', methods=['POST'])
+def simulate_custom_mix():
+    data = request.json or {}
+    patient_data = data.get('patient', {})
+    feeds_data = data.get('feeds', [])
+
+    species_val = Species.DOG if patient_data.get('species') == '개' else Species.CAT
+    patient = PatientProfile(
+        name=patient_data.get('name', '반려동물'),
+        species=species_val,
+        weight_kg=float(patient_data.get('weight_kg', 5.0) or 5.0),
+        age_years=float(patient_data.get('age_years', 5.0) or 5.0),
+        bcs=int(patient_data.get('bcs', 5) or 5),
+        diseases=patient_data.get('diseases', []),
+        activity_level=patient_data.get('activity_level', '보통'),
+        target_weight_kg=float(patient_data.get('target_weight_kg')) if patient_data.get('target_weight_kg') else None
+    )
+
+    simulation_result = CustomMixSimulator.simulate(
+        patient=patient,
+        feeds=feeds_data,
+        ratio_mode=data.get('ratio_mode', 'CALORIE')
+    )
+    return jsonify(simulation_result)
+
 
 @app.route('/api/gut-cdss/evaluate', methods=['POST'])
 def evaluate_gut_cdss():

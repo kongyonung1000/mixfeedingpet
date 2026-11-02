@@ -1068,13 +1068,20 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block font-black text-slate-700 mb-1">💩 Q4-2. 최근 응가(변) 상태</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="font-black text-slate-700">💩 Q4-2. 응가(변) 상태</label>
+                                <label for="g-fecal-kit-upload" class="cursor-pointer text-[10.5px] font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-2 py-0.5 rounded-full transition flex items-center">
+                                    <i class="fa-solid fa-camera mr-1"></i>키트 사진 판독
+                                </label>
+                                <input type="file" id="g-fecal-kit-upload" accept="image/*" capture="environment" onchange="runGuardianFecalKitVision(event)" class="hidden">
+                            </div>
                             <select id="g-fecal" onchange="onGuardianProfileChange()" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800">
                                 <option value="2.0">🌰 토끼똥처럼 딱딱하고 건조해요 (Score 2)</option>
                                 <option value="3.5" selected>🍌 바나나처럼 예쁘고 촉촉해요 (Score 3.5 정상)</option>
                                 <option value="4.5">🍦 형태는 있지만 집으면 뭉개져요 (Score 4.5 무른변)</option>
                                 <option value="6.0">💧 형태가 없는 죽 같거나 물설사예요 (Score 6)</option>
                             </select>
+                            <div id="g-fecal-kit-status" class="text-[10px] text-emerald-700 font-bold mt-1 min-h-[14px]"></div>
                         </div>
                         <div>
                             <label class="block font-black text-slate-700 mb-1">🍽️ Q4-3. 하루 식사 횟수</label>
@@ -2650,31 +2657,31 @@
                 window.applyOcrToSecondaryFood(data);
             } else {
                 // 주 사료 (기본 건식)
-                const nameInp = document.getElementById("g-manual-dry-name");
+                const nameInp = document.getElementById("g-dry-name");
                 if (nameInp && data.name) nameInp.value = data.name;
 
                 const brandInp = document.getElementById("g-manual-dry-brand");
                 if (brandInp && data.company) brandInp.value = data.company;
 
-                const pInp = document.getElementById("g-manual-dry-protein");
+                const pInp = document.getElementById("g-dry-prot");
                 if (pInp && ga.crude_protein_pct != null) pInp.value = ga.crude_protein_pct;
 
-                const fInp = document.getElementById("g-manual-dry-fat");
+                const fInp = document.getElementById("g-dry-fat");
                 if (fInp && ga.crude_fat_pct != null) fInp.value = ga.crude_fat_pct;
 
-                const fibInp = document.getElementById("g-manual-dry-fiber");
+                const fibInp = document.getElementById("g-dry-fiber");
                 if (fibInp && ga.crude_fiber_pct != null) fibInp.value = ga.crude_fiber_pct;
 
-                const ashInp = document.getElementById("g-manual-dry-ash");
+                const ashInp = document.getElementById("g-dry-ash");
                 if (ashInp && ga.crude_ash_pct != null) ashInp.value = ga.crude_ash_pct;
 
-                const caInp = document.getElementById("g-manual-dry-ca");
+                const caInp = document.getElementById("g-dry-ca");
                 if (caInp && ga.calcium_pct != null) caInp.value = ga.calcium_pct;
 
-                const phInp = document.getElementById("g-manual-dry-p");
+                const phInp = document.getElementById("g-dry-p");
                 if (phInp && ga.phosphorus_pct != null) phInp.value = ga.phosphorus_pct;
 
-                const moistInp = document.getElementById("g-manual-dry-moisture");
+                const moistInp = document.getElementById("g-dry-moist");
                 if (moistInp && ga.moisture_pct != null) moistInp.value = ga.moisture_pct;
 
                 const meInp = document.getElementById("g-manual-dry-kcal");
@@ -4871,4 +4878,59 @@
     } else {
         setupDualPortalLandingAndHeader();
     }
-})();
+    // 보호자용 분변키트 사진 판독 함수
+    window.runGuardianFecalKitVision = async function (event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const statusEl = document.getElementById("g-fecal-kit-status");
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-indigo-600"><i class="fa-solid fa-spinner fa-spin mr-1"></i> AI가 분변키트 색상을 분석 중입니다...</span>';
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("weight_kg", guardianState.weight || 5.0);
+            formData.append("age_years", guardianState.age || 5.0);
+
+            const resp = await fetch("/api/fecal-kit/analyze", {
+                method: "POST",
+                body: formData
+            });
+
+            if (!resp.ok) throw new Error("판독 서버 오류");
+            const data = await resp.json();
+            if (!data || data.success === false) throw new Error(data?.error || "판독 실패");
+
+            const m = data.markers || {};
+            const q = data.gut_4quadrant_evaluation || {};
+
+            // 변 상태 셀렉트박스 자동 선택
+            const fecalSelect = document.getElementById("g-fecal");
+            if (fecalSelect) {
+                if (m.absorption < 78 || m.blood >= 10 || m.ph > 7.4) {
+                    fecalSelect.value = "6.0";
+                } else if (m.absorption < 84 || m.fat > 6.0) {
+                    fecalSelect.value = "4.5";
+                } else if (m.ph < 6.0) {
+                    fecalSelect.value = "2.0";
+                } else {
+                    fecalSelect.value = "3.5";
+                }
+                onGuardianProfileChange();
+            }
+
+            if (statusEl) {
+                statusEl.innerHTML = `✅ 판독완료! pH ${m.ph} · 흡수율 ${m.absorption}% (${q.microbiome_balance || '정상'})`;
+            }
+
+            alert(`🎉 [분변키트 AI 판독 완료]\n- 분변 pH: ${m.ph}\n- 소화흡수율: ${m.absorption}%\n- 미생물총: ${q.microbiome_balance || '양호'}\n- 권장사항: ${data.recommended_diet_action || '장내 균형 식단 유지'}`);
+
+        } catch (err) {
+            if (statusEl) statusEl.innerHTML = `<span class="text-rose-600">⚠️ 판독 실패: ${err.message}</span>`;
+        }
+    };
+
+
+    })();
