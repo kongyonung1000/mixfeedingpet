@@ -923,6 +923,13 @@
                             <p class="text-[11px] text-emerald-100/80">계획 유지 · 추가 관찰 기록 · 반복 변화 시 수의사 검토 요청</p>
                         </div>
                     </div>
+                    <!-- [개선점 ④] 보호자 1분 간편 흐름 vs 상세 분석 단계적 펼치기 스위치 -->
+                    <div class="pt-2 border-t border-white/15 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span class="text-emerald-200">💡 <strong>추천 1분 흐름:</strong> [Step 1 기본정보] ➔ [Step 2 먹는 제품] ➔ [Step 3 혼합 비율] ➔ [Step 4 하루 급여표]</span>
+                        <button type="button" onclick="toggleGuardianSimpleMode()" id="g-simple-mode-btn" class="px-3 py-1 rounded-xl bg-amber-400 text-slate-950 font-black hover:bg-amber-300 transition">
+                            ⚡ 1분 간편 화면으로 접기 (핵심 급여표만 보기)
+                        </button>
+                    </div>
                 </section>
 
                 <!-- ================================================================== -->
@@ -3418,15 +3425,21 @@
         setTxt("g-current-food-title", dryMetrics.name);
         const dmBar = document.getElementById("g-dry-dm-summary-bar");
         if (dmBar) {
+            const pPer1000 = Math.round(((dryMetrics.protein_af || 24) * 10000) / Math.max(500, dryMetrics.kcal_per_kg) * 10) / 10;
+            const fPer1000 = Math.round(((dryMetrics.fat_af || 14) * 10000) / Math.max(500, dryMetrics.kcal_per_kg) * 10) / 10;
+            const phosPer1000 = Math.round(((dryMetrics.p_af || 0.8) * 10000) / Math.max(500, dryMetrics.kcal_per_kg) * 100) / 100;
+            const srcModeLabel = guardianState.foodInputMode === "ai_ocr"
+                ? "📷 OCR 스캔 (원본 라벨과 대조·수정 후 확정 필수)"
+                : (guardianState.foodInputMode === "manual" ? "✍️ 사용자 직접 입력 (포장지 보증성분 기준)" : "🏢 내장 DB (제조사 공개/보증성분 · 기준일 2026-10)");
             dmBar.innerHTML = `
                 <div class="flex flex-wrap gap-3 font-bold text-slate-700">
-                    <span>⚡ 추정 대사에너지: <strong class="text-blue-700">${dryMetrics.kcal_per_kg} kcal/kg</strong></span>
-                    <span>• 건물(DM) 조단백: <strong>${dryMetrics.p_dm}%</strong></span>
-                    <span>• 건물(DM) 조지방: <strong>${dryMetrics.f_dm}%</strong></span>
-                    <span>• 건물(DM) 탄수화물(NFE): <strong>${dryMetrics.nfe_dm}%</strong></span>
-                    <span>• 칼슘:인 비율(Ca:P): <strong class="${dryMetrics.ca_p_ratio >= 1.0 && dryMetrics.ca_p_ratio <= 2.0 ? 'text-emerald-700' : 'text-rose-600'}">${dryMetrics.ca_p_ratio} : 1</strong></span>
+                    <span>⚡ 대사에너지: <strong class="text-blue-700">${dryMetrics.kcal_per_kg} kcal/kg</strong> (100g당 ${Math.round(dryMetrics.kcal_per_kg / 10)} kcal)</span>
+                    <span>• 단백질: <strong>급여상태 ${dryMetrics.protein_af}% / 건물 ${dryMetrics.p_dm}% / ${pPer1000}g/1,000kcal</strong></span>
+                    <span>• 지방: <strong>급여상태 ${dryMetrics.fat_af}% / 건물 ${dryMetrics.f_dm}% / ${fPer1000}g/1,000kcal</strong></span>
+                    <span>• 인(Phosphorus): <strong>건물 ${dryMetrics.phos_dm}% / ${phosPer1000}g/1,000kcal</strong></span>
+                    <span>• 칼슘:인(Ca:P): <strong class="${dryMetrics.ca_p_ratio >= 1.0 && dryMetrics.ca_p_ratio <= 2.0 ? 'text-emerald-700' : 'text-rose-600'}">${dryMetrics.ca_p_ratio} : 1</strong></span>
                 </div>
-                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 font-black">100g당 ${Math.round(dryMetrics.kcal_per_kg / 10)} kcal</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 font-black text-[11px]">${srcModeLabel}</span>
             `;
         }
 
@@ -3690,9 +3703,16 @@
             {
                 title: "칼슘 : 인 비율 (Ca:P)",
                 val: `${mixCaP} : 1`,
-                target: "황금비율 1.1 ~ 1.8 : 1",
+                target: "권장 비율 1.1 ~ 1.8 : 1",
                 status: (mixCaP < 1.0 || mixCaP > 2.2) ? "RED" : (mixCaP < 1.1 ? "YELLOW" : "GREEN"),
-                desc: mixCaP < 1.0 ? "역전 위험! 고기 토핑을 줄이거나 칼슘 보충" : "AAFCO 이상적 비율 충족"
+                desc: mixCaP < 1.0 ? "역전 주의: 고기 토핑 축소 또는 칼슘 보충 검토" : "확인된 칼슘·인 비율 기준 이내"
+            },
+            {
+                title: "미공개 미량영양소 (비타민·미네랄)",
+                val: "자료 미확인",
+                target: "아미노산·비타민·미량광물질 30여 종",
+                status: "UNKNOWN",
+                desc: "영양 충족 여부 판단 불가 (전체 완전균형 단정 불가)"
             }
         ];
 
@@ -3710,8 +3730,10 @@
                     ? { bg: "bg-emerald-50/70 border-emerald-300", dot: "🟢 확인항목 목표이내", text: "text-emerald-900", badge: "bg-emerald-100 text-emerald-800" }
                     : (item.status === "YELLOW"
                         ? { bg: "bg-amber-50/80 border-amber-300", dot: "🟡 목표 경계/검토", text: "text-amber-900", badge: "bg-amber-100 text-amber-800" }
-                        : { bg: "bg-rose-50/80 border-rose-300", dot: "🔴 확인항목 목표밖", text: "text-rose-900", badge: "bg-rose-100 text-rose-800" });
-                const srcTag = sourceTagForItem(item.title);
+                        : (item.status === "UNKNOWN"
+                            ? { bg: "bg-slate-100 border-slate-300", dot: "⚪ 판단 불가(자료부족)", text: "text-slate-700", badge: "bg-slate-200 text-slate-800" }
+                            : { bg: "bg-rose-50/80 border-rose-300", dot: "🔴 확인항목 목표밖", text: "text-rose-900", badge: "bg-rose-100 text-rose-800" }));
+                const srcTag = item.status === "UNKNOWN" ? "⑤ 확인되지 않음 (제조사 미공개)" : sourceTagForItem(item.title);
                 return `
                     <div class="p-3.5 rounded-2xl border ${styles.bg} flex flex-col justify-between space-y-1.5">
                         <div class="flex items-center justify-between gap-1">
@@ -3970,6 +3992,23 @@
         evaluateGuardianFecalKit();
     };
 
+    window.toggleGuardianSimpleMode = function () {
+        guardianState.simpleMode = !guardianState.simpleMode;
+        const step5 = document.getElementById("g-step5-sec");
+        const btn = document.getElementById("g-simple-mode-btn");
+        if (step5) {
+            if (guardianState.simpleMode) {
+                step5.classList.add("hidden");
+            } else {
+                step5.classList.remove("hidden");
+            }
+        }
+        if (btn) {
+            btn.innerText = guardianState.simpleMode
+                ? "🔬 상세 기능(분변패드 기록 등) 다시 펼치기"
+                : "⚡ 1분 간편 화면으로 접기 (핵심 급여표만 보기)";
+        }
+    };
     window.saveGuardianPadRecordToHistory = function () {
         const fk = guardianState.fecalKit;
         const hist = JSON.parse(localStorage.getItem("guardian_pad_feeding_history_v1") || "[]");
