@@ -1,56 +1,42 @@
 /**
  * static/js/mixfeeding_ai_agent.js
- * 믹스피딩 계산기 전용 통합 AI 도우미 (보호자용 & 수의사용 Q&A · 영양상담 · 사용법 가이드)
+ * 포털별 전용 AI 도우미 (보호자 포털 = 보호자 상담·사용법 Q&A 전용 / 수의사 포털 = 수의사 가이드·자동체크 전용)
  *
- * [개편 핵심 원칙]
- * 1. 본문 계산기(수의사 Tab 2·4, 보호자 Step 2·5)와 중복되거나 실측치를 임의 추정치로 덮어쓰던
- *    [분변키트 패드 색분해] 및 [사료 포장지 OCR 업로드] 버튼을 에이전트에서 완전 제거.
+ * [핵심 설계]
+ * 1. 수동 모드 전환 스위치를 제거하여, 현재 접속한 포털에 맞는 에이전트만 1:1로 표시됨.
+ *    - 초기 게이트(로그인/포털 선택 창)에서는 플로팅 에이전트를 숨김.
+ *    - 보호자용 믹스피딩 계산기 진입 시 ➔ '🐾 보호자용 믹스피딩 상담 & 사용법 Q&A'만 단독 작동.
+ *    - 수의사용 믹스피딩 계산기(로그인 후) 진입 시 ➔ '🩺 수의사용 임상 가이드 & 차트 자동체크 Q&A'만 단독 작동.
  * 2. 첫 진입 시 화면을 가리지 않도록 우측 하단 컴팩트 플로팅 버튼(기본 접힘 상태)으로 시작.
- * 3. [보호자 모드]: 웹사이트 1분 사용법 안내(단계별 바로가기), 맞춤 믹스피딩 비율/급여량 상담,
- *    7일 사료 전환 스케줄, 하루 음수량 & 간식·토핑 10% 안전 계산, 사료 라벨 OCR 등록 위치 안내.
- * 4. [수의사 모드]: 수의사용 4대 탭 & EMR 사용법 가이드, 자연어 진료차트 스마트 자동체크(Tab 1·4 연동),
- *    복합질환 영양 상충(CKD+췌장염 등) CDSS 근거 및 학술 문헌(IRIS/WSAVA/ACVIM/SACN) Q&A.
  */
 
 (function () {
     "use strict";
 
     window.aiAgentState = {
-        mode: "guardian", // "guardian" or "vet"
-        isOpen: false     // 기본 접힘 상태로 시작하여 본문 계산기 화면 가림 방지
+        mode: "guardian", // 현재 활성 포털에 의해 자동 결정 ("guardian" | "vet")
+        isOpen: false
     };
 
     const agentWidgetHtml = `
-    <div id="mixfeeding-ai-agent-widget" style="position: fixed; bottom: 18px; right: 18px; z-index: 2147483647; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;">
+    <div id="mixfeeding-ai-agent-widget" style="position: fixed; bottom: 18px; right: 18px; z-index: 2147483647; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; display: none;">
         
         <!-- 메인 대화창 (기본 숨김, 버튼 클릭 시 열림) -->
-        <div id="ai-agent-chat-window" style="width: 400px; max-width: calc(100vw - 24px); height: 560px; max-height: calc(100vh - 90px); background: #ffffff; border-radius: 24px; box-shadow: 0 25px 60px -10px rgba(15, 23, 42, 0.45), 0 0 0 2px rgba(16, 185, 129, 0.35); display: none; flex-direction: column; overflow: hidden; transition: all 0.25s ease;">
+        <div id="ai-agent-chat-window" style="width: 400px; max-width: calc(100vw - 24px); height: 540px; max-height: calc(100vh - 90px); background: #ffffff; border-radius: 24px; box-shadow: 0 25px 60px -10px rgba(15, 23, 42, 0.45), 0 0 0 2px rgba(16, 185, 129, 0.35); display: none; flex-direction: column; overflow: hidden; transition: all 0.25s ease;">
             
-            <!-- 상단 헤더 -->
-            <div id="ai-agent-header" style="background: linear-gradient(135deg, #065f46, #047857, #0f766e); color: white; padding: 13px 15px; display: flex; flex-direction: column; gap: 9px;">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="width: 34px; height: 34px; border-radius: 11px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">💬</span>
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="font-weight: 900; font-size: 14px; letter-spacing: -0.3px;" id="ai-agent-title">믹스피딩 상담 & 사용법 Q&A</span>
-                                <span id="ai-agent-role-badge" style="font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: #fde047; color: #0f172a;">보호자 도우미</span>
-                            </div>
-                            <div style="font-size: 11px; color: #d1fae5; margin-top: 1px;" id="ai-agent-subtitle">웹사이트 사용법 안내 · 맞춤 믹스피딩 영양 Q&A</div>
+            <!-- 상단 헤더 (현재 포털 전용 헤더만 표시, 수동 전환 버튼 없음) -->
+            <div id="ai-agent-header" style="background: linear-gradient(135deg, #065f46, #047857, #0f766e); color: white; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="ai-agent-icon" style="width: 34px; height: 34px; border-radius: 11px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">🐾</span>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-weight: 900; font-size: 14px; letter-spacing: -0.3px;" id="ai-agent-title">보호자 믹스피딩 상담 · Q&A</span>
+                            <span id="ai-agent-role-badge" style="font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: #fde047; color: #0f172a;">보호자 전용</span>
                         </div>
+                        <div style="font-size: 11px; color: #d1fae5; margin-top: 2px;" id="ai-agent-subtitle">계산기 1분 사용법 안내 · 맞춤 믹스피딩 영양 상담</div>
                     </div>
-                    <button type="button" onclick="toggleAiAgentWindow()" title="대화창 접기" style="background: rgba(255,255,255,0.18); border: none; color: white; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900;">−</button>
                 </div>
-
-                <!-- 모드 전환 스위치 (보호자용 vs 수의사용) -->
-                <div style="display: flex; background: rgba(0,0,0,0.28); border-radius: 10px; padding: 3px; gap: 4px;">
-                    <button type="button" id="ai-mode-btn-guardian" onclick="switchAiAgentMode('guardian')" style="flex: 1; padding: 6px 6px; border: none; border-radius: 8px; font-size: 11.5px; font-weight: 800; cursor: pointer; background: #10b981; color: #052e16; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: all 0.2s;">
-                        🐾 보호자 상담·가이드
-                    </button>
-                    <button type="button" id="ai-mode-btn-vet" onclick="switchAiAgentMode('vet')" style="flex: 1; padding: 6px 6px; border: none; border-radius: 8px; font-size: 11.5px; font-weight: 800; cursor: pointer; background: transparent; color: #e2e8f0; transition: all 0.2s;">
-                        🩺 수의사 가이드·자동체크
-                    </button>
-                </div>
+                <button type="button" onclick="toggleAiAgentWindow()" title="대화창 접기" style="background: rgba(255,255,255,0.18); border: none; color: white; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900;">−</button>
             </div>
 
             <!-- 웹사이트 단계별 바로가기 네비게이션 바 -->
@@ -72,13 +58,51 @@
         </div>
 
         <!-- 기본 표시되는 우측 하단 컴팩트 플로팅 버튼 -->
-        <button id="ai-agent-toggle-btn" type="button" onclick="toggleAiAgentWindow()" style="display: flex; padding: 12px 18px; border-radius: 9999px; background: linear-gradient(135deg, #065f46, #059669, #2563eb); color: white; border: 2px solid #ffffff; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 14px 28px -5px rgba(15, 23, 42, 0.4); align-items: center; gap: 8px;">
-            <span style="font-size: 18px;">💬</span>
-            <span>믹스피딩 상담 · 사용법 Q&A</span>
+        <button id="ai-agent-toggle-btn" type="button" onclick="toggleAiAgentWindow()" style="display: flex; padding: 12px 18px; border-radius: 9999px; background: linear-gradient(135deg, #065f46, #059669); color: white; border: 2px solid #ffffff; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 14px 28px -5px rgba(15, 23, 42, 0.4); align-items: center; gap: 8px;">
+            <span id="ai-agent-toggle-icon" style="font-size: 17px;">🐾</span>
+            <span id="ai-agent-toggle-label">보호자 믹스피딩 상담 · 사용법 Q&A</span>
             <span style="width: 8px; height: 8px; border-radius: 50%; background: #fde047;"></span>
         </button>
     </div>
     `;
+
+    // 현재 활성화된 포털을 감지하여 보호자용/수의사용 에이전트를 1:1 동기화
+    window.syncAiAgentWithActivePortal = function () {
+        const widget = document.getElementById("mixfeeding-ai-agent-widget");
+        const topBtn = document.getElementById("top-open-ai-agent-btn");
+        if (!widget) return;
+
+        const shield = document.getElementById("private-gate-shield");
+        const isGateVisible = shield && window.getComputedStyle(shield).display !== "none";
+
+        // 초기 게이트(포털 선택/로그인 화면)에서는 에이전트 숨김
+        if (isGateVisible) {
+            widget.style.display = "none";
+            if (topBtn) topBtn.style.display = "none";
+            return;
+        }
+
+        const gRoot = document.getElementById("guardian-portal-root");
+        const isGuardianActive = gRoot && !gRoot.classList.contains("hidden");
+        const hasVetSession = !!sessionStorage.getItem("vet_mix_auth_user");
+
+        widget.style.display = "block";
+        if (topBtn) topBtn.style.display = "flex";
+
+        if (isGuardianActive) {
+            if (window.aiAgentState.mode !== "guardian" || widget.dataset.initializedMode !== "guardian") {
+                widget.dataset.initializedMode = "guardian";
+                applyPortalAgentTheme("guardian");
+            }
+        } else if (hasVetSession) {
+            if (window.aiAgentState.mode !== "vet" || widget.dataset.initializedMode !== "vet") {
+                widget.dataset.initializedMode = "vet";
+                applyPortalAgentTheme("vet");
+            }
+        } else {
+            widget.style.display = "none";
+        }
+    };
 
     function initAiAgent() {
         if (!document.getElementById("mixfeeding-ai-agent-widget")) {
@@ -97,30 +121,25 @@
                 if (!window.aiAgentState.isOpen) toggleAiAgentWindow();
             };
             btn.className = "px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-black transition flex items-center space-x-1 shadow";
-            btn.innerHTML = '<span>💬 상담 · 사용법 Q&A</span>';
+            btn.innerHTML = '<span id="top-open-ai-agent-label">💬 상담 · 사용법 Q&A</span>';
             topBar.insertBefore(btn, topBar.firstChild);
         }
 
         // 포털 전환 함수 후킹
-        if (typeof window.enterGuardianPortal === "function" && !window.enterGuardianPortal.__aiHooked) {
-            const origG = window.enterGuardianPortal;
-            window.enterGuardianPortal = function () {
-                origG.apply(this, arguments);
-                switchAiAgentMode("guardian");
-            };
-            window.enterGuardianPortal.__aiHooked = true;
-        }
-        if (typeof window.enterVetPortalDirect === "function" && !window.enterVetPortalDirect.__aiHooked) {
-            const origV = window.enterVetPortalDirect;
-            window.enterVetPortalDirect = function () {
-                origV.apply(this, arguments);
-                switchAiAgentMode("vet");
-            };
-            window.enterVetPortalDirect.__aiHooked = true;
-        }
+        ["enterGuardianPortal", "enterVetPortalDirect", "switchToVetPortalFromTop", "logoutVetSession"].forEach(fnName => {
+            if (typeof window[fnName] === "function" && !window[fnName].__aiPortalHooked) {
+                const orig = window[fnName];
+                window[fnName] = function () {
+                    const res = orig.apply(this, arguments);
+                    setTimeout(window.syncAiAgentWithActivePortal, 50);
+                    return res;
+                };
+                window[fnName].__aiPortalHooked = true;
+            }
+        });
 
-        const hasVetSession = !!sessionStorage.getItem("vet_mix_auth_user");
-        switchAiAgentMode(hasVetSession ? "vet" : "guardian");
+        window.syncAiAgentWithActivePortal();
+        setInterval(window.syncAiAgentWithActivePortal, 600);
     }
 
     window.toggleAiAgentWindow = function () {
@@ -138,38 +157,56 @@
         }
     };
 
-    window.switchAiAgentMode = function (mode) {
+    function applyPortalAgentTheme(mode) {
         window.aiAgentState.mode = mode;
         const header = document.getElementById("ai-agent-header");
+        const icon = document.getElementById("ai-agent-icon");
+        const title = document.getElementById("ai-agent-title");
         const badge = document.getElementById("ai-agent-role-badge");
         const subTitle = document.getElementById("ai-agent-subtitle");
-        const btnGuard = document.getElementById("ai-mode-btn-guardian");
-        const btnVet = document.getElementById("ai-mode-btn-vet");
         const sendBtn = document.getElementById("ai-agent-send-btn");
         const inp = document.getElementById("ai-agent-input");
+        const toggleBtn = document.getElementById("ai-agent-toggle-btn");
+        const toggleIcon = document.getElementById("ai-agent-toggle-icon");
+        const toggleLabel = document.getElementById("ai-agent-toggle-label");
+        const topLabel = document.getElementById("top-open-ai-agent-label");
+        const chatWin = document.getElementById("ai-agent-chat-window");
 
         if (mode === "vet") {
             if (header) header.style.background = "linear-gradient(135deg, #1e1b4b, #312e81, #1d4ed8)";
+            if (icon) icon.innerText = "🩺";
+            if (title) title.innerText = "수의사 임상 가이드 · 자동체크";
             if (badge) { badge.innerText = "수의사 전용"; badge.style.background = "#38bdf8"; badge.style.color = "#0f172a"; }
             if (subTitle) subTitle.innerText = "4대 탭 사용법 · 자연어 차트 자동체크 · 임상 문헌 Q&A";
-            if (btnVet) { btnVet.style.background = "#3b82f6"; btnVet.style.color = "#ffffff"; }
-            if (btnGuard) { btnGuard.style.background = "transparent"; btnGuard.style.color = "#cbd5e1"; }
             if (sendBtn) sendBtn.style.background = "linear-gradient(135deg, #4f46e5, #2563eb)";
-            if (inp) inp.placeholder = "웹사이트 사용법 질문 또는 환자 차트(체중·질환·혈액수치) 입력...";
+            if (inp) inp.placeholder = "탭 사용법 질문 또는 환자 차트(체중·질환·혈액수치) 입력...";
+            if (toggleBtn) toggleBtn.style.background = "linear-gradient(135deg, #1e1b4b, #2563eb)";
+            if (toggleIcon) toggleIcon.innerText = "🩺";
+            if (toggleLabel) toggleLabel.innerText = "수의사 가이드 · 차트 자동체크 Q&A";
+            if (topLabel) topLabel.innerText = "🩺 수의사 가이드 · 자동체크";
+            if (chatWin) chatWin.style.boxShadow = "0 25px 60px -10px rgba(15, 23, 42, 0.45), 0 0 0 2px rgba(59, 130, 246, 0.4)";
         } else {
             if (header) header.style.background = "linear-gradient(135deg, #065f46, #047857, #0f766e)";
-            if (badge) { badge.innerText = "보호자 도우미"; badge.style.background = "#fde047"; badge.style.color = "#0f172a"; }
-            if (subTitle) subTitle.innerText = "웹사이트 사용법 안내 · 맞춤 믹스피딩 영양 Q&A";
-            if (btnGuard) { btnGuard.style.background = "#10b981"; btnGuard.style.color = "#052e16"; }
-            if (btnVet) { btnVet.style.background = "transparent"; btnVet.style.color = "#cbd5e1"; }
+            if (icon) icon.innerText = "🐾";
+            if (title) title.innerText = "보호자 믹스피딩 상담 · Q&A";
+            if (badge) { badge.innerText = "보호자 전용"; badge.style.background = "#fde047"; badge.style.color = "#0f172a"; }
+            if (subTitle) subTitle.innerText = "계산기 1분 사용법 안내 · 맞춤 믹스피딩 영양 상담";
             if (sendBtn) sendBtn.style.background = "linear-gradient(135deg, #059669, #0d9488)";
             if (inp) inp.placeholder = "계산기 사용법, 사료 등록법, 믹스피딩 질문을 입력하세요...";
+            if (toggleBtn) toggleBtn.style.background = "linear-gradient(135deg, #065f46, #059669)";
+            if (toggleIcon) toggleIcon.innerText = "🐾";
+            if (toggleLabel) toggleLabel.innerText = "보호자 믹스피딩 상담 · 사용법 Q&A";
+            if (topLabel) topLabel.innerText = "🐾 보호자 상담 · 사용법 Q&A";
+            if (chatWin) chatWin.style.boxShadow = "0 25px 60px -10px rgba(15, 23, 42, 0.45), 0 0 0 2px rgba(16, 185, 129, 0.35)";
         }
 
         renderStepNavBar();
         renderAiChips();
         addWelcomeMessage();
-    };
+    }
+
+    // 호환용 별칭
+    window.switchAiAgentMode = applyPortalAgentTheme;
 
     function renderStepNavBar() {
         const navBox = document.getElementById("ai-agent-step-nav");
@@ -177,15 +214,15 @@
 
         if (window.aiAgentState.mode === "vet") {
             navBox.innerHTML = `
-                <span style="font-size: 10.5px; font-weight: 900; color: #334155; margin-right: 2px;">📍 바로가기:</span>
+                <span style="font-size: 10.5px; font-weight: 900; color: #334155; margin-right: 2px;">📍 탭 이동:</span>
                 <button type="button" onclick="goToCalculatorSection('vet-tab1')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-size: 10.5px; font-weight: 800; cursor: pointer;">1.환자·질환</button>
-                <button type="button" onclick="goToCalculatorSection('vet-tab2')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #93c5fd; background: #eff6ff; color: #1d4ed8; font-size: 10.5px; font-weight: 800; cursor: pointer;">2.처방식·외부사료OCR</button>
+                <button type="button" onclick="goToCalculatorSection('vet-tab2-ocr')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #93c5fd; background: #eff6ff; color: #1d4ed8; font-size: 10.5px; font-weight: 800; cursor: pointer;">2.처방식·외부사료OCR</button>
                 <button type="button" onclick="goToCalculatorSection('vet-tab3')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-size: 10.5px; font-weight: 800; cursor: pointer;">3.영양소검토</button>
                 <button type="button" onclick="goToCalculatorSection('vet-tab4')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-size: 10.5px; font-weight: 800; cursor: pointer;">4.분변·혈액CDSS</button>
             `;
         } else {
             navBox.innerHTML = `
-                <span style="font-size: 10.5px; font-weight: 900; color: #334155; margin-right: 2px;">📍 바로가기:</span>
+                <span style="font-size: 10.5px; font-weight: 900; color: #334155; margin-right: 2px;">📍 단계 이동:</span>
                 <button type="button" onclick="goToCalculatorSection('guardian-step1')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-size: 10.5px; font-weight: 800; cursor: pointer;">STEP 1 기본정보</button>
                 <button type="button" onclick="goToCalculatorSection('guardian-step2-ocr')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #a7f3d0; background: #ecfdf5; color: #047857; font-size: 10.5px; font-weight: 800; cursor: pointer;">STEP 2 사료검색·OCR</button>
                 <button type="button" onclick="goToCalculatorSection('guardian-step3')" style="padding: 4px 8px; border-radius: 7px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; font-size: 10.5px; font-weight: 800; cursor: pointer;">STEP 3 혼합비율</button>
@@ -241,16 +278,16 @@
 
         if (window.aiAgentState.mode === "guardian") {
             appendMessage("ai", `
-                <div style="font-weight: 900; color: #065f46; font-size: 13px; margin-bottom: 6px;">🐾 안녕하세요! 믹스피딩 상담 & 사용법 도우미입니다.</div>
+                <div style="font-weight: 900; color: #065f46; font-size: 13px; margin-bottom: 6px;">🐾 안녕하세요! 보호자 전용 믹스피딩 상담 · 사용법 도우미입니다.</div>
                 <div style="font-size: 12px; color: #334155; line-height: 1.55;">
-                    본 웹사이트의 모든 기능(사료 검색·라벨 OCR·비율 배합·하루 급여표)을 더 쉽게 쓰실 수 있도록 안내해 드립니다.<br><br>
+                    보호자용 계산기의 모든 기능(사료 검색·라벨 OCR·비율 배합·하루 급여표)을 쉽게 쓰실 수 있도록 도와드립니다.<br><br>
                     • <strong>📖 웹사이트 사용법:</strong> 아래 <strong>[계산기 1분 사용법]</strong>이나 <strong>[사료 OCR 등록 위치]</strong> 버튼을 눌러보세요.<br>
                     • <strong>🥣 맞춤 영양 상담:</strong> 건식+습식/화식 섞어 먹이는 비율, 7일 사료 전환법, 하루 물 섭취량, 간식 10% 계산을 바로 답변해 드립니다.
                 </div>
             `);
         } else {
             appendMessage("ai", `
-                <div style="font-weight: 900; color: #1e3a8a; font-size: 13px; margin-bottom: 6px;">🩺 수의사용 임상 가이드 & 스마트 차트 도우미입니다.</div>
+                <div style="font-weight: 900; color: #1e3a8a; font-size: 13px; margin-bottom: 6px;">🩺 수의사 전용 임상 가이드 & 스마트 차트 도우미입니다.</div>
                 <div style="font-size: 12px; color: #334155; line-height: 1.55;">
                     • <strong>📖 4대 탭 & 외부사료 OCR 안내:</strong> 외부 사료 추가(Tab 2), 분변·혈액 교차검증(Tab 4), 환자 EMR 백업 사용법을 안내합니다.<br>
                     • <strong>✍️ 자연어 차트 자동 체크:</strong> 환자 신상·질환·혈액수치·초음파 소견을 문장으로 입력하시면 <strong>Tab 1·Tab 4의 해당 항목을 일괄 체크</strong>합니다.<br>
@@ -304,12 +341,6 @@
     // 계산기 특정 섹션/탭으로 즉시 이동
     window.goToCalculatorSection = function (target) {
         if (target.startsWith("guardian")) {
-            if (typeof window.enterGuardianPortal === "function") {
-                const gSec = document.getElementById("guardian-portal-section");
-                if (gSec && gSec.classList.contains("hidden")) {
-                    window.enterGuardianPortal();
-                }
-            }
             if (target === "guardian-step1") {
                 if (typeof window.scrollToGuardianSection === "function") window.scrollToGuardianSection("g-step1-sec");
             } else if (target === "guardian-step2-ocr") {
@@ -385,7 +416,6 @@
         }
     };
 
-    // 수의사용 사용법 가이드 & CDSS 논문 응답 생성기
     function generateVetGuideAndCdssResponse(query) {
         const q = query.toLowerCase();
 
@@ -440,7 +470,6 @@
         `;
     }
 
-    // 보호자용 웹사이트 사용법 Q&A & 수의 영양학 상담 응답 생성기
     function generateGuardianGuideAndCounseling(query) {
         const q = query.toLowerCase();
         const wt = parseFloat(document.getElementById("g-weight")?.value) || 4.5;
@@ -533,7 +562,6 @@
         `;
     }
 
-    // 수의사 자연어 메모 전체 항목 파서 (환자정보, 28종 질환, 8종 혈액검사, 5종 급성증상, 초음파 3항목, 24종 알러지 모두 지원)
     function parseFullVetChartNote(text) {
         const t = text.toLowerCase();
         const species = /(고양이|묘|코숏|러시안|페르시안|샴|렉돌|뱅갈|먼치킨|cat|feline)/i.test(text) ? "고양이" : "개";
