@@ -342,6 +342,8 @@
     window.setGuardianVetPrescribedDer = function (val) {
         const num = parseFloat(val);
         guardianState.profile.vetPrescribedDerKcal = (!isNaN(num) && num >= 20) ? Math.round(num) : null;
+        filterGuardianFoodSearch('');
+        syncSavedWetFeedsIntoPool();
         refreshAllGuardianCalculations();
     };
 
@@ -1275,7 +1277,7 @@
                                 <span class="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm shadow"><i class="fa-solid fa-camera"></i></span>
                                 <h3 class="text-sm font-black text-indigo-950">스마트폰 AI 사료 라벨 판독기 (Vision OCR)</h3>
                             </div>
-                            <span class="text-[11px] font-bold text-indigo-600 bg-white px-2.5 py-1 rounded-full border border-indigo-200">Gemini 2.5 Vision + Atwater 산식 탑재</span>
+                            <span class="text-[11px] font-bold text-indigo-600 bg-white px-2.5 py-1 rounded-full border border-indigo-200">한국어·영문 AI OCR + 내 사료 자동 저장 지원</span>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1330,7 +1332,12 @@
                             <div class="text-xs font-black text-slate-800">
                                 📌 현재 선택/입력된 주식 사료: <span id="g-current-food-title" class="text-blue-700 underline">로얄캐닌 미니 인도어 어덜트</span>
                             </div>
-                            <span class="text-[11px] text-slate-500">수치를 직접 수정하면 건물(DM) 영양소와 칼로리가 즉시 재계산됩니다</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" onclick="saveCurrentGuardianCustomFeed()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shadow-sm transition flex items-center gap-1">
+                                    <span>⭐ 내 사료 목록에 영구 저장</span>
+                                </button>
+                                <span id="g-custom-feed-save-badge" class="text-[11px] font-bold text-slate-500">OCR·직접 입력한 사료를 이 브라우저에 저장해 언제든 불러올 수 있습니다</span>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-2.5 text-xs">
@@ -2461,8 +2468,108 @@
         if (oPanel) oPanel.classList.toggle("hidden", tab !== "ocr");
     };
 
+    const GUARDIAN_CUSTOM_FEEDS_KEY = "guardian_custom_feeds_v1";
+
+    function getGuardianCustomFeedsStore() {
+        try {
+            const raw = localStorage.getItem(GUARDIAN_CUSTOM_FEEDS_KEY);
+            const parsed = raw ? JSON.parse(raw) : { dry: [], wet: [] };
+            return {
+                dry: Array.isArray(parsed.dry) ? parsed.dry : [],
+                wet: Array.isArray(parsed.wet) ? parsed.wet : []
+            };
+        } catch (e) {
+            return { dry: [], wet: [] };
+        }
+    }
+
+    function saveGuardianCustomFeedsStore(store) {
+        try {
+            localStorage.setItem(GUARDIAN_CUSTOM_FEEDS_KEY, JSON.stringify(store));
+        } catch (e) {}
+    }
+
+    function syncSavedWetFeedsIntoPool() {
+        const store = getGuardianCustomFeedsStore();
+        store.wet.slice().reverse().forEach(cw => {
+            const existingIdx = COMMERCIAL_WET_FOODS.findIndex(w => w.id === cw.id || w.name === cw.name);
+            if (existingIdx >= 0) {
+                COMMERCIAL_WET_FOODS[existingIdx] = cw;
+            } else {
+                COMMERCIAL_WET_FOODS.unshift(cw);
+            }
+        });
+        const wetSel = document.getElementById("g-m1-wet-select");
+        if (wetSel && store.wet.length > 0) {
+            store.wet.forEach(cw => {
+                if (!Array.from(wetSel.options).some(o => o.value === cw.id)) {
+                    const opt = document.createElement("option");
+                    opt.value = cw.id;
+                    opt.text = `⭐ [내 저장사료] ${cw.name} (${cw.kcal_per_kg} kcal/kg)`;
+                    wetSel.add(opt, wetSel.options[0]);
+                }
+            });
+        }
+    }
+
+    window.saveCurrentGuardianCustomFeed = function (silent = false) {
+        onGuardianDryFoodManualChange();
+        const f = guardianState.selectedDryFood;
+        const cleanName = (f.name || "내 맞춤 사료").trim();
+        const nfe = Math.max(0, 100 - ((f.moisture_af || 10) + (f.protein_af || 24) + (f.fat_af || 14) + (f.fiber_af || 2.5) + (f.ash_af || 6.5)));
+        const kcalKg = f.kcal_per_kg || Math.max(500, Math.round(10 * (3.5 * f.protein_af + 8.5 * f.fat_af + 3.5 * nfe)));
+
+        const store = getGuardianCustomFeedsStore();
+        const newEntry = {
+            id: "g_custom_dry_" + cleanName.replace(/\s+/g, "_").slice(0, 24),
+            name: cleanName.startsWith("⭐") ? cleanName : cleanName,
+            brand: "내 저장사료",
+            species: guardianState.profile.species || "dog",
+            type: (f.moisture_af >= 45) ? "습식" : "건식",
+            protein_af: f.protein_af,
+            fat_af: f.fat_af,
+            fiber_af: f.fiber_af,
+            ash_af: f.ash_af,
+            moisture_af: f.moisture_af,
+            ca_af: f.ca_af,
+            p_af: f.p_af,
+            kcal_per_kg: kcalKg,
+            isCustomSaved: true,
+            savedAt: new Date().toISOString().slice(0, 10)
+        };
+
+        const idx = store.dry.findIndex(item => item.id === newEntry.id || item.name === newEntry.name);
+        if (idx >= 0) {
+            store.dry[idx] = newEntry;
+        } else {
+            store.dry.unshift(newEntry);
+        }
+        saveGuardianCustomFeedsStore(store);
+
+        // 검색 드롭다운 즉시 갱신
+        filterGuardianFoodSearch(document.getElementById("g-food-search-input")?.value || "");
+        const sel = document.getElementById("g-food-search-select");
+        if (sel) sel.value = newEntry.id;
+
+        const badge = document.getElementById("g-custom-feed-save-badge");
+        if (badge) {
+            badge.className = "text-[11px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200";
+            badge.innerHTML = `✅ <strong>'${newEntry.name}'</strong> 저장 완료! (브라우저 사료 검색 목록 최상단에 보관됨)`;
+        }
+        if (!silent) {
+            alert(`⭐ '${newEntry.name}' 사료가 내 브라우저 사료 목록에 영구 저장되었습니다!\n이제 새로고침하거나 다음에 접속해도 [1. 사료 DB 검색] 맨 위에서 바로 선택하실 수 있습니다.`);
+        }
+        return newEntry;
+    };
+
     function getCombinedDryFoodPool() {
-        const list = [...COMMERCIAL_DRY_FOODS];
+        syncSavedWetFeedsIntoPool();
+        const store = getGuardianCustomFeedsStore();
+        const customDryList = store.dry.map(d => ({
+            ...d,
+            name: d.name.startsWith("⭐") ? d.name : `⭐ [내 저장사료] ${d.name}`
+        }));
+        const list = [...customDryList, ...COMMERCIAL_DRY_FOODS];
         if (typeof EMBEDDED_DIETS !== "undefined" && Array.isArray(EMBEDDED_DIETS)) {
             EMBEDDED_DIETS.filter(d => d.type === "건식").forEach((d, idx) => {
                 const moist = d.moisture_percent || 9.0;
@@ -2591,24 +2698,61 @@
         refreshAllGuardianCalculations();
     };
 
-    // 포장지 OCR 텍스트 파싱
-    window.parseGuardianOcrText = function () {
+    // 공통 사료 성분표 정규식 파서 (인식된 항목만 정확히 추출하고 미인식 항목은 null 반환)
+    function extractNutrientsFromRawOcrText(rawText) {
+        const text = (rawText || "").replace(/,/g, "");
+        const grabRange = (regexList, minV, maxV) => {
+            for (const rgx of regexList) {
+                const m = text.match(rgx);
+                if (m && m[1]) {
+                    const v = parseFloat(m[1]);
+                    if (!isNaN(v) && v >= minV && v <= maxV) return v;
+                }
+            }
+            return null;
+        };
+
+        const cp = grabRange([/(?:조단백질|조단백|단백질|Crude\s*Protein|Protein)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 1.0, 75.0);
+        const cf = grabRange([/(?:조지방|지방|Crude\s*Fat|Fat\s*Content|Lipid)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.5, 60.0);
+        const fiber = grabRange([/(?:조섬유|식이섬유|섬유질|Crude\s*Fiber|Crude\s*Fibre|Fiber)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.1, 35.0);
+        const ash = grabRange([/(?:조회분|회분|Crude\s*Ash|Ash)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.2, 25.0);
+        const moist = grabRange([/(?:수분|Moisture|Water)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 2.0, 92.0);
+        const ca = grabRange([/(?:칼슘|Calcium|\bCa\b)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.03, 5.0);
+        const p = grabRange([/(?:인\b|인의\s*함량|Phosphorus|Phos)[^\d]{0,18}(\d+(?:\.\d+)?)/i], 0.02, 5.0);
+        let kcalKg = grabRange([/(\d{3,4}(?:\.\d+)?)\s*(?:kcal\s*\/\s*kg|kcal\/kg)/i, /(?:칼로리|대사에너지|열량|ME|Energy)[^\d]{0,20}(\d{3,4}(?:\.\d+)?)/i], 400, 6500);
+        const kcal100g = grabRange([/(\d{2,3}(?:\.\d+)?)\s*(?:kcal\s*\/\s*100\s*g|kcal\/100g)/i], 45, 650);
+        if (!kcalKg && kcal100g) kcalKg = Math.round(kcal100g * 10);
+
+        let recognizedCount = 0;
+        [cp, cf, fiber, ash, moist, ca, p, kcalKg].forEach(v => { if (v !== null) recognizedCount++; });
+
+        return { cp, cf, fiber, ash, moist, ca, p, kcalKg, recognizedCount };
+    }
+
+    // 포장지 OCR 텍스트 파싱 (주사료 폼 반영 + 원재료 매칭)
+    window.parseGuardianOcrText = function (silentAlert = false, customNameHint = "") {
         const raw = document.getElementById("g-ocr-textarea")?.value || "";
         if (!raw.trim()) {
-            alert("분석할 포장지 성분/원재료 텍스트를 입력하거나 사진을 업로드해주세요.");
-            return;
+            if (!silentAlert) alert("분석할 포장지 성분/원재료 텍스트를 입력하거나 사진을 업로드해주세요.");
+            return 0;
         }
-        const grab = (regex, fallback) => {
-            const m = raw.match(regex);
-            return m ? parseFloat(m[1]) : fallback;
-        };
-        document.getElementById("g-dry-prot").value = grab(/(?:조단백질|단백질|Protein)[^\d]*(\d+(?:\.\d+)?)/i, 26.0);
-        document.getElementById("g-dry-fat").value = grab(/(?:조지방|지방|Fat)[^\d]*(\d+(?:\.\d+)?)/i, 15.0);
-        document.getElementById("g-dry-fiber").value = grab(/(?:조섬유|섬유|Fiber)[^\d]*(\d+(?:\.\d+)?)/i, 3.0);
-        document.getElementById("g-dry-ash").value = grab(/(?:조회분|회분|Ash)[^\d]*(\d+(?:\.\d+)?)/i, 7.0);
-        document.getElementById("g-dry-moist").value = grab(/(?:수분|Moisture)[^\d]*(\d+(?:\.\d+)?)/i, 10.0);
-        document.getElementById("g-dry-ca").value = grab(/(?:칼슘|Calcium)[^\d]*(\d+(?:\.\d+)?)/i, 1.0);
-        document.getElementById("g-dry-p").value = grab(/(?:인|Phosphorus)[^\d]*(\d+(?:\.\d+)?)/i, 0.8);
+
+        const ext = extractNutrientsFromRawOcrText(raw);
+        if (customNameHint) {
+            const nameEl = document.getElementById("g-dry-name");
+            if (nameEl) nameEl.value = customNameHint;
+            const titleEl = document.getElementById("g-current-food-title");
+            if (titleEl) titleEl.textContent = customNameHint;
+        }
+
+        // 인식된 항목만 덮어쓰고, 인식되지 않은 항목은 기존 입력값 유지 (임의 숫자 강제 덮어쓰기 방지)
+        if (ext.cp !== null) document.getElementById("g-dry-prot").value = ext.cp;
+        if (ext.cf !== null) document.getElementById("g-dry-fat").value = ext.cf;
+        if (ext.fiber !== null) document.getElementById("g-dry-fiber").value = ext.fiber;
+        if (ext.ash !== null) document.getElementById("g-dry-ash").value = ext.ash;
+        if (ext.moist !== null) document.getElementById("g-dry-moist").value = ext.moist;
+        if (ext.ca !== null) document.getElementById("g-dry-ca").value = ext.ca;
+        if (ext.p !== null) document.getElementById("g-dry-p").value = ext.p;
 
         // 원재료 키워드 매칭
         const db = window.GUARDIAN_INGREDIENTS_DB || [];
@@ -2623,146 +2767,165 @@
         }
 
         onGuardianDryFoodManualChange();
+        if (ext.kcalKg !== null) {
+            guardianState.selectedDryFood.kcal_per_kg = ext.kcalKg;
+            refreshAllGuardianCalculations();
+        }
         if (guardianState.activeMenu === 6) runGuardianReverseTracing();
-        alert("✅ 포장지 텍스트에서 보증성분 수치와 원재료 목록을 성공적으로 추출했습니다!");
+
+        // 내 사료 목록에 자동 저장
+        if (ext.recognizedCount > 0 || customNameHint) {
+            saveCurrentGuardianCustomFeed(true);
+        }
+
+        if (!silentAlert) {
+            if (ext.recognizedCount > 0) {
+                alert(`✅ 텍스트에서 총 ${ext.recognizedCount}개 영양성분 수치를 추출하여 반영하고 [내 사료 목록]에 자동 저장했습니다!\n아래 표에서 원본 라벨과 숫자가 맞는지 한 번 더 확인해 주세요.`);
+            } else {
+                alert("⚠️ 표준 성분명(조단백질, 조지방, 칼슘, 인 등) 숫자를 찾지 못했습니다. 아래 직접 입력 칸에서 숫자를 확인·보정해 주세요.");
+            }
+        }
+        return ext.recognizedCount;
     };
 
     window.runGuardianImageOCR = async function (event, targetSlot = "primary") {
         const file = event.target.files?.[0];
         if (!file) return;
         const statusEl = document.getElementById(targetSlot === "secondary" ? "g-ocr-status-secondary" : "g-ocr-status");
+        const cleanFileName = file.name.replace(/\.[^/.]+$/, "");
+
         if (statusEl) {
-            statusEl.innerHTML = '<span class="inline-flex items-center text-indigo-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1.5"></i> 백엔드 AI Vision이 사료 라벨 영양성분을 정밀 판독 중입니다...</span>';
+            statusEl.innerHTML = `<span class="inline-flex items-center text-indigo-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1.5"></i> '${file.name}' 사료 라벨에서 한글·영문 영양성분을 스캔 중입니다...</span>`;
         }
 
         try {
-            const formData = new FormData();
-            formData.append("file", file);
+            if (typeof Tesseract === "undefined") {
+                throw new Error("Tesseract OCR 라이브러리를 불러오지 못했습니다.");
+            }
 
-            // 1. 고정밀 백엔드 AI OCR API 호출 (Gemini Vision + EasyOCR Hybrid)
-            const resp = await fetch("/api/ocr/feed", {
-                method: "POST",
-                body: formData
+            const res = await Tesseract.recognize(file, "kor+eng", {
+                logger: m => {
+                    if (m.status === "recognizing text" && statusEl) {
+                        const pct = Math.round((m.progress || 0) * 100);
+                        statusEl.innerHTML = `<span class="inline-flex items-center text-indigo-700 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1.5"></i> 사료 성분표 AI OCR 판독 중... (${pct}%)</span>`;
+                    }
+                }
             });
 
-            if (!resp.ok) {
-                throw new Error(`서버 응답 오류 (HTTP ${resp.status})`);
-            }
+            const rawText = (res?.data?.text || "").trim();
+            const area = document.getElementById("g-ocr-textarea");
+            if (area && rawText) area.value = rawText;
 
-            const data = await resp.json();
-            if (!data || data.success === false) {
-                throw new Error(data?.error || "라벨 영양성분 판독에 실패했습니다.");
-            }
-
-            // 2. 추출 데이터 폼 자동 입력 및 상태 업데이트
-            const ga = data.guaranteed_analysis || {};
-            const me = data.metabolic_energy || {};
+            const ext = extractNutrientsFromRawOcrText(rawText);
 
             if (targetSlot === "secondary") {
-                // 믹스피딩 서브 사료 (습식/화식 등)
-                if (statusEl) statusEl.innerHTML = `✅ <strong>${data.name || '믹스사료'}</strong> 판독 완료! (${data.feed_type || '습식'})`;
-                window.applyOcrToSecondaryFood(data);
+                // 믹스피딩 보조사료 (습식캔/화식/파우치)
+                const isWet = (ext.moist !== null ? ext.moist >= 45 : true);
+                const prot = ext.cp !== null ? ext.cp : 9.0;
+                const fat = ext.cf !== null ? ext.cf : 4.5;
+                const fiber = ext.fiber !== null ? ext.fiber : 1.2;
+                const ash = ext.ash !== null ? ext.ash : 1.8;
+                const moist = ext.moist !== null ? ext.moist : 78.0;
+                const ca = ext.ca !== null ? ext.ca : 0.25;
+                const p = ext.p !== null ? ext.p : 0.20;
+                const nfe = Math.max(0, 100 - (moist + prot + fat + fiber + ash));
+                const me = ext.kcalKg || Math.max(450, Math.round(10 * (3.5 * prot + 8.5 * fat + 3.5 * nfe)));
+
+                const secData = {
+                    name: `[OCR 믹스] ${cleanFileName}`,
+                    company: "내 저장사료(OCR)",
+                    feed_type: isWet ? "습식" : "건식",
+                    guaranteed_analysis: {
+                        crude_protein_pct: prot,
+                        crude_fat_pct: fat,
+                        crude_fiber_pct: fiber,
+                        crude_ash_pct: ash,
+                        moisture_pct: moist,
+                        calcium_pct: ca,
+                        phosphorus_pct: p
+                    },
+                    metabolic_energy: { kcal_per_kg: me }
+                };
+
+                window.applyOcrToSecondaryFood(secData);
+                if (statusEl) {
+                    statusEl.innerHTML = `✅ <strong>'${secData.name}'</strong> 스캔 & 내 사료 저장 완료! (인식 항목: ${ext.recognizedCount}개 · 단백 ${prot}%, 지방 ${fat}%, ${me}kcal/kg — STEP 3 메뉴 1에 자동 선택됨)`;
+                }
             } else {
                 // 주 사료 (기본 건식)
-                const nameInp = document.getElementById("g-dry-name");
-                if (nameInp && data.name) nameInp.value = data.name;
-
-                const brandInp = document.getElementById("g-manual-dry-brand");
-                if (brandInp && data.company) brandInp.value = data.company;
-
-                const pInp = document.getElementById("g-dry-prot");
-                if (pInp && ga.crude_protein_pct != null) pInp.value = ga.crude_protein_pct;
-
-                const fInp = document.getElementById("g-dry-fat");
-                if (fInp && ga.crude_fat_pct != null) fInp.value = ga.crude_fat_pct;
-
-                const fibInp = document.getElementById("g-dry-fiber");
-                if (fibInp && ga.crude_fiber_pct != null) fibInp.value = ga.crude_fiber_pct;
-
-                const ashInp = document.getElementById("g-dry-ash");
-                if (ashInp && ga.crude_ash_pct != null) ashInp.value = ga.crude_ash_pct;
-
-                const caInp = document.getElementById("g-dry-ca");
-                if (caInp && ga.calcium_pct != null) caInp.value = ga.calcium_pct;
-
-                const phInp = document.getElementById("g-dry-p");
-                if (phInp && ga.phosphorus_pct != null) phInp.value = ga.phosphorus_pct;
-
-                const moistInp = document.getElementById("g-dry-moist");
-                if (moistInp && ga.moisture_pct != null) moistInp.value = ga.moisture_pct;
-
-                const meInp = document.getElementById("g-manual-dry-kcal");
-                if (meInp && me.kcal_per_kg) meInp.value = me.kcal_per_kg;
-
-                const area = document.getElementById("g-ocr-textarea");
-                if (area && data.ingredients_text) area.value = data.ingredients_text;
-
+                const feedLabelName = `[OCR 등록] ${cleanFileName}`;
+                const cnt = window.parseGuardianOcrText(true, feedLabelName);
                 if (statusEl) {
-                    const estText = me.is_estimated ? " (Atwater 산식 산출)" : "";
-                    statusEl.innerHTML = `✅ <strong>${data.name || '사료'}</strong> 판독 완료! (단백 ${ga.crude_protein_pct}%, 지방 ${ga.crude_fat_pct}%, ME ${me.kcal_per_kg}kcal/kg${estText})`;
+                    if (cnt > 0) {
+                        statusEl.innerHTML = `✅ <strong>'${feedLabelName}'</strong>에서 총 <strong>${cnt}개 영양성분</strong> 추출 및 <strong>[⭐ 내 사료 목록]</strong> 자동 저장 완료! 아래 표에서 원본 라벨과 숫자를 대조·확인하세요.`;
+                    } else {
+                        statusEl.innerHTML = `⚠️ 이미지에서 글자를 읽었으나 표준 성분 키워드가 흐릿합니다. 아래 표에서 숫자를 직접 보정하신 뒤 <strong>[⭐ 내 사료 목록에 영구 저장]</strong>을 눌러주세요.`;
+                    }
                 }
-
-                // 수동 입력 상태 반영 및 재계산
-                onGuardianDryFoodManualChange();
             }
 
-            // 믹스피딩 계산기 결과 실시간 리프레시
             refreshAllGuardianCalculations(true);
-
         } catch (err) {
             console.error("[runGuardianImageOCR Error]", err);
-            // Fallback: 브라우저 Tesseract
-            if (typeof Tesseract !== "undefined") {
-                if (statusEl) statusEl.innerText = "⚠️ 서버 연결 지연: 브라우저 로컬 엔진으로 재시도 중...";
-                try {
-                    const res = await Tesseract.recognize(file, "kor+eng");
-                    const txt = res?.data?.text || "";
-                    const area = document.getElementById("g-ocr-textarea");
-                    if (area) area.value = txt;
-                    if (statusEl) statusEl.innerText = "✅ 로컬 스캔 완료! 성분을 자동 추출합니다.";
-                    parseGuardianOcrText();
-                } catch (tErr) {
-                    if (statusEl) statusEl.innerText = "⚠️ 이미지 인식 중 오류가 발생했습니다: " + err.message;
-                }
-            } else {
-                if (statusEl) statusEl.innerText = "⚠️ 이미지 판독 오류: " + err.message;
+            if (statusEl) {
+                statusEl.innerHTML = `⚠️ 이미지 판독 중 오류가 발생했습니다 (${err.message}). 아래 텍스트 창에 성분을 붙여넣거나 표에 직접 입력해 주세요.`;
             }
         }
     };
 
-    // 믹스피딩 보조사료(습식/화식)에 OCR 결과 적용 함수
+    // 믹스피딩 보조사료(습식/화식)에 OCR 결과 적용 및 localStorage 영구 저장
     window.applyOcrToSecondaryFood = function (data) {
         const ga = data.guaranteed_analysis || {};
         const me = data.metabolic_energy || {};
+        const cleanName = (data.name || "AI OCR 등록 믹스사료").trim();
         const customWet = {
-            id: "custom_ocr_wet_" + Date.now(),
-            name: data.name || "AI OCR 등록 믹스사료",
-            brand: data.company || "커스텀",
+            id: "g_custom_wet_" + cleanName.replace(/\s+/g, "_").slice(0, 24),
+            name: cleanName,
+            brand: data.company || "내 저장사료",
             type: data.feed_type || "습식",
-            protein_af: ga.crude_protein_pct || 8.5,
-            fat_af: ga.crude_fat_pct || 5.0,
-            fiber_af: ga.crude_fiber_pct || 1.5,
-            ash_af: ga.crude_ash_pct || 2.0,
-            moisture_af: ga.moisture_pct || 80.0,
-            ca_af: ga.calcium_pct || 0.25,
-            p_af: ga.phosphorus_pct || 0.20,
-            kcal_per_kg: me.kcal_per_kg || 1050
+            protein_af: ga.crude_protein_pct ?? 8.5,
+            fat_af: ga.crude_fat_pct ?? 5.0,
+            fiber_af: ga.crude_fiber_pct ?? 1.5,
+            ash_af: ga.crude_ash_pct ?? 2.0,
+            moisture_af: ga.moisture_pct ?? 78.0,
+            ca_af: ga.calcium_pct ?? 0.25,
+            p_af: ga.phosphorus_pct ?? 0.20,
+            kcal_per_kg: me.kcal_per_kg || 1050,
+            isCustomSaved: true
         };
 
-        // 메뉴 1(건식+습식)에 등록
+        // localStorage에 보조사료 영구 저장
+        const store = getGuardianCustomFeedsStore();
+        const existingStoreIdx = store.wet.findIndex(w => w.id === customWet.id || w.name === customWet.name);
+        if (existingStoreIdx >= 0) {
+            store.wet[existingStoreIdx] = customWet;
+        } else {
+            store.wet.unshift(customWet);
+        }
+        saveGuardianCustomFeedsStore(store);
+
+        // 메뉴 1(건식+습식) 풀 및 선택 상태에 등록
+        guardianState.menu1.wetFoodId = customWet.id;
         guardianState.menu1.selectedWetId = customWet.id;
-        if (!COMMERCIAL_WET_FOODS.some(w => w.id === customWet.id)) {
+        const memIdx = COMMERCIAL_WET_FOODS.findIndex(w => w.id === customWet.id);
+        if (memIdx >= 0) {
+            COMMERCIAL_WET_FOODS[memIdx] = customWet;
+        } else {
             COMMERCIAL_WET_FOODS.unshift(customWet);
         }
 
         // 습식 선택 셀렉트박스 갱신
         const wetSel = document.getElementById("g-m1-wet-select");
         if (wetSel) {
-            const opt = document.createElement("option");
-            opt.value = customWet.id;
-            opt.text = `[📸 AI OCR] ${customWet.name} (${customWet.kcal_per_kg} kcal/kg)`;
+            let opt = Array.from(wetSel.options).find(o => o.value === customWet.id);
+            if (!opt) {
+                opt = document.createElement("option");
+                opt.value = customWet.id;
+                wetSel.add(opt, wetSel.options[0]);
+            }
+            opt.text = `⭐ [내 저장사료] ${customWet.name} (${customWet.kcal_per_kg} kcal/kg)`;
             opt.selected = true;
-            wetSel.add(opt, wetSel.options[0]);
+            wetSel.value = customWet.id;
         }
 
         refreshAllGuardianCalculations(true);
