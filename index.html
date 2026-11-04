@@ -2246,14 +2246,14 @@
                             <p class="text-xs text-slate-600">환자 조건(연령·체급·식이·약물·기저질환)과 분변 마커 실측값을 비교하여 급여 후 변화를 검토하는 탐색적 참고 화면입니다. 모형 가중치와 추정 흡수지수는 자동 처방이나 급여량 변경에 직접 연결되지 않습니다.</p>
                             <!-- [개선점 ②] 계산·규칙 근거 출처 및 검증 상태 메타데이터 박스 -->
                             <details class="bg-slate-50 rounded-xl border border-slate-200 p-3 text-xs">
-                                <summary class="font-black text-indigo-900 cursor-pointer select-none">📚 [근거 및 검증 상태 확인] α=0.40 감쇠계수 · 약물/질환 배수 · 추정 흡수지수의 출처 및 한계 (클릭하여 펼치기)</summary>
+                                <summary class="font-black text-indigo-900 cursor-pointer select-none">📚 [근거 · 수식 구조 및 검증 상태 확인] 미검증 초기 가설 계수(Prior) · pH 가산 모형 · 잠혈 등급 모형 · 중복 변수 통제 (클릭하여 펼치기)</summary>
                                 <div class="mt-2.5 pt-2.5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-[11px] text-slate-700">
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 근거 출처:</strong> 에너지(RER/DER) 및 다량·미량영양소 목표치는 NRC(2006)·AAFCO·FEDIAF 문헌 기준이며, 분변 마커 배수 및 감쇠계수(α=0.40)는 <strong>내부 경험적 가설 규칙(Heuristic Rule)</strong>입니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 적용 대상:</strong> 이미 수의사에 의해 기저 질환이 확인된 반려견·반려묘의 식이 변경 전후 비교 참고용입니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 검증 상태:</strong> 다중 약물·질환 가중치 결합식과 기전 비중(%)은 <strong>임상 시험 검증 전 탐색적 가설 지표</strong>입니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 한계점:</strong> 모형 기반 추정 흡수지수는 실제 전분변 회수법(Total Fecal Collection) 소화율이 아니므로 급여 열량을 자동 증감하는 근거로 사용하지 않습니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 알고리즘 버전:</strong> <code>v1.2-exploratory</code> (단일 행동 지침 및 실측/추정 분리 적용)</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 최종 검토일:</strong> 2026-11-03 (수의 임상 영양 안전성 기준 반영)</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ① 가설 계수 정의 (Prior):</strong> 분변 마커 변수별 계수는 확정된 생리학적 농도 배수가 아닌, 실측 데이터 축적 전 사용하는 <strong>미검증 초기 가설 계수(약한 사전정보, Prior)</strong>이며 항상 예측 오차 범위(<code>±Margin</code>)와 함께 제시됩니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ② 분변 pH 가산형 수식:</strong> 로그 척도인 pH는 배수 곱셈 대신 <code>예상 pH = 기준 pH(6.50) + ΔpH(식이) + ΔpH(약물) + ΔpH(질환·혈액)</code> 형태의 <strong>pH 단위 가산 변화량 모형</strong>으로 산출합니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ③ 잠혈·포도당(기준 0) 등급 모형:</strong> 정상 기준값이 <code>0(음성)</code>인 항목은 배수를 곱해도 0이 되는 수식 한계를 방지하기 위해, 농도 배수 대신 <strong>주의 신호 등급(음성 예상 / 약양성 주의 / 양성 고위험) 및 검출한계(Cut-off) 모형</strong>으로 분리합니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ④ 동일 병태군 중복 반영 통제:</strong> <code>CKD + BUN/Cr 상승 + 신장약 + 신장식</code> 등 동일 임상 클러스터가 함께 존재할 때 같은 병태를 중복 계산하지 않도록 <strong>주효과 1개 외 연관 변수를 교차 감쇠(γ=0.25) 및 상한 캡(Cap)</strong>으로 통제합니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ⑤ 기준 개체 보존 및 실측 명칭 일치:</strong> 모든 변수 계수가 <code>1.0</code>인 기준 개체는 카테고리 민감도(C_k)와 무관하게 기준 예측값을 그대로 유지하며, 장운동·장염증·장누수·소화액분비는 <strong>직접 실측 항목이 아닌 가설적 잠재 상태</strong>로 분리 표시합니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 알고리즘 버전 / 검토일:</strong> <code>v1.3-prior-interval</code> (2026-11-05 수식·통계 타당성 고도화 반영)</div>
                                 </div>
                             </details>
                         </div>
@@ -2860,7 +2860,11 @@
                                 <div id="cdss-primary-culprit-banner" class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700"></div>
                             </div>
                             <div class="p-4 rounded-xl bg-white border border-slate-200 space-y-3">
-                                <div class="font-bold text-slate-800">4대 기전 축 가중치 분포 (탐색적 모형 참고치)</div>
+                                <div class="flex flex-wrap items-center justify-between gap-1">
+                                    <div class="font-bold text-slate-800">4대 가설적 잠재 상태 분포 (탐색적 참고 지표)</div>
+                                    <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 text-[10px] font-bold border border-amber-300">직접 실측 항목 아님 · 잠재 상태 가설</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 leading-snug">※ 장운동·장염증·장누수·소화액분비는 분변 키트로 직접 측정하는 항목이 아니며, 입력된 질환·약물·식이 조건과 실측 반응을 결합해 추론한 <strong>가설적 잠재 상태(Latent State Prior)</strong>입니다.</p>
                                 <div id="cdss-patho-prob-list" class="space-y-2 text-xs text-slate-700"></div>
                                 <div id="cdss-patho-action-trigger" class="text-[11px] text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200"></div>
                             </div>
@@ -5078,52 +5082,52 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                 p_none = 100.0;
             }
 
-            // 7) 5개 항목 구조화
+            // 7) 5개 항목 구조화 (직접 실측 항목이 아닌 '가설적 잠재 상태'임을 명시)
             const items = [
                 {
                     key: "motility",
-                    name: "장관 운동 저하 (장운동)",
-                    subName: "Dysmotility",
+                    name: "[잠재 가설] 장관 통과·운동성 변화 가능성",
+                    subName: "Latent Motility Shift",
                     prob: p_mot,
                     color: "indigo",
                     icon: "fa-stopwatch",
-                    desc: "평활근 허혈, 전해질 불균형(저칼륨), 이뇨제 탈수 및 장관 정체"
+                    desc: "가능한 관련 요인: 이뇨제·인바인더 복용, 전해질(저칼륨)·수분 변화 또는 장관 체류 시간 변화 가설 (직접 실측 외)"
                 },
                 {
                     key: "inflammation",
-                    name: "장 점막 염증 (장염)",
-                    subName: "Uremic Enteritis",
+                    name: "[잠재 가설] 점막 자극·질소 대사 부하 가능성",
+                    subName: "Latent Mucosal Load",
                     prob: p_inf,
                     color: "rose",
                     icon: "fa-fire",
-                    desc: "요독성 위장염, 미세혈전, 부패 부산물(암모니아 등)에 의한 염증"
+                    desc: "가능한 관련 요인: 질소성 기질 유입, 요독성 대사 환경 또는 점막 자극 요인 동반 가설 (직접 실측 외)"
                 },
                 {
                     key: "leak",
-                    name: "장벽 누수 증후군 (장누수)",
-                    subName: "Leaky Gut",
+                    name: "[잠재 가설] 장벽 투과성·점막 보호 부담 가능성",
+                    subName: "Latent Barrier Stress",
                     prob: p_leak,
                     color: "amber",
                     icon: "fa-shield-halved",
-                    desc: "점막 Tight junction 붕괴, 심부전 저관류/울혈 및 내독소(LPS) 유입"
+                    desc: "가능한 관련 요인: NSAIDs·스테로이드 복용, 심신 저관류/울혈 또는 알부민 저하 동반 가설 (직접 실측 외)"
                 },
                 {
                     key: "digestion",
-                    name: "단순 소화·흡수 부전 (장소화액분비)",
-                    subName: "Mal-digestion",
+                    name: "[잠재 가설] 소장계 소화·기질 처리 부담 가능성",
+                    subName: "Latent Substrate Load",
                     prob: p_dig,
                     color: "sky",
                     icon: "fa-vial-circle-check",
-                    desc: "췌장 외분비 리파아제 결핍, 담즙 울체, 융모 위축 및 삼투성 부담"
+                    desc: "가능한 관련 요인: 식이 지방·전분 함량 변화, 췌장·담즙계 기질 처리 조건 변화 가설 (직접 실측 외)"
                 },
                 {
                     key: "none",
-                    name: "해당 없음 (정상 안정)",
-                    subName: "Normal / Stable",
+                    name: "해당 없음 (입력 조건상 두드러진 잠재 가설 신호 적음)",
+                    subName: "Low Latent Signal",
                     prob: p_none,
                     color: "emerald",
                     icon: "fa-circle-check",
-                    desc: "4대 병태생리 위험이 없으며 장내 생태계가 안정적으로 유지됨"
+                    desc: "입력된 사전 가중치 조건에서 뚜렷한 편차 상승이 적음 (실측 검사 없이는 정상 확증 불가)"
                 }
             ];
 
@@ -5240,6 +5244,17 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
             const rowsHtml = [];
             const evalMap = {};
 
+            const DEFAULT_PRIOR_MARGINS = {
+                ph: 0.30,
+                ammonia: 5.0,
+                glucose: 10.0,
+                blood: 2.0,
+                protein: 1.5,
+                carbo: 1.5,
+                fat: 1.5,
+                absorption: 5.0
+            };
+
             CDSS_MARKERS.forEach(m => {
                 const info = CDSS_MARKER_INFO[m];
                 const sens = CDSS_SENSITIVITY[m];
@@ -5252,35 +5267,84 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                 const d_dis = attenuateGroupDelta(disWList, m, 0.40);
                 const d_lab = d_lab_map[m] || 0.0;
 
+                // =========================================================
+                // [개선 3-③ & 3-④] 동일 병태군(질병 + 혈액마커 + 연관 약물/식이) 중복 반영 통제 (Collinearity Cap, γ=0.25)
+                // 모든 변수 계수가 1.0인 기준 개체는 편차가 0이므로 카테고리 가중치(C_k)와 무관하게 기준값 그대로 유지됨
+                // =========================================================
+                const sameSignDisLab = (d_dis * d_lab) > 0;
+                const d_dis_lab_controlled = sameSignDisLab
+                    ? (Math.abs(d_dis) >= Math.abs(d_lab) ? (d_dis + 0.25 * d_lab) : (d_lab + 0.25 * d_dis))
+                    : (d_dis + d_lab);
+                const d_drug_controlled = (d_drug * d_dis_lab_controlled > 0)
+                    ? (d_drug * 0.55)
+                    : d_drug;
+                const d_diet_controlled = (d_diet * d_dis_lab_controlled > 0 && Math.abs(d_dis_lab_controlled) > 0.15)
+                    ? (d_diet * 0.65)
+                    : d_diet;
+
                 let w_total = 1.0;
                 if ((m === "ammonia" || m === "indole") && d_drug < 0 && d_diet < 0) {
-                    w_total = 1.0 + d_age_size + (0.35 * d_diet) + (0.35 * d_drug) + d_dis + d_lab;
+                    w_total = 1.0 + d_age_size + (0.35 * d_diet) + (0.35 * d_drug) + d_dis_lab_controlled;
                 } else if (m === "absorption") {
-                    w_total = 1.0 + (0.5 * d_age_size) + d_diet + d_drug + (0.55 * d_dis) + d_lab;
+                    w_total = 1.0 + (0.5 * d_age_size) + d_diet_controlled + d_drug_controlled + (0.55 * d_dis_lab_controlled);
                 } else {
-                    w_total = 1.0 + d_age_size + d_diet + d_drug + d_dis + d_lab;
+                    w_total = 1.0 + d_age_size + d_diet_controlled + d_drug_controlled + d_dis_lab_controlled;
                 }
 
-                if (m === "absorption") w_total = Math.max(0.55, Math.min(1.15, w_total));
-                else w_total = Math.max(0.50, Math.min(2.50, w_total));
+                if (m === "absorption") w_total = Math.max(0.60, Math.min(1.12, w_total));
+                else w_total = Math.max(0.55, Math.min(2.10, w_total));
 
                 let expected = 0.0;
                 let expectedUpper = 0.0;
-                if (m === "blood" || m === "glucose") {
-                    const factor = (m === "glucose") ? 15.0 : 10.0;
-                    const baseUpper = (m === "glucose") ? 20.0 : 10.0;
-                    expected = Math.round(Math.max(0.0, (w_total - 1.0) * factor) * 10) / 10;
-                    expectedUpper = Math.round(Math.max(baseUpper, baseUpper * w_total) * 10) / 10;
+                let deltaPh = 0.0;
+                let riskTier = null;
+                let expectedRangeText = "";
+                let formulaNote = "미검증 초기 가설(Prior) · 중복통제 반영";
+                const priorMargin = DEFAULT_PRIOR_MARGINS[m] ?? 1.5;
+
+                // [개선 3-①] 분변 pH: 배수 곱셈 대신 가산형 변화량(ΔpH) 수식 적용
+                if (m === "ph") {
+                    deltaPh = (d_age_size * 2.2) + (d_diet_controlled * 3.0) + (d_drug_controlled * 2.2) + (d_dis_lab_controlled * 2.5);
+                    deltaPh = Math.max(-1.10, Math.min(1.20, Math.round(deltaPh * 100) / 100));
+                    expected = Math.round(Math.max(5.20, Math.min(8.20, info.base + deltaPh)) * 100) / 100;
+                    expectedUpper = Math.round((expected + priorMargin) * 100) / 100;
+                    const expLow = Math.round((expected - priorMargin) * 100) / 100;
+                    w_total = Math.round((1.0 + deltaPh / info.base) * 100) / 100;
+                    const signStr = deltaPh >= 0 ? `+${deltaPh.toFixed(2)}` : `${deltaPh.toFixed(2)}`;
+                    expectedRangeText = `${expected.toFixed(2)} ± ${priorMargin.toFixed(2)} [${expLow.toFixed(2)}~${expectedUpper.toFixed(2)}]`;
+                    formulaNote = `가산 모형 (기준 6.50 ${signStr} ΔpH · 미검증 가설)`;
+                }
+                // [개선 3-②] 잠혈(blood) 및 포도당(glucose): 기준값이 0(음성)이므로 배수 곱셈 대신 주의 등급(Risk Tier) & 검출한계 모형 적용
+                else if (m === "blood" || m === "glucose") {
+                    const riskScore = Math.max(0.0, w_total - 1.0);
+                    const cutOff = (m === "glucose") ? 20.0 : 10.0;
+                    if (riskScore >= 0.42 || (m === "blood" && hasUlcerDrug)) {
+                        riskTier = "양성 주의 높음 (High Risk)";
+                    } else if (riskScore >= 0.16) {
+                        riskTier = "약양성 주의 (Moderate Risk)";
+                    } else {
+                        riskTier = "음성 예상 (Low Risk)";
+                    }
+                    expected = 0.0; // 정상 기준값 0(음성) 보존
+                    expectedUpper = cutOff;
+                    expectedRangeText = `음성 기준 (<${cutOff} ${info.unit}) · [${riskTier}]`;
+                    formulaNote = `기준값 0 등급 확률 모형 (위험 편차 +${riskScore.toFixed(2)})`;
                 } else if (m === "ammonia" || m === "indole") {
                     const baseExp = Math.round(info.base * w_total * 10) / 10;
-                    expectedUpper = Math.round(info.max * (1.0 + Math.max(0.0, w_total - 1.0) * 0.45) * 10) / 10;
-                    expected = w_total > 1.08 ? Math.max(baseExp, expectedUpper) : baseExp;
+                    expectedUpper = Math.round((baseExp + priorMargin) * 10) / 10;
+                    expected = baseExp;
+                    const expLow = Math.max(0, Math.round((expected - priorMargin) * 10) / 10);
+                    expectedRangeText = `${expected} ± ${priorMargin} ${info.unit} [${expLow}~${expectedUpper}]`;
                 } else if (m === "fat") {
-                    expected = Math.round(info.base * w_total * (w_total > 1.05 ? 1.18 : 1.0) * 10) / 10;
-                    expectedUpper = expected;
+                    expected = Math.round(info.base * w_total * (w_total > 1.08 ? 1.12 : 1.0) * 10) / 10;
+                    expectedUpper = Math.round((expected + priorMargin) * 10) / 10;
+                    const expLow = Math.max(0, Math.round((expected - priorMargin) * 10) / 10);
+                    expectedRangeText = `${expected} ± ${priorMargin} ${info.unit} [${expLow}~${expectedUpper}]`;
                 } else {
-                    expected = m === "ph" ? Math.round(info.base * w_total * 100) / 100 : Math.round(info.base * w_total * 10) / 10;
-                    expectedUpper = Math.round(info.max * w_total * 10) / 10;
+                    expected = Math.round(info.base * w_total * 10) / 10;
+                    expectedUpper = Math.round((expected + priorMargin) * 10) / 10;
+                    const expLow = Math.max(0, Math.round((expected - priorMargin) * 10) / 10);
+                    expectedRangeText = `${expected} ± ${priorMargin} ${info.unit} [${expLow}~${expectedUpper}]`;
                 }
 
                 // 수동 입력 모드가 아닐 경우 환자의 현재 5대 축 상태에 맞춰 실측 추정치(m9-*)를 동적 동기화
@@ -5434,25 +5498,25 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                     }
                     const penalty = burdenPenalty + physioPenalty + decompPenalty;
                     if (statusCode === "DECOMPENSATED" && meas < 5.8) {
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 산성 과발효 이상 (-${penalty.toFixed(1)}점)</span>`;
-                        interp = `pH ${meas} (<5.8) 탄수화물 미소화 대장 산성 과발효 (-${penalty.toFixed(1)}점)`;
-                        abnormalTags.push("탄수화물 과발효/산성변");
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 산성화 변화 관찰 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `pH ${meas} (<5.8) 산성화 변화 — 가능한 관련 요인: 발효성 탄수화물 기질 유입 또는 통과 조건 변화 (-${penalty.toFixed(1)}점)`;
+                        abnormalTags.push("분변 pH 산성화 변화 (발효 기질 검토)");
                     } else if (statusCode === "DECOMPENSATED") {
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 알칼리 부패 이상 (-${penalty.toFixed(1)}점)</span>`;
-                        interp = `pH ${meas} 기대치(${expected}) 초과 알칼리화 — 단백 부패/암모니아 축적 (-${penalty.toFixed(1)}점)`;
-                        abnormalTags.push("단백질 부패 발효/독소 축적");
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 알칼리화 변화 관찰 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `pH ${meas} 가산 모형 예상(${expected}) 상회 — 가능한 관련 요인: 질소성 기질 증가 또는 체류 시간 변화 (-${penalty.toFixed(1)}점)`;
+                        abnormalTags.push("분변 pH 알칼리화 변화 (질소 기질·체류 검토)");
                     } else if (statusCode === "COMPENSATED") {
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 약알칼리 부하 관리 (-${penalty.toFixed(1)}점)</span>`;
-                        interp = `정상 상한(7.0) 초과 — 질환 기대치(${expected}) 내 통제 중이나 부패 발효 부하 반영 (-${penalty.toFixed(1)}점)`;
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 약알칼리 범위 관찰 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `정상 상한(7.0) 초과이나 가산 모형 예상 범위(${expectedRangeText}) 이내 — 관련 조건 모니터링 (-${penalty.toFixed(1)}점)`;
                     } else if (penalty >= 1.0) {
-                        interp = `정상 pH 범위 유지 중 (질환·식이 대사 부하 -${penalty.toFixed(1)}점 반영)`;
+                        interp = `정상 pH 범위 유지 중 (질환·식이 가설 편차 -${penalty.toFixed(1)}점 반영)`;
                     }
                 } else {
                     const effVal = Math.max(meas, expected);
                     if (effVal > info.max) {
                         physioPenalty = ((effVal - info.max) / info.max) * 6.5 * info.imp;
                     }
-                    if (meas > expected && meas > info.max) {
+                    if (meas > expectedUpper && meas > info.max) {
                         statusCode = "DECOMPENSATED";
                         decompPenalty = ((meas - expected) / Math.max(1.0, expected)) * 22.0 * info.imp;
                     } else if (effVal > info.max) {
@@ -5460,20 +5524,20 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                     }
                     const penalty = burdenPenalty + physioPenalty + decompPenalty;
                     if (statusCode === "DECOMPENSATED") {
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 기대치마저 초과 (-${penalty.toFixed(1)}점)</span>`;
-                        interp = `기대치(${expected} ${info.unit}) 돌파! 현재 식이/효소 용량의 소화·대사 한계 초과 (-${penalty.toFixed(1)}점)`;
-                        if (m === "ammonia" || m === "indole") abnormalTags.push("단백질 부패 발효/요독소 과다");
-                        if (m === "fat") abnormalTags.push("지방 소화불량/췌장·담즙 한계 초과");
-                        if (m === "protein") abnormalTags.push("단백질 소화 흡수 불량");
-                        if (m === "carbo") abnormalTags.push("탄수화물 소화 흡수 불량");
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-black">🔴 예상 범위 상회 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `모형 예상 범위(${expectedRangeText}) 상회 — 가능한 관련 요인: 식이 기질 유입량·소장계 처리 또는 통과 조건 변화 (-${penalty.toFixed(1)}점)`;
+                        if (m === "ammonia" || m === "indole") abnormalTags.push("암모니아 상승 (질소 기질·대사 환경 검토)");
+                        if (m === "fat") abnormalTags.push("지방 잔류 신호 증가 (식이 지방·소장계 처리 검토)");
+                        if (m === "protein") abnormalTags.push("분변 단백질 반응 증가 (출처 미분리·전후 비교)");
+                        if (m === "carbo") abnormalTags.push("전분 잔류 신호 증가 (식이 전분·소장 처리 검토)");
                     } else if (statusCode === "COMPENSATED") {
-                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 질환 기대치 내 관리 (-${penalty.toFixed(1)}점)</span>`;
-                        interp = `정상 상한(${info.max}) 초과 — 질환/혈액 기대치(${expected}) 이내로 방어 중이나 병태생리 부하 존재 (-${penalty.toFixed(1)}점)`;
-                        if (m === "ammonia" || m === "indole") abnormalTags.push("장-신장 요독소(암모니아·인돌) 부하");
-                        if (m === "fat") abnormalTags.push("췌장·담즙 지질 소화 부하");
-                        if (m === "protein") abnormalTags.push("단백질 소화 부하 상승");
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold">🔵 예상 범위 내 관리 (-${penalty.toFixed(1)}점)</span>`;
+                        interp = `일반 기준(${info.max}) 상회이나 모형 예상 범위(${expectedRangeText}) 이내 관찰 (-${penalty.toFixed(1)}점)`;
+                        if (m === "ammonia" || m === "indole") abnormalTags.push("질소성 대사 부하 관찰 (예상 범위 내)");
+                        if (m === "fat") abnormalTags.push("지질 잔류 신호 관찰 (예상 범위 내)");
+                        if (m === "protein") abnormalTags.push("단백질 반응 관찰 (예상 범위 내)");
                     } else if (penalty >= 1.0) {
-                        interp = `정상 생리 범위 이내이나 기저 질환·혈액·약물 가중 부하 반영 (-${penalty.toFixed(1)}점)`;
+                        interp = `일반 기준 범위 이내이나 기저 질환·혈액·약물 가설 부하 반영 (-${penalty.toFixed(1)}점)`;
                     }
                 }
 
@@ -5507,22 +5571,25 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                     causeScores.other_excess += wWeight * (posOther / totPos);
                 }
 
-                evalMap[m] = { meas, expected, expectedUpper, w_total, statusCode, penalty };
+                evalMap[m] = { meas, expected, expectedUpper, w_total, deltaPh, riskTier, expectedRangeText, formulaNote, statusCode, penalty };
 
-                const deltaSummary = `연령/체급 ${d_age_size>=0?'+':''}${d_age_size.toFixed(2)} | 식이 ${d_diet>=0?'+':''}${d_diet.toFixed(2)} | 약물 ${d_drug>=0?'+':''}${d_drug.toFixed(2)} | 질병 ${d_dis>=0?'+':''}${d_dis.toFixed(2)} | 혈액체크(Lab) ${d_lab>=0?'+':''}${d_lab.toFixed(2)}`;
+                const deltaSummary = `연령/체급 ${d_age_size>=0?'+':''}${d_age_size.toFixed(2)} | 식이(통제) ${d_diet_controlled>=0?'+':''}${d_diet_controlled.toFixed(2)} | 약물(통제) ${d_drug_controlled>=0?'+':''}${d_drug_controlled.toFixed(2)} | 질병+혈액(중복통제 γ=0.25) ${d_dis_lab_controlled>=0?'+':''}${d_dis_lab_controlled.toFixed(2)}`;
                 const rowBg = statusCode === "DECOMPENSATED" ? "bg-rose-50/50" : (statusCode === "COMPENSATED" ? "bg-blue-50/30" : "");
+                const weightColStr = m === "ph"
+                    ? `ΔpH ${deltaPh >= 0 ? '+' : ''}${deltaPh.toFixed(2)}`
+                    : ((m === "blood" || m === "glucose") ? `${riskTier || '음성 예상'}` : `가설 x${w_total.toFixed(2)}`);
 
                 rowsHtml.push(`
                     <tr class="${rowBg} hover:bg-slate-50 transition">
                         <td class="py-2.5 px-3 font-extrabold text-slate-800">${info.name} <span class="text-[10px] font-normal text-slate-400">(${info.unit})</span></td>
-                        <td class="py-2.5 px-3 text-slate-500">${m === 'blood' ? '< 10.0' : `${info.min} ~ ${info.max}`} (기준 ${info.base})</td>
-                        <td class="py-2.5 px-3 font-black text-indigo-700">${w_total.toFixed(2)}배</td>
-                        <td class="py-2.5 px-3 font-extrabold text-blue-700">${m === 'blood' ? `상한 ${expectedUpper}` : expected} ${info.unit !== '-' ? info.unit : ''}</td>
+                        <td class="py-2.5 px-3 text-slate-500">${m === 'blood' ? '< 10.0 (음성 0)' : (m === 'glucose' ? '< 20.0 (음성 0)' : `${info.min} ~ ${info.max} (기준 ${info.base})`)}</td>
+                        <td class="py-2.5 px-3 font-black text-indigo-700">${weightColStr}</td>
+                        <td class="py-2.5 px-3 font-extrabold text-blue-700">${expectedRangeText}</td>
                         <td class="py-2.5 px-3 font-black text-slate-900 text-sm">${meas} ${info.unit !== '-' ? info.unit : ''}</td>
                         <td class="py-2.5 px-3 text-center">${statusBadge}</td>
                         <td class="py-2.5 px-3">
                             <div class="font-semibold text-slate-800">${interp}</div>
-                            <div class="text-[10px] text-slate-400 mt-0.5">5대축 가중편차: ${deltaSummary}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">[미검증 초기 가설 Prior] ${deltaSummary}</div>
                         </td>
                     </tr>
                 `);
@@ -5575,10 +5642,15 @@ try {
             if (tab2Grid) {
                 tab2Grid.innerHTML = CDSS_MARKERS.map(m => {
                     const info = CDSS_MARKER_INFO[m] || { name: m, min: 0, max: 0, unit: '-' };
-                    const ev = evalMap[m] || { expected: 0, expectedUpper: 0, w_total: 1.0 };
-                    const expStr = (m === 'blood' || m === 'glucose') ? `< ${ev.expectedUpper}` : `${ev.expected}`;
-                    const normStr = m === 'blood' ? '< 10' : (m === 'glucose' ? '< 20' : `${info.min}~${info.max}`);
+                    const ev = evalMap[m] || { expected: 0, expectedUpper: 0, w_total: 1.0, deltaPh: 0, riskTier: null, expectedRangeText: '' };
+                    const expStr = (m === 'blood' || m === 'glucose')
+                        ? `음성(<${ev.expectedUpper})`
+                        : (ev.expectedRangeText ? ev.expectedRangeText.split(' [')[0] : `${ev.expected}`);
+                    const normStr = m === 'blood' ? '< 10 (음성)' : (m === 'glucose' ? '< 20 (음성)' : `${info.min}~${info.max}`);
                     const wColor = ev.w_total > 1.15 ? 'text-amber-600' : (ev.w_total < 0.90 ? 'text-sky-600' : 'text-emerald-600');
+                    const subLabel = m === 'ph'
+                        ? `가산 ΔpH ${(ev.deltaPh || 0) >= 0 ? '+' : ''}${(ev.deltaPh || 0).toFixed(2)}`
+                        : ((m === 'blood' || m === 'glucose') ? `${ev.riskTier || '음성 예상'}` : `미검증 가설 x${ev.w_total.toFixed(2)}`);
                     return `
                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
                             <div>
@@ -5586,8 +5658,8 @@ try {
                                 <div class="text-[10px] text-slate-400">정상: ${normStr}</div>
                             </div>
                             <div class="mt-2 pt-1.5 border-t border-slate-200">
-                                <div class="text-sm font-black text-slate-900">${expStr} <span class="text-[10px] font-normal text-slate-500">${info.unit !== '-' ? info.unit : ''}</span></div>
-                                <div class="text-[10px] font-bold ${wColor}">가중치 x${ev.w_total.toFixed(2)}</div>
+                                <div class="text-xs font-black text-slate-900">${expStr}</div>
+                                <div class="text-[10px] font-bold ${wColor}">${subLabel}</div>
                             </div>
                         </div>
                     `;

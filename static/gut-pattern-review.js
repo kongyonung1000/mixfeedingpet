@@ -288,11 +288,11 @@
         <table class="w-full text-xs text-left bg-white">
           <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
             <tr>
-              <th class="p-2.5">검사 마커</th>
+              <th class="p-2.5">검사 마커 (실측 반응 기준)</th>
               <th class="p-2.5">단위 기준</th>
-              <th class="p-2.5 bg-blue-50/50 text-blue-900">모형 예상 범위 (참고 가설치)</th>
+              <th class="p-2.5 bg-blue-50/50 text-blue-900">모형 예상 범위 (미검증 초기 가설 Prior · ±오차폭)</th>
               <th class="p-2.5 bg-amber-50/50 text-amber-900">실제 측정값 (미측정 시 빈칸 유지)</th>
-              <th class="p-2.5 text-slate-600">개인별 판독폭 (허용편차)</th>
+              <th class="p-2.5 text-slate-600">개인별 판독폭 (±허용편차)</th>
               <th class="p-2.5 text-slate-500">해석 역할 및 주의사항</th>
             </tr>
           </thead>
@@ -562,15 +562,35 @@
     );
   }
 
-  function compareToExpected(actual, expected) {
+  function compareToExpected(actual, expected, key) {
     if (!actual || actual.value === null) return "미측정 (판단 보류)";
     if (!expected || expected.value === null) return "예상값 미적용 (전후비교 전용)";
     if (actual.unit !== expected.unit) return "단위 불일치 (비교 불가)";
+
+    // 잠혈(blood) 및 포도당(glucose)은 기준값이 0(음성)이므로 배수 곱셈 대신 검출한계(Cut-off) 및 위험 등급 모형으로 비교
+    if (key === "blood" || key === "glucose") {
+      const cutOff = key === "blood" ? 10.0 : 20.0;
+      const tierLabel = expected.riskTier || "음성 예상 (Low Risk)";
+      if (actual.value <= 0) {
+        return `음성 확인 (모형 등급: ${tierLabel})`;
+      }
+      if (actual.value < cutOff) {
+        return `검출한계 미만/약반응 (${actual.value} < ${cutOff}, 모형 등급: ${tierLabel})`;
+      }
+      return `양성/검출한계 이상 (${actual.value} ≥ ${cutOff} · 별도 확인 신호, 모형 등급: ${tierLabel})`;
+    }
+
     if (actual.margin === null) return "차이만 확인";
 
     const diff = actual.value - expected.value;
-    if (Math.abs(diff) <= actual.margin) return "모형 예상 범위 이내";
-    return diff > 0 ? "모형 예상 범위 밖 (상회)" : "모형 예상 범위 밖 (하회)";
+    const low = Math.round((expected.value - actual.margin) * 100) / 100;
+    const high = Math.round((expected.value + actual.margin) * 100) / 100;
+    if (Math.abs(diff) <= actual.margin) {
+      return `모형 예상 범위 이내 (${low}~${high})`;
+    }
+    return diff > 0
+      ? `모형 예상 범위 밖 상회 (> ${high})`
+      : `모형 예상 범위 밖 하회 (< ${low})`;
   }
 
   function compareToPrevious(actual, prev) {
@@ -590,7 +610,8 @@
     KEYS.forEach(key => {
       compared[key] = compareToExpected(
         record.markers[key],
-        expectedSource?.[key]
+        expectedSource?.[key],
+        key
       );
       shifts[key] = compareToPrevious(
         record.markers[key],
@@ -864,7 +885,10 @@
 
       expected[key] = {
         value: val,
-        unit
+        unit,
+        rangeText: map[key]?.expectedRangeText || null,
+        riskTier: map[key]?.riskTier || null,
+        formulaNote: map[key]?.formulaNote || null
       };
     });
 
@@ -917,7 +941,7 @@
     element("gpr-context").textContent =
       "환자 조건 연결: " +
       (latest.species || "종 정보") +
-      ` (${latest.weight_kg}kg, ${latest.age_years}세) | 모형 예상값 별도 산출 완료`;
+      ` (${latest.weight_kg}kg, ${latest.age_years}세) | 미검증 초기 가설 계수(Prior) · 중복 통제 반영 완료`;
 
     KEYS.forEach(key => {
       const unitEl = document.getElementById("gpr-unit-" + key);
@@ -936,9 +960,18 @@
           expEl.textContent = "전후 비교 전용 (예상치 미적용)";
         } else {
           const item = expected[key];
-          expEl.textContent = item && item.value !== null
-            ? format(item.value) + " " + (item.unit !== "-" ? item.unit : "")
-            : "미설정";
+          if (item && item.rangeText) {
+            expEl.innerHTML = `<div>${escapeHtml(item.rangeText)}</div>` +
+              (item.formulaNote ? `<div class="text-[10px] font-semibold text-slate-500 mt-0.5">${escapeHtml(item.formulaNote)}</div>` : "");
+          } else if (item && item.value !== null) {
+            const mVal = numberOrNull(marginEl?.value) ?? DEFAULT_MARGINS[key] ?? 0;
+            const low = Math.max(0, Math.round((item.value - mVal) * 100) / 100);
+            const high = Math.round((item.value + mVal) * 100) / 100;
+            const uStr = item.unit !== "-" ? " " + item.unit : "";
+            expEl.innerHTML = `<div>${format(item.value)} ± ${format(mVal)}${escapeHtml(uStr)} <span class="text-[10px] text-slate-600">[${format(low)}~${format(high)}]</span></div><div class="text-[10px] font-normal text-slate-500">미검증 초기 가설(Prior)</div>`;
+          } else {
+            expEl.textContent = "미설정";
+          }
         }
       }
       // [데이터 무결성 원칙] 실측값 입력칸(gpr-value-*)은 절대 모형 예상값이나 예시값으로 자동 덮어쓰지 않음!
