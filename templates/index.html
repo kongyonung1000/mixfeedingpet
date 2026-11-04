@@ -3191,40 +3191,47 @@
             container.innerHTML = '';
 
             if (currentFeedingMode === "DRY_WET_FRESH") {
+                const vDry = Number.isFinite(currentCustomRatios.dry) ? currentCustomRatios.dry : 50;
+                const vWet = Number.isFinite(currentCustomRatios.wet) ? currentCustomRatios.wet : 30;
+                const vFresh = Number.isFinite(currentCustomRatios.fresh) ? currentCustomRatios.fresh : 20;
                 container.innerHTML = `
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">건식 사료</span><span id="slider-val-dry" class="font-extrabold">${currentCustomRatios.dry || 50}%</span></div>
-                        <input type="range" min="0" max="100" value="${currentCustomRatios.dry || 50}" oninput="onRatioChange('dry', this.value)" class="w-full h-2 bg-blue-100 rounded-lg accent-blue-600">
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">건식 사료</span><span id="slider-val-dry" class="font-extrabold">${vDry}%</span></div>
+                        <input id="slider-input-dry" type="range" min="0" max="100" step="1" value="${vDry}" oninput="onRatioChange('dry', this.value)" class="w-full h-2 bg-blue-100 rounded-lg accent-blue-600 cursor-pointer">
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-sky-700">습식 사료</span><span id="slider-val-wet" class="font-extrabold">${currentCustomRatios.wet || 30}%</span></div>
-                        <input type="range" min="0" max="100" value="${currentCustomRatios.wet || 30}" oninput="onRatioChange('wet', this.value)" class="w-full h-2 bg-sky-100 rounded-lg accent-sky-600">
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-sky-700">습식 사료</span><span id="slider-val-wet" class="font-extrabold">${vWet}%</span></div>
+                        <input id="slider-input-wet" type="range" min="0" max="100" step="1" value="${vWet}" oninput="onRatioChange('wet', this.value)" class="w-full h-2 bg-sky-100 rounded-lg accent-sky-600 cursor-pointer">
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-amber-700">맞춤 화식</span><span id="slider-val-fresh" class="font-extrabold">${currentCustomRatios.fresh || 20}%</span></div>
-                        <input type="range" min="0" max="100" value="${currentCustomRatios.fresh || 20}" oninput="onRatioChange('fresh', this.value)" class="w-full h-2 bg-amber-100 rounded-lg accent-amber-600">
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-amber-700">맞춤 화식</span><span id="slider-val-fresh" class="font-extrabold">${vFresh}%</span></div>
+                        <input id="slider-input-fresh" type="range" min="0" max="100" step="1" value="${vFresh}" oninput="onRatioChange('fresh', this.value)" class="w-full h-2 bg-amber-100 rounded-lg accent-amber-600 cursor-pointer">
                     </div>
                 `;
             } else if (currentFeedingMode === "DRY_WET") {
+                const vDry = Number.isFinite(currentCustomRatios.dry) ? currentCustomRatios.dry : 60;
+                const vWet = Number.isFinite(currentCustomRatios.wet) ? currentCustomRatios.wet : (100 - vDry);
                 container.innerHTML = `
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">건식 사료</span><span id="slider-val-dry" class="font-extrabold">${currentCustomRatios.dry || 60}%</span></div>
-                        <input type="range" min="0" max="100" value="${currentCustomRatios.dry || 60}" oninput="onRatioChange('dry', this.value)" class="w-full h-2 bg-blue-100 rounded-lg accent-blue-600">
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">건식 사료</span><span id="slider-val-dry" class="font-extrabold">${vDry}%</span></div>
+                        <input id="slider-input-dry" type="range" min="0" max="100" step="1" value="${vDry}" oninput="onRatioChange('dry', this.value)" class="w-full h-2 bg-blue-100 rounded-lg accent-blue-600 cursor-pointer">
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-sky-700">습식 사료</span><span id="slider-val-wet" class="font-extrabold">${currentCustomRatios.wet || 40}%</span></div>
-                        <input type="range" min="0" max="100" value="${currentCustomRatios.wet || 40}" oninput="onRatioChange('wet', this.value)" class="w-full h-2 bg-sky-100 rounded-lg accent-sky-600">
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-sky-700">습식 사료</span><span id="slider-val-wet" class="font-extrabold">${vWet}%</span></div>
+                        <input id="slider-input-wet" type="range" min="0" max="100" step="1" value="${vWet}" oninput="onRatioChange('wet', this.value)" class="w-full h-2 bg-sky-100 rounded-lg accent-sky-600 cursor-pointer">
                     </div>
                 `;
             } else if (currentFeedingMode === "DRY_DRY") {
+                const vDry1 = Number.isFinite(currentCustomRatios.dry1) ? currentCustomRatios.dry1 : 50;
+                const vDry2 = Number.isFinite(currentCustomRatios.dry2) ? currentCustomRatios.dry2 : (100 - vDry1);
                 container.innerHTML = `
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">건식 사료</span><span id="slider-val-dry1" class="font-extrabold">${currentCustomRatios.dry1 || 60}%</span></div>
-                        <input type="range" min="0" max="100" value="${currentCustomRatios.dry1 || 50}" oninput="onRatioChange('dry1', this.value)" class="w-full h-2 bg-blue-100 rounded-lg accent-blue-600">
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-blue-700">건식 사료</span><span id="slider-val-dry1" class="font-extrabold">${vDry1}%</span></div>
+                        <input id="slider-input-dry1" type="range" min="0" max="100" step="1" value="${vDry1}" oninput="onRatioChange('dry1', this.value)" class="w-full h-2 bg-blue-100 rounded-lg accent-blue-600 cursor-pointer">
                     </div>
                     <div>
-                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-amber-700">맞춤 화식</span><span id="slider-val-dry2" class="font-extrabold">${currentCustomRatios.dry2 || 40}%</span></div>
-                        <input type="range" min="0" max="100" value="${currentCustomRatios.dry2 || 50}" oninput="onRatioChange('dry2', this.value)" class="w-full h-2 bg-indigo-100 rounded-lg accent-indigo-600">
+                        <div class="flex justify-between text-xs mb-1"><span class="font-bold text-amber-700">맞춤 화식</span><span id="slider-val-dry2" class="font-extrabold">${vDry2}%</span></div>
+                        <input id="slider-input-dry2" type="range" min="0" max="100" step="1" value="${vDry2}" oninput="onRatioChange('dry2', this.value)" class="w-full h-2 bg-indigo-100 rounded-lg accent-indigo-600 cursor-pointer">
                     </div>
                 `;
             } else {
@@ -3233,11 +3240,55 @@
         }
 
         function onRatioChange(key, val) {
-            currentCustomRatios[key] = parseFloat(val);
+            const numVal = Math.max(0, Math.min(100, Math.round(parseFloat(val) || 0)));
+            currentCustomRatios[key] = numVal;
+
+            // 2개 조합 모드(건식+습식, 건식+화식)에서는 반대쪽 슬라이더를 (100 - numVal)%로 자동 연동
+            if (currentFeedingMode === "DRY_WET") {
+                const otherKey = key === "dry" ? "wet" : "dry";
+                currentCustomRatios[otherKey] = 100 - numVal;
+                const otherInput = document.getElementById(`slider-input-${otherKey}`);
+                const otherLabel = document.getElementById(`slider-val-${otherKey}`);
+                if (otherInput) otherInput.value = currentCustomRatios[otherKey];
+                if (otherLabel) otherLabel.innerText = `${currentCustomRatios[otherKey]}%`;
+            } else if (currentFeedingMode === "DRY_DRY") {
+                const otherKey = key === "dry1" ? "dry2" : "dry1";
+                currentCustomRatios[otherKey] = 100 - numVal;
+                const otherInput = document.getElementById(`slider-input-${otherKey}`);
+                const otherLabel = document.getElementById(`slider-val-${otherKey}`);
+                if (otherInput) otherInput.value = currentCustomRatios[otherKey];
+                if (otherLabel) otherLabel.innerText = `${currentCustomRatios[otherKey]}%`;
+            } else if (currentFeedingMode === "DRY_WET_FRESH") {
+                const allKeys = ["dry", "wet", "fresh"];
+                const otherKeys = allKeys.filter(k => k !== key);
+                const rem = 100 - numVal;
+                const prevOtherSum = (currentCustomRatios[otherKeys[0]] ?? 0) + (currentCustomRatios[otherKeys[1]] ?? 0);
+                if (prevOtherSum > 0) {
+                    const k0Val = Math.round(rem * ((currentCustomRatios[otherKeys[0]] ?? 0) / prevOtherSum));
+                    currentCustomRatios[otherKeys[0]] = k0Val;
+                    currentCustomRatios[otherKeys[1]] = Math.max(0, rem - k0Val);
+                } else {
+                    currentCustomRatios[otherKeys[0]] = Math.floor(rem / 2);
+                    currentCustomRatios[otherKeys[1]] = rem - currentCustomRatios[otherKeys[0]];
+                }
+                otherKeys.forEach(ok => {
+                    const oIn = document.getElementById(`slider-input-${ok}`);
+                    const oLb = document.getElementById(`slider-val-${ok}`);
+                    if (oIn) oIn.value = currentCustomRatios[ok];
+                    if (oLb) oLb.innerText = `${currentCustomRatios[ok]}%`;
+                });
+            }
+
             const label = document.getElementById(`slider-val-${key}`);
-            if (label) label.innerText = `${val}%`;
-            clearTimeout(window._ratioTimer);
-            window._ratioTimer = setTimeout(() => { runRecommendation(false); }, 200);
+            if (label) label.innerText = `${numVal}%`;
+
+            const statusText = document.getElementById('ratio-status-text');
+            if (statusText) {
+                statusText.innerText = `합계: 100% (실시간 g 연동중)`;
+            }
+
+            // 슬라이더 이동 즉시 하단 카드의 % 및 배합 그램(g) 수를 유동적으로 갱신
+            runRecommendation(false);
         }
 
         // Multimodal A Priori & Recommendation Engine
@@ -3612,12 +3663,13 @@
             let activeFreshRecipe = null;
 
             // 실제 급여표는 모형 추정 흡수율로 부풀리지 않은 기본 목표 열량(der_kcal)을 기준으로 산출하여 증량 판단 알고리즘과 일관성 유지
+            // 0% 설정 시 `||` 연산자에 의해 기본값(30/40/50%)으로 되돌아가지 않도록 Number.isFinite 체크 적용
             const applied_der_kcal = der_kcal;
             if (currentFeedingMode === "DRY_WET_FRESH") {
-                const r_d = currentCustomRatios.dry || 50;
-                const r_w = currentCustomRatios.wet || 30;
-                const r_f = currentCustomRatios.fresh || 20;
-                const tot = r_d + r_w + r_f || 100;
+                const r_d = Number.isFinite(currentCustomRatios.dry) ? currentCustomRatios.dry : 50;
+                const r_w = Number.isFinite(currentCustomRatios.wet) ? currentCustomRatios.wet : 30;
+                const r_f = Number.isFinite(currentCustomRatios.fresh) ? currentCustomRatios.fresh : 20;
+                const tot = (r_d + r_w + r_f) > 0 ? (r_d + r_w + r_f) : 100;
 
                 const c_d = applied_der_kcal * (r_d / tot);
                 const g_d = Math.round((c_d / (bestDry1.nutrients.energy_density_kcal_per_kg || 3800)) * 1000 * 10) / 10;
@@ -3632,9 +3684,9 @@
                 activeFreshRecipe = buildDetailedFreshRecipe(species, diseases, allergies, g_f, Math.round(c_f*10)/10);
                 mix_items.push({ name: activeFreshRecipe.title, company: "수의 맞춤 화식 (조리후 중량)", type: "화식", ratio_percent: Math.round((r_f/tot)*100), daily_calories: Math.round(c_f*10)/10, daily_amount_g: g_f, water_content_ml: Math.round(g_f * 0.70 * 10)/10, nutrients: activeFreshRecipe.nutrients, freshIngredients: activeFreshRecipe.ingredients });
             } else if (currentFeedingMode === "DRY_WET") {
-                const r_d = currentCustomRatios.dry || 60;
-                const r_w = currentCustomRatios.wet || 40;
-                const tot = r_d + r_w || 100;
+                const r_d = Number.isFinite(currentCustomRatios.dry) ? currentCustomRatios.dry : 60;
+                const r_w = Number.isFinite(currentCustomRatios.wet) ? currentCustomRatios.wet : (100 - r_d);
+                const tot = (r_d + r_w) > 0 ? (r_d + r_w) : 100;
 
                 const c_d = applied_der_kcal * (r_d / tot);
                 const g_d = Math.round((c_d / (bestDry1.nutrients.energy_density_kcal_per_kg || 3800)) * 1000 * 10) / 10;
@@ -3644,9 +3696,9 @@
                 const g_w = Math.round((c_w / (bestWet1.nutrients.energy_density_kcal_per_kg || 950)) * 1000 * 10) / 10;
                 mix_items.push({ name: bestWet1.name, company: bestWet1.company, type: "습식", ratio_percent: Math.round((r_w/tot)*100), daily_calories: Math.round(c_w*10)/10, daily_amount_g: g_w, water_content_ml: Math.round(g_w * (bestWet1.moisture_percent/100)*10)/10, nutrients: bestWet1.nutrients });
             } else if (currentFeedingMode === "DRY_DRY") {
-                const r_d1 = currentCustomRatios.dry1 || 50;
-                const r_d2 = currentCustomRatios.dry2 || 50;
-                const tot = r_d1 + r_d2 || 100;
+                const r_d1 = Number.isFinite(currentCustomRatios.dry1) ? currentCustomRatios.dry1 : 50;
+                const r_d2 = Number.isFinite(currentCustomRatios.dry2) ? currentCustomRatios.dry2 : (100 - r_d1);
+                const tot = (r_d1 + r_d2) > 0 ? (r_d1 + r_d2) : 100;
 
                 const c_d1 = applied_der_kcal * (r_d1 / tot);
                 const g_d1 = Math.round((c_d1 / (bestDry1.nutrients.energy_density_kcal_per_kg || 3800)) * 1000 * 10) / 10;
@@ -3988,49 +4040,57 @@
             document.getElementById('chart-c-pct').innerText = `${c_pct}%`;
 
             const ctxDonut = document.getElementById('pfcChart').getContext('2d');
-            if (pfcChartInstance) pfcChartInstance.destroy();
-            pfcChartInstance = new Chart(ctxDonut, {
-                type: 'doughnut',
-                data: {
-                    labels: ['단백질 (P)', '지방 (F)', '탄수화물 (C)'],
-                    datasets: [{ data: [p_pct, f_pct, c_pct], backgroundColor: ['#2563eb', '#f59e0b', '#10b981'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Pretendard', size: 11 } } } }, cutout: '70%' }
-            });
+            if (pfcChartInstance) {
+                pfcChartInstance.data.datasets[0].data = [p_pct, f_pct, c_pct];
+                pfcChartInstance.update('none');
+            } else {
+                pfcChartInstance = new Chart(ctxDonut, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['단백질 (P)', '지방 (F)', '탄수화물 (C)'],
+                        datasets: [{ data: [p_pct, f_pct, c_pct], backgroundColor: ['#2563eb', '#f59e0b', '#10b981'], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Pretendard', size: 11 } } } }, cutout: '70%' }
+                });
+            }
 
             const ctxBar = document.getElementById('nutrientsBarChart').getContext('2d');
-            if (nutrientsBarChartInstance) nutrientsBarChartInstance.destroy();
-            nutrientsBarChartInstance = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: ['단백질 (g)', '지방 (g)', '탄수화물 (g)', '인 (g)', '나트륨 (g)', '칼륨 (g)', 'EPA+DHA (g)'],
-                    datasets: [{
-                        label: '혼합 사료 영양소 함량 (Per 1000 kcal)',
-                        data: [b_p, b_f, b_c, b_phos * 10, b_na * 10, b_k * 10, b_epa * 10],
-                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    let raw = ctx.raw;
-                                    if (['인 (g)', '나트륨 (g)', '칼륨 (g)', 'EPA+DHA (g)'].includes(ctx.label)) {
-                                        raw = (raw / 10).toFixed(2);
-                                    }
-                                    return `${ctx.dataset.label}: ${raw}`;
-                                }
-                            }
-                        },
-                        legend: { display: false }
+            if (nutrientsBarChartInstance) {
+                nutrientsBarChartInstance.data.datasets[0].data = [b_p, b_f, b_c, b_phos * 10, b_na * 10, b_k * 10, b_epa * 10];
+                nutrientsBarChartInstance.update('none');
+            } else {
+                nutrientsBarChartInstance = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: ['단백질 (g)', '지방 (g)', '탄수화물 (g)', '인 (g)', '나트륨 (g)', '칼륨 (g)', 'EPA+DHA (g)'],
+                        datasets: [{
+                            label: '혼합 사료 영양소 함량 (Per 1000 kcal)',
+                            data: [b_p, b_f, b_c, b_phos * 10, b_na * 10, b_k * 10, b_epa * 10],
+                            backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'],
+                            borderRadius: 8
+                        }]
                     },
-                    scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
-                }
-            });
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        let raw = ctx.raw;
+                                        if (['인 (g)', '나트륨 (g)', '칼륨 (g)', 'EPA+DHA (g)'].includes(ctx.label)) {
+                                            raw = (raw / 10).toFixed(2);
+                                        }
+                                        return `${ctx.dataset.label}: ${raw}`;
+                                    }
+                                }
+                            },
+                            legend: { display: false }
+                        },
+                        scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+                    }
+                });
+            }
 
             window._latestRecommendationSnapshot = {
                 feedingMode: currentFeedingMode,
@@ -6194,7 +6254,7 @@ try {
             return {
                 label: `${item.name.split('[')[0].trim()} (${item.ratio_percent}%)`,
                 profile: baseProfile,
-                ratio: Math.max(0.05, (item.ratio_percent || 50) / 100.0),
+                ratio: Math.max(0.0, (Number.isFinite(item.ratio_percent) ? item.ratio_percent : 50) / 100.0),
                 customWeights
             };
         }
@@ -6202,7 +6262,9 @@ try {
         function buildCdssDietMixFromActiveItems(treatGiven) {
             const snap = window._latestRecommendationSnapshot;
             if (!snap || !snap.mix_items || snap.mix_items.length === 0) return null;
-            const list = snap.mix_items.map(it => classifyDietProfileAndWeights(it));
+            const activeItems = snap.mix_items.filter(it => (Number.isFinite(it.ratio_percent) ? it.ratio_percent : 50) > 0);
+            const sourceItems = activeItems.length > 0 ? activeItems : [snap.mix_items[0]];
+            const list = sourceItems.map(it => classifyDietProfileAndWeights(it));
             if (treatGiven) {
                 list.push({ label: "간식 (육포/트릿)", profile: "간식 (트릿/육포 등)", ratio: 0.25 });
             }
