@@ -5612,9 +5612,9 @@ try {
             const tagsBox = document.getElementById('cdss-abnormal-tags');
             if (tagsBox) {
                 if (uniqueTags.length === 0) {
-                    tagsBox.innerHTML = `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-[11px] font-bold">✅ 모든 마커 정상 생리 범위 내 안정</span>`;
+                    tagsBox.innerHTML = `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-950 text-[11px] font-extrabold" style="background:#d1fae5; color:#064e3b; border:1px solid #6ee7b7;">✅ 측정/추정 마커 기준 범위 내 유지</span>`;
                 } else {
-                    tagsBox.innerHTML = uniqueTags.map(t => `<span class="px-2.5 py-1 rounded-lg bg-rose-500/25 border border-rose-400/30 text-rose-200 text-[11px] font-bold">⚠️ ${t}</span>`).join('');
+                    tagsBox.innerHTML = uniqueTags.map(t => `<span class="px-2.5 py-1 rounded-lg bg-indigo-100 border border-indigo-300 text-slate-900 text-[11px] font-extrabold shadow-2xs" style="background:#e0e7ff; color:#1e1b4b; border:1px solid #818cf8;">📌 ${t}</span>`).join('');
                 }
             }
 
@@ -7622,7 +7622,7 @@ try {
             }
         } else if (target.startsWith("vet")) {
             if (target === "vet-tab1") {
-                if (typeof window.switchTab === "function") window.switchTab("patient-tab");
+                if (typeof window.switchTab === "function") window.switchTab("profile-tab");
             } else if (target === "vet-tab2") {
                 if (typeof window.switchTab === "function") window.switchTab("feeding-tab");
             } else if (target === "vet-tab2-ocr") {

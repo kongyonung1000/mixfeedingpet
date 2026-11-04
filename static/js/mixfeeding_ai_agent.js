@@ -355,7 +355,7 @@
             }
         } else if (target.startsWith("vet")) {
             if (target === "vet-tab1") {
-                if (typeof window.switchTab === "function") window.switchTab("patient-tab");
+                if (typeof window.switchTab === "function") window.switchTab("profile-tab");
             } else if (target === "vet-tab2") {
                 if (typeof window.switchTab === "function") window.switchTab("feeding-tab");
             } else if (target === "vet-tab2-ocr") {
