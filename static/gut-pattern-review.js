@@ -6,85 +6,56 @@
     return;
   }
 
-  const VERSION = "gut-pattern-review-1.0";
-  const BASELINE_STORAGE_KEY = "vet_gpr_saved_baselines_v1";
+  const VERSION = "gut-pattern-review-track2-2.0";
+  const BASELINE_STORAGE_KEY = "vet_gpr_track2_baselines_v2";
 
-  // 마커 목록 및 역할 정비 ('9대 마커' 고정 표현 배제, 인돌·젖산 제외, 비중 보조 추가)
+  // =========================================================================
+  // [트랙 2] 믹스피딩 및 약물 사용에 대한 예측 vs 실측 비교 전용 4대 핵심 분변키트 마커
+  // 근거 파일: 트랙2_장내환경_변수별_가중치_상관관계.xlsx (pH, 암모니아, 잠혈, 유리 인)
+  // =========================================================================
   const MARKERS = {
     ph: {
-      label: "분변 pH",
-      axis: "대장 대사·화학적 환경 검토",
-      note: "배출 검체의 산·염기 상태 (단독으로 악화/대장질환 단정 금지)"
+      label: "① 분변 pH",
+      axis: "식이(탄수화물·단백질) 발효 균형 및 산·염기 반응 검토",
+      note: "가산형(ΔpH) 예측 모형 · 기준 6.50 (정상 6.0~7.0) | 믹스피딩 배합비·소화제·신장약 반응 비교"
     },
     ammonia: {
-      label: "암모니아 (NH₃)",
-      axis: "대장 중심 질소성 대사 검토",
-      note: "질소성 기질 공급·미생물 대사·장내 흡수를 함께 검토"
-    },
-    sg: {
-      label: "분변 비중 (SG · 보조)",
-      axis: "동일 조건 전후 비교 보조 항목",
-      note: "추출액 이온·용질 반응 참고치 (원분변 수분율·변비 단정 금지)"
-    },
-    protein: {
-      label: "분변 단백질 반응 (출처 미분리)",
-      axis: "식이·숙주·미생물 출처 미분리 신호",
-      note: "단독 상승으로 장누수(PLE) 또는 소장 흡수율 단정 금지"
-    },
-    fat: {
-      label: "지방 잔류 신호",
-      axis: "소장계 처리 우선 검토",
-      note: "식이 지방량 변화·소화·통과 조건을 함께 검토하는 잔류 단서"
-    },
-    carbo: {
-      label: "전분 잔류 신호 (루골)",
-      axis: "소장계 처리·식이 전분 특성 검토",
-      note: "저항성 전분·가공도·소장계 처리를 함께 검토 (흡수장애 단정 금지)"
+      label: "② 암모니아 (NH₃)",
+      axis: "단백질 소화·대장 질소 대사 및 요독 흡착 약물 효과 검토",
+      note: "기준 20.0 μmol/g (정상 10~30) | 고단백/저단백 사료 비율·간식 통제·신장약(크레메진/아조딜) 반응 비교"
     },
     blood: {
-      label: "잠혈 반응",
-      axis: "소화·대사 축과 분리된 별도 확인 신호",
-      note: "타 마커 양호 결과로 상쇄하지 않음 (식이 간섭·점막 출혈 수의사 검토)"
+      label: "③ 분변 잠혈 (Occult Blood)",
+      axis: "약물(NSAIDs·스테로이드·항암제) 점막 자극 및 장벽 출혈 신호 검토",
+      note: "기준 0(음성, <10 ng/mL) 위험 등급 모형 | 타 마커 양호 결과로 상쇄 금지 · 점막보호제/소염제 조정 판단"
     },
-    glucose: {
-      label: "포도당 패드",
-      axis: "탐색적 잔류 단당류 신호",
-      note: "병변 위치 판별보다 동일 환자의 개인별 전후 변화 관찰에 활용"
+    free_p: {
+      label: "④ 분변 유리 인 (Free Phosphorus)",
+      axis: "식이 인(P) 유입·장관 흡수 및 인바인더(신장약) 결합·배출 효능 검토",
+      note: "기준 2.5 mg/g (정상 1.0~4.0) | 신장 처방식 배합 비율 및 인바인더(Phosphorus Binder) 용량 적정성 판단"
     }
   };
 
   const DEFAULT_UNITS = {
     ph: "-",
     ammonia: "μmol/g",
-    sg: "-",
-    protein: "% DM",
-    fat: "% DM",
-    carbo: "% DM",
     blood: "ng/mL",
-    glucose: "mg/dL"
+    free_p: "mg/g"
   };
 
   const DEFAULT_MARGINS = {
     ph: 0.3,
     ammonia: 5.0,
-    sg: "",
-    protein: 1.5,
-    fat: 1.5,
-    carbo: 1.5,
     blood: 2.0,
-    glucose: 10.0
+    free_p: 0.6
   };
 
-  // 시연(Demo) 전용 예시 수치 — 검사 전 기본 자동 입력 금지 원칙에 따라 버튼 클릭 시에만 입력됨
+  // 시연(Demo) 전용 4종 예시 수치 — 버튼 클릭 시에만 입력됨 (실측과 엄격 분리)
   const DEMO_SAMPLE_VALUES = {
-    ph: 6.6,
-    ammonia: 21.5,
-    sg: 1.025,
-    protein: 5.2,
-    fat: 4.1,
-    carbo: 6.3,
+    ph: 6.9,
+    ammonia: 26.0,
     blood: 0.0,
-    glucose: 0.0
+    free_p: 2.2
   };
 
   const KEYS = Object.keys(MARKERS);
@@ -203,21 +174,24 @@
     baseline = loadStoredBaseline(ctx.patientName);
 
     root.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-indigo-100 pb-3 mb-4 gap-2">
-        <div class="flex items-center space-x-2.5">
-          <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base shadow-sm">🔬</span>
+      <div class="flex flex-wrap items-center justify-between border-b border-indigo-100 pb-3.5 mb-4 gap-2">
+        <div class="flex items-start space-x-3">
+          <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 text-white flex items-center justify-center text-base shadow-sm shrink-0">🧪</span>
           <div>
-            <h3 class="text-base font-extrabold text-slate-800">
-              분변 패턴 분석 · 이전 기록 비교 모듈 (관찰·검토형)
-            </h3>
-            <p class="text-xs text-indigo-700 font-medium">
-              실측값·모형 예상값·시연 예시값을 엄격히 분리하며, 미측정 항목은 임의 생성하지 않고 빈 값(판단 보류)으로 보존합니다.
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-[11px] font-black shadow-2xs">트랙 2 · 예측 vs 실측 비교 모형</span>
+              <h3 class="text-base font-extrabold text-slate-900">
+                믹스피딩 및 약물 사용에 대한 4대 핵심 분변키트 (pH · 암모니아 · 잠혈 · 유리 인) 실측 비교 폼
+              </h3>
+            </div>
+            <p class="text-xs text-slate-600 font-medium mt-1">
+              『트랙2 장내환경 변수별 가중치 상관관계』 기준 — 실질적인 4종 분변키트 측정값과 모형 예측치를 대조하여 <strong>식이 배합 비율 조정 및 약물(인바인더·소염진통제·요독흡착제·소화제) 의사결정</strong>에 직접 활용합니다. (트랙 1은 실측치 없이 작동하는 장내환경 상태 예측 모형입니다.)
             </p>
           </div>
         </div>
         <div class="flex items-center gap-2">
           <span id="gpr-source-badge" class="text-[11px] font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-300">
-            ⚪ 현재 상태: 실측값 입력 대기 (미측정 보존)
+            ⚪ 현재 상태: 4종 키트 실측값 입력 대기 (미측정 보존)
           </span>
         </div>
       </div>
@@ -232,15 +206,15 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">검사법·검체 기준 (원분변/추출액)</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">검사 키트 프로토콜 (4종 패드)</label>
           <input id="gpr-protocol" type="text"
             class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-semibold"
-            value="STD-FECAL-V1 (추출액·패드 병행)"
-            placeholder="시약/추출비율/건물·습중량 기준">
+            value="TRACK2-4KIT-V2 (pH·NH₃·잠혈·유리인)"
+            placeholder="4종 분변키트 기준">
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">실제 급여 식단 조합 (제품·제형·비율)</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">실제 급여 믹스피딩 조합 (제품·비율)</label>
           <input id="gpr-diet" type="text"
             class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-semibold"
             value="${escapeHtml(ctx.dietMix)}"
@@ -248,7 +222,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">약물·처방 내역</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">복용 약물·처방 내역 (인바인더·NSAIDs 등)</label>
           <input id="gpr-medication" type="text"
             class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white focus:ring-2 focus:ring-indigo-500 font-semibold"
             value="${escapeHtml(ctx.drugs)}"
@@ -268,17 +242,17 @@
           <button type="button" data-gpr-action="start"
             class="border border-indigo-300 rounded-xl px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold text-xs transition shadow-sm flex items-center space-x-1.5">
             <i class="fa-solid fa-play text-indigo-600"></i>
-            <span>1. 현재 조건으로 검사 세션 시작</span>
+            <span>1. 현재 조건으로 트랙 2 비교 세션 시작</span>
           </button>
           <button type="button" data-gpr-action="fill-demo"
             class="border border-amber-300 rounded-xl px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs transition shadow-sm flex items-center space-x-1.5">
             <i class="fa-solid fa-flask text-amber-600"></i>
-            <span>시연용 예시 수치 채우기 (실측 분리)</span>
+            <span>시연용 4종 예시 수치 채우기 (실측 분리)</span>
           </button>
           <button type="button" data-gpr-action="reset-inputs"
             class="border border-slate-300 rounded-xl px-3 py-2 bg-white hover:bg-slate-100 text-slate-600 font-bold text-xs transition flex items-center space-x-1">
             <i class="fa-solid fa-eraser"></i>
-            <span>실측란 비우기 (미측정 초기화)</span>
+            <span>4종 실측란 비우기 (미측정 초기화)</span>
           </button>
         </div>
         <p id="gpr-context" class="text-xs text-slate-500 font-medium"></p>
@@ -288,46 +262,45 @@
         <table class="w-full text-xs text-left bg-white">
           <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
             <tr>
-              <th class="p-2.5">검사 마커 (실측 반응 기준)</th>
+              <th class="p-2.5">트랙 2 실측 분변키트 (4대 핵심 마커)</th>
               <th class="p-2.5">단위 기준</th>
-              <th class="p-2.5 bg-blue-50/50 text-blue-900">모형 예상 범위 (미검증 초기 가설 Prior · ±오차폭)</th>
-              <th class="p-2.5 bg-amber-50/50 text-amber-900">실제 측정값 (미측정 시 빈칸 유지)</th>
+              <th class="p-2.5 bg-blue-50/50 text-blue-900">트랙 2 모형 예측 범위 (미검증 초기 가설 Prior · ±오차폭)</th>
+              <th class="p-2.5 bg-amber-50/50 text-amber-900">실제 키트 측정값 입력 (미측정 시 빈칸 유지)</th>
               <th class="p-2.5 text-slate-600">개인별 판독폭 (±허용편차)</th>
-              <th class="p-2.5 text-slate-500">해석 역할 및 주의사항</th>
+              <th class="p-2.5 text-slate-500">믹스피딩 · 약물 의사결정 연결 역할</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
             ${KEYS.map(key => `
               <tr class="hover:bg-slate-50/80 transition">
-                <td class="p-2.5 font-bold text-slate-800">
+                <td class="p-2.5 font-extrabold text-slate-800">
                   ${escapeHtml(MARKERS[key].label)}
                 </td>
                 <td class="p-2.5">
                   <input id="gpr-unit-${key}" type="text"
                     value="${escapeHtml(DEFAULT_UNITS[key] || '')}"
-                    class="border border-slate-300 rounded px-2 py-1 w-24 text-center font-medium bg-slate-50"
-                    ${key === 'sg' ? 'readonly' : ''}>
+                    class="border border-slate-300 rounded px-2 py-1 w-24 text-center font-medium bg-slate-50">
                 </td>
                 <td id="gpr-expected-${key}" class="p-2.5 font-extrabold text-blue-700 bg-blue-50/30">
-                  ${key === 'sg' ? '전후 비교 전용 (예상치 미적용)' : '—'}
+                  —
                 </td>
                 <td class="p-2.5 bg-amber-50/30">
                   <input id="gpr-value-${key}" type="number"
                     step="any" min="0"
                     value=""
                     placeholder="미측정 (직접 입력)"
-                    class="border border-amber-300 rounded px-2 py-1 w-32 font-bold text-amber-900 bg-white focus:ring-2 focus:ring-amber-500 placeholder:text-slate-400 placeholder:font-normal">
+                    class="border border-amber-300 rounded px-2.5 py-1.5 w-36 font-extrabold text-amber-900 bg-white focus:ring-2 focus:ring-amber-500 placeholder:text-slate-400 placeholder:font-normal">
                 </td>
                 <td class="p-2.5">
                   <input id="gpr-margin-${key}" type="number"
                     step="any" min="0"
                     value="${DEFAULT_MARGINS[key] !== '' ? DEFAULT_MARGINS[key] : ''}"
                     class="border border-slate-300 rounded px-2 py-1 w-24 text-center font-medium"
-                    ${key === 'sg' ? 'disabled placeholder="전후비교"' : 'placeholder="기본권장"'}>
+                    placeholder="기본권장">
                 </td>
                 <td class="p-2.5 text-[11px] text-slate-500">
-                  <div class="font-semibold text-slate-700">${escapeHtml(MARKERS[key].axis)}</div>
-                  <div class="text-[10px] text-slate-400">${escapeHtml(MARKERS[key].note)}</div>
+                  <div class="font-bold text-slate-700">${escapeHtml(MARKERS[key].axis)}</div>
+                  <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(MARKERS[key].note)}</div>
                 </td>
               </tr>
             `).join("")}
@@ -338,19 +311,19 @@
       <div class="flex flex-wrap items-center justify-between gap-3 bg-indigo-50/40 p-3 rounded-xl border border-indigo-100 mb-4">
         <label class="flex items-center space-x-2 text-xs font-bold text-slate-700 cursor-pointer select-none">
           <input id="gpr-confirm" type="checkbox" class="w-4 h-4 text-indigo-600 rounded">
-          <span>입력한 수치는 자동 생성값이 아닌 실제 검사값(또는 명시적 시연값)이며, 검사법·단위·채취 조건을 확인했습니다.</span>
+          <span>입력한 4종 키트 수치는 실제 검사값(또는 명시적 시연값)이며, 검사 프로토콜·단위·채취 조건을 확인했습니다.</span>
         </label>
 
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" data-gpr-action="analyze"
             class="rounded-xl px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition flex items-center space-x-1.5">
             <i class="fa-solid fa-magnifying-glass-chart"></i>
-            <span>2. 분변 패턴 분석 · 이전 기록 비교 실행</span>
+            <span>2. 트랙 2 예측 vs 실측 비교 및 의사결정 분석 실행</span>
           </button>
 
           <button type="button" data-gpr-action="baseline"
             class="border border-slate-300 hover:bg-slate-100 rounded-xl px-3.5 py-2 text-slate-700 font-bold text-xs transition">
-            현재 측정 기록을 개인 기준선(Baseline)으로 저장
+            현재 4종 측정 기록을 개인 기준선(Baseline)으로 저장
           </button>
 
           <button type="button" data-gpr-action="clear"
@@ -361,7 +334,7 @@
       </div>
 
       <p id="gpr-message" role="status" class="text-xs font-semibold my-2 text-indigo-900">
-        💡 실제 측정한 마커만 입력하신 뒤 확인 체크박스를 선택하고 [2. 분변 패턴 분석 · 이전 기록 비교 실행]을 눌러주세요. (미입력 항목은 자동으로 '미측정·판단 보류' 처리됩니다.)
+        💡 [트랙 2] 실제 측정한 분변키트 항목(pH, 암모니아, 잠혈, 유리 인 중 1개 이상)을 입력하신 뒤 확인 체크박스를 선택하고 [2. 트랙 2 예측 vs 실측 비교 및 의사결정 분석 실행]을 눌러주세요.
       </p>
       <div id="gpr-result" class="space-y-4"></div>
     `;
@@ -376,7 +349,7 @@
       current = null;
       element("gpr-result").replaceChildren();
       element("gpr-message").textContent =
-        "입력이 변경되었습니다. 확인 후 [2. 분변 패턴 분석 · 이전 기록 비교 실행]을 눌러주세요.";
+        "입력이 변경되었습니다. 확인 후 [2. 트랙 2 예측 vs 실측 비교 및 의사결정 분석 실행]을 눌러주세요.";
     });
 
     root.addEventListener("click", function (event) {
@@ -391,17 +364,13 @@
         if (action === "reset-inputs") resetMeasuredInputs();
         if (action === "analyze") {
           try {
-            ["ph", "ammonia", "glucose", "blood", "protein", "carbo", "fat"].forEach(function (k) {
+            ["ph", "ammonia", "blood", "free_p"].forEach(function (k) {
               var gEl = document.getElementById("gpr-value-" + k);
               var mEl = document.getElementById("m9-" + k);
               if (gEl && mEl && gEl.value !== "") {
                 mEl.value = gEl.value;
               }
             });
-            window._fecalManualOverride = true;
-            if (typeof window.runGutEnvironmentCDSS === "function") {
-              window.runGutEnvironmentCDSS();
-            }
           } catch (syncErr) {}
           runAnalysis();
         }
@@ -424,13 +393,13 @@
     if (!badge) return;
     if (currentDataSource === "REAL_MEASURED") {
       badge.className = "text-[11px] font-bold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg border border-emerald-300";
-      badge.textContent = "🟢 자료 상태: 실제 측정값 입력 (출처 보존)";
+      badge.textContent = "🟢 자료 상태: 4종 키트 실제 측정값 입력됨";
     } else if (currentDataSource === "DEMO_SAMPLE") {
       badge.className = "text-[11px] font-bold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg border border-amber-300";
       badge.textContent = "🟠 자료 상태: 시연용 예시값 (실제 환자 기록과 분리)";
     } else {
       badge.className = "text-[11px] font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-300";
-      badge.textContent = "⚪ 자료 상태: 실측값 입력 대기 (미측정 보존)";
+      badge.textContent = "⚪ 자료 상태: 4종 키트 실측값 입력 대기 (미측정 보존)";
     }
   }
 
@@ -446,7 +415,7 @@
     currentDataSource = "DEMO_SAMPLE";
     updateSourceBadge();
     element("gpr-message").textContent =
-      "🟠 시연용 예시 수치가 입력되었습니다(실제 환자 측정 기록과 분리됨). [2. 분변 패턴 분석 · 이전 기록 비교 실행]을 눌러 결과를 확인하세요.";
+      "🟠 트랙 2 시연용 4종 예시 수치(pH, 암모니아, 잠혈, 유리 인)가 입력되었습니다. [2. 트랙 2 예측 vs 실측 비교 및 의사결정 분석 실행]을 눌러 결과를 확인하세요.";
   }
 
   function resetMeasuredInputs() {
@@ -462,7 +431,7 @@
     current = null;
     element("gpr-result").replaceChildren();
     element("gpr-message").textContent =
-      "⚪ 모든 실측 입력란을 비우고 미측정 상태로 초기화했습니다.";
+      "⚪ 4종 분변키트 실측 입력란을 모두 비우고 미측정 상태로 초기화했습니다.";
   }
 
   function readRecord() {
@@ -490,11 +459,9 @@
     let count = 0;
 
     KEYS.forEach(key => {
-      const unit =
-        key === "sg" ? "-" : element("gpr-unit-" + key).value.trim();
+      const unit = element("gpr-unit-" + key).value.trim();
       const value = numberOrNull(element("gpr-value-" + key).value);
-      const margin =
-        key === "sg" ? null : numberOrNull(element("gpr-margin-" + key).value);
+      const margin = numberOrNull(element("gpr-margin-" + key).value);
 
       if (value !== null && !unit) {
         throw new Error(
@@ -508,7 +475,7 @@
     });
 
     if (count === 0) {
-      throw new Error("측정한 실제 검사값을 1개 이상 입력하거나 [시연용 예시 수치 채우기]를 사용해 주세요.");
+      throw new Error("측정한 4종 분변키트(pH, 암모니아, 잠혈, 유리 인) 중 1개 이상 입력하거나 [시연용 4종 예시 수치 채우기]를 사용해 주세요.");
     }
 
     return {
@@ -564,12 +531,12 @@
 
   function compareToExpected(actual, expected, key) {
     if (!actual || actual.value === null) return "미측정 (판단 보류)";
-    if (!expected || expected.value === null) return "예상값 미적용 (전후비교 전용)";
+    if (!expected || expected.value === null) return "예상값 미적용";
     if (actual.unit !== expected.unit) return "단위 불일치 (비교 불가)";
 
-    // 잠혈(blood) 및 포도당(glucose)은 기준값이 0(음성)이므로 배수 곱셈 대신 검출한계(Cut-off) 및 위험 등급 모형으로 비교
-    if (key === "blood" || key === "glucose") {
-      const cutOff = key === "blood" ? 10.0 : 20.0;
+    // 잠혈(blood)은 기준값이 0(음성)이므로 배수 곱셈 대신 검출한계(Cut-off = 10.0) 및 위험 등급 모형으로 비교
+    if (key === "blood") {
+      const cutOff = 10.0;
       const tierLabel = expected.riskTier || "음성 예상 (Low Risk)";
       if (actual.value <= 0) {
         return `음성 확인 (모형 등급: ${tierLabel})`;
@@ -583,7 +550,7 @@
     if (actual.margin === null) return "차이만 확인";
 
     const diff = actual.value - expected.value;
-    const low = Math.round((expected.value - actual.margin) * 100) / 100;
+    const low = Math.max(0, Math.round((expected.value - actual.margin) * 100) / 100);
     const high = Math.round((expected.value + actual.margin) * 100) / 100;
     if (Math.abs(diff) <= actual.margin) {
       return `모형 예상 범위 이내 (${low}~${high})`;
@@ -621,81 +588,82 @@
 
     const patterns = [];
 
-    const fatHigh = compared.fat.includes("상회");
-    const carboHigh = compared.carbo.includes("상회");
-    const proteinHigh = compared.protein.includes("상회");
     const phLow = compared.ph.includes("하회");
     const phHigh = compared.ph.includes("상회");
     const ammoniaHigh = compared.ammonia.includes("상회");
+    const ammoniaLow = compared.ammonia.includes("하회");
+    const freePHigh = compared.free_p.includes("상회");
+    const freePLow = compared.free_p.includes("하회");
+    const freePMeasured = record.markers.free_p.value !== null;
 
-    // 1. 영양성분 잔류 패턴 (소장계 처리 검토)
-    if (fatHigh || carboHigh || proteinHigh) {
-      const items = [];
-      if (fatHigh) items.push("지방 잔류 신호 증가");
-      if (carboHigh) items.push("전분 잔류 신호 증가");
-      if (proteinHigh) items.push("분변 단백질 반응 증가");
-
-      patterns.push({
-        title: "영양성분 잔류 패턴 변화 관찰 (소장계 처리 및 식이 기질 검토)",
-        items,
-        observation: `[관찰] 측정 항목 중 ${items.join(", ")}가 모형 예상 범위 밖(상회)으로 관찰되었습니다.`,
-        interpretation: `[관련 해석] 식이 원료·혼합비 변화에 따른 기질 유입량 변화, 소장계 처리(소화·흡수) 조건, 장관 통과 시간 및 검체 처리 조건을 함께 연결해 검토합니다(단독 상승만으로 췌장 기능 저하·흡수장애·장누수를 확진하지 않습니다).`,
-        nextCheck: `[동반 조건 및 다음 확인사항] 최근 사료 제형/지방·전분 함량 변경 여부, 실제 섭취량, 변 성상 및 체중 추이를 함께 대조하고 필요 시 수의사 판단하에 추가 기능 검사(TLI, cPL/fPL 등)를 선별 검토합니다.`
-      });
-    }
-
-    // 2. 단백질 ↑ + 암모니아 비동반 (잔류-대사 불일치)
-    if (proteinHigh && !ammoniaHigh && record.markers.ammonia.value !== null) {
-      patterns.push({
-        title: "단백질 반응 증가 · 암모니아 비동반 (잔류–대사 불일치 검토 패턴)",
-        items: ["단백질 반응 증가", "암모니아 예상 범위 이내/낮음"],
-        observation: `[관찰] 분변 단백질 반응은 예상 범위를 상회하였으나, 암모니아는 동반 상승하지 않았습니다.`,
-        interpretation: `[관련 해석] 단백질 출처(식이·숙주·미생물), 미생물 이용 조건, 대장 접촉(통과) 시간 또는 검사법 반응 차이와 연결해 검토합니다(빠른 통과나 단백소실성 장병증[PLE] 중 하나로 강제 단정하지 않습니다).`,
-        nextCheck: `[동반 조건 및 다음 확인사항] 배변 빈도·수분 상태, 혈중 알부민/총단백 이력 및 식단 단백질 원료 변경 시점을 함께 확인합니다.`
-      });
-    }
-
-    // 3. 대장 대사·화학적 환경 변화 패턴
-    if (phLow || phHigh || ammoniaHigh) {
+    // 1. 분변 pH & 암모니아 (믹스피딩 단백질/탄수화물 비율 & 요독소 흡착제·소화효소 의사결정)
+    if (phLow || phHigh || ammoniaHigh || ammoniaLow) {
       const items = [
-        phLow ? "분변 pH 하회(산성화 방향)" : phHigh ? "분변 pH 상회(알칼리화 방향)" : null,
-        ammoniaHigh ? "암모니아 상회" : null
+        phLow ? "분변 pH 예측치 하회(산성화)" : phHigh ? "분변 pH 예측치 상회(알칼리화)" : null,
+        ammoniaHigh ? "암모니아 예측치 상회(질소 부하↑)" : ammoniaLow ? "암모니아 예측치 하회(질소 억제 양호)" : null
       ].filter(Boolean);
 
+      let decisionGuide = "";
+      if (ammoniaHigh || phHigh) {
+        decisionGuide = `[믹스피딩 & 약물 의사결정] ① 믹스피딩 조정: 고단백 사료·육류 간식 유입량이 현재 소화능을 초과했을 가능성이 높으므로 저단백/가수분해 처방식 비율 상향 및 발효성 수용성 섬유소 보강을 검토합니다. ② 약물 점검: 신장약(구강 요독소 흡착제·아조딜·락툴로스) 또는 소화효소제를 복용 중이라면 복약 순응도와 용량 적정성을 재점검하세요.`;
+      } else if (phLow) {
+        decisionGuide = `[믹스피딩 & 약물 의사결정] ① 믹스피딩 조정: 소장에서 미처 흡수되지 못한 전분·탄수화물이 대장으로 유입되어 산성 과발효를 일으킨 신호입니다. 고탄수화물 사료나 고구마·과일 간식 비중을 낮추고 소화율이 높은 배합비로 조정을 검토합니다. ② 약물 점검: 소화효소제(아밀라아제 포함) 보충 여부를 검토합니다.`;
+      } else {
+        decisionGuide = `[믹스피딩 & 약물 의사결정] 암모니아가 모형 예측치보다 낮게 유지되어 저단백 식이 배합 및 요독소 흡착제(신장약)의 장내 질소 억제 반응이 매우 양호합니다. 현 배합 비율과 약물 용량 유지를 권장합니다.`;
+      }
+
       patterns.push({
-        title: "대장 관련 대사 · 화학적 환경 변화 관찰",
+        title: "① 분변 pH · 암모니아 예측 vs 실측 비교 (식이 단백질/탄수화물 배합 & 요독흡착·소화제 의사결정)",
         items,
-        observation: `[관찰] 대장 대사 환경 지표에서 ${items.join(" 및 ")} 변화가 관찰되었습니다.`,
-        interpretation: `[관련 해석] 하류로 전달된 발효 기질(질소성 기질 또는 탄수화물)의 양, 장관 체류 시간, NH₃/NH₄⁺ 화학종 평형 및 배출 조건과 연결해 검토합니다(단일 수치로 대장염이나 특정 세균 증식을 단정하지 않습니다).`,
-        nextCheck: `[동반 조건 및 다음 확인사항] 고단백 간식 급여 여부, 약물(인바인더·락툴로스·항생제 등) 변경 시점 및 이전 개인 기준선 대비 변화 방향을 대조합니다.`
+        observation: `[관찰] 트랙 2 대사·산염기 키트에서 ${items.join(" 및 ")} 패턴이 확인되었습니다.`,
+        interpretation: `[관련 해석] 믹스피딩 식단의 단백질·탄수화물 기질 비율, 장관 체류 시간, 그리고 요독소 흡착제·소화효소제 투여에 따른 대장 내 NH₃/pH 평형 반응을 반영합니다.`,
+        nextCheck: decisionGuide
       });
     }
 
-    // 4. 잠혈 반응 (타 마커 양호 여부와 상쇄하지 않고 별도 표시)
+    // 2. 분변 유리 인 (Free Phosphorus) — 신장 처방식 배합비 & 인바인더(Phosphorus Binder) 의사결정
+    if (freePMeasured) {
+      const fpVal = record.markers.free_p.value;
+      const fpUnit = record.markers.free_p.unit;
+      const fpExp = expectedSource?.free_p?.value ?? 2.5;
+      if (freePHigh) {
+        patterns.push({
+          title: "② 분변 유리 인(Free P) 예측 범위 상회 (식이 인(P) 배합 비율 & 인바인더 용량 의사결정)",
+          items: [`실측 유리 인: ${format(fpVal)} ${fpUnit} (예측치 ${format(fpExp)} ${fpUnit} 상회)`],
+          observation: `[관찰] 분변 유리 인(${format(fpVal)} ${fpUnit})이 환자·식이·약물 조건으로 산출한 트랙 2 예측 범위를 상회하였습니다.`,
+          interpretation: `[관련 해석] ① 식단(고단백 사료·육류 토핑/간식)을 통한 인(P) 유입량이 예상보다 많거나, ② 인바인더(신장약) 복용 시 결합되지 못한 유리 인이 잔류하거나, ③ 장 점막 손상(IBD·PLE·췌장염)으로 인한 인 흡수 저하 가능성을 함께 시사합니다.`,
+          nextCheck: `[믹스피딩 & 약물 의사결정] 혈중 인(Serum P) 수치를 즉시 대조하세요. 혈중 인이 함께 높다면 육류 간식을 중단하고 저인 신장 처방식(k/d·레날) 배합 비율을 상향하며, 인바인더(Phosphorus Binder)의 식사 직후 혼합 급여 여부 및 용량 증량을 검토합니다.`
+        });
+      } else if (freePLow) {
+        patterns.push({
+          title: "② 분변 유리 인(Free P) 예측 범위 하회 (인바인더 결합 효능 및 저인 식단 반응 확인)",
+          items: [`실측 유리 인: ${format(fpVal)} ${fpUnit} (예측치 ${format(fpExp)} ${fpUnit} 하회)`],
+          observation: `[관찰] 분변 유리 인(${format(fpVal)} ${fpUnit})이 모형 예측 범위보다 낮게 측정되었습니다.`,
+          interpretation: `[관련 해석] 저단백·저인 처방식 급여 및 인바인더(가중치 0.65~0.68)가 장관 내 가용 유리 인을 효과적으로 결합·억제하고 있거나, 전체 식사 섭취량이 감소한 상태일 수 있습니다.`,
+          nextCheck: `[믹스피딩 & 약물 의사결정] 혈중 인(P) 및 알부민 수치와 실제 일일 사료 섭취량(g)을 확인하여, 저인산혈증이나 식욕부진이 없다면 현재 신장식 배합 비율과 인바인더 용량을 유지합니다.`
+        });
+      } else {
+        patterns.push({
+          title: "② 분변 유리 인(Free P) 모형 예측 범위 일치 (식이 인 & 인바인더 균형 유지)",
+          items: [`실측 유리 인: ${format(fpVal)} ${fpUnit} (예측 범위 이내)`],
+          observation: `[관찰] 분변 유리 인(${format(fpVal)} ${fpUnit})이 현재 믹스피딩 및 약물(인바인더 등) 가중치 예측 범위 이내로 확인되었습니다.`,
+          interpretation: `[관련 해석] 현재 설계된 처방식 혼합 비율과 신장약(인바인더) 용량이 예측 모형과 부합하게 작동하고 있습니다.`,
+          nextCheck: `[믹스피딩 & 약물 의사결정] 정기 혈액검사(BUN, Cr, SDMA, P) 추이와 대조하며 현 식단 인(P) 배합 비율과 인바인더 투약 프로토콜을 유지합니다.`
+        });
+      }
+    }
+
+    // 3. 분변 잠혈 반응 (NSAIDs·스테로이드·항암제 점막 안전성 및 식이 제형 의사결정)
     if (
       record.markers.blood.value !== null &&
       record.markers.blood.value > 0
     ) {
       patterns.push({
-        title: "잠혈 반응 별도 확인 신호 (타 마커와 상쇄 금지)",
-        items: [`잠혈 측정값: ${format(record.markers.blood.value)} ${record.markers.blood.unit}`],
-        observation: `[관찰] 분변 잠혈 반응(${format(record.markers.blood.value)} ${record.markers.blood.unit})이 관찰되었습니다.`,
-        interpretation: `[관련 해석] 다른 소화·대사 마커가 안정적이더라도 잠혈 신호는 상쇄하지 않고 별도로 검토합니다. 상·하부 소화관 출혈 가능성, 숙주 점막 유래 성분 및 식이성(육류 헤모글로빈·간섭 물질) 요인을 함께 검토합니다.`,
-        nextCheck: `[동반 조건 및 다음 확인사항] NSAIDs·스테로이드 등 점막 자극 약물 복용 여부, 변의 육안적 혈흔(흑변/선혈변) 유무 및 재검 일관성을 수의사가 직접 확인합니다.`
-      });
-    }
-
-    // 5. 분변 비중(SG) 및 포도당 탐색 지표
-    if (record.markers.sg.value !== null || (record.markers.glucose.value !== null && record.markers.glucose.value > 0)) {
-      const subItems = [];
-      if (record.markers.sg.value !== null) subItems.push(`분변 비중(SG): ${format(record.markers.sg.value)}`);
-      if (record.markers.glucose.value !== null && record.markers.glucose.value > 0) subItems.push(`포도당 반응: ${format(record.markers.glucose.value)} ${record.markers.glucose.unit}`);
-      patterns.push({
-        title: "보조 · 탐색 항목 관찰 기록 (개인별 전후 비교용)",
-        items: subItems,
-        observation: `[관찰] 보조·탐색 항목에서 ${subItems.join(" / ")} 기록이 확인되었습니다.`,
-        interpretation: `[관련 해석] 비중(SG)은 추출액 용질·이온 농도 반응이므로 원분변 수분율이나 변비로 단정하지 않으며, 포도당 패드 반응 역시 당뇨 확진이나 병변 위치 단정에 쓰지 않고 동일 조건 내 개인별 전후 변화 추적에 활용합니다.`,
-        nextCheck: `[동반 조건 및 다음 확인사항] 동일 추출 프로토콜(${record.protocol}) 하에서 이전 측정값 대비 증감 추세를 비교합니다.`
+        title: "③ 분변 잠혈 반응 검출 — 별도 확인 신호 (소염진통제·스테로이드 조정 및 점막보호 의사결정)",
+        items: [`잠혈 측정값: ${format(record.markers.blood.value)} ${record.markers.blood.unit} (모형 등급: ${expectedSource?.blood?.riskTier || '확인 필요'})`],
+        observation: `[관찰] 분변 잠혈 반응(${format(record.markers.blood.value)} ${record.markers.blood.unit})이 검출되었습니다. 다른 대사 마커가 안정적이더라도 잠혈 신호는 절대 상쇄하지 않습니다.`,
+        interpretation: `[관련 해석] NSAIDs(가중치 1.80~1.85), 스테로이드(1.45~1.50), 항암제(1.65~1.70) 복용에 따른 위장관 점막 미란·출혈 가능성 또는 기저 장질환(IBD·림프종·PLE) 및 육류 헤모글로빈 식이 간섭을 함께 검토합니다.`,
+        nextCheck: `[믹스피딩 & 약물 의사결정] ① 약물 조정: NSAIDs·스테로이드 복용 중이라면 위장관 점막보호제(Sucralfate, 오메프라졸 등) 즉시 병용 또는 비궤양성 진통제(가바펜틴 등)로의 대체·휴약을 수의사가 판단합니다. ② 식이 조정: 물리적 점막 자극을 줄이기 위해 습식·화식 또는 가수분해 처방식 비율 상향을 검토합니다.`
       });
     }
 
@@ -711,7 +679,7 @@
 
     const patternsHtml =
       summary.analysis.patterns.length === 0
-        ? '<div class="p-3.5 bg-emerald-50 text-emerald-900 rounded-xl text-xs font-semibold border border-emerald-200 space-y-1"><div>• <strong>[관찰]</strong> 측정한 항목에서 모형 예상 범위로부터 뚜렷한 이탈이 관찰되지 않았습니다.</div><div>• <strong>[관련 해석 및 유의사항]</strong> 관찰 기간 내 측정 패널상 큰 변화가 없음을 뜻하며, 미측정 항목이나 장 전체의 완전한 정상·고흡수율을 보증하지는 않습니다.</div></div>'
+        ? '<div class="p-3.5 bg-emerald-50 text-emerald-900 rounded-xl text-xs font-semibold border border-emerald-200 space-y-1"><div>• <strong>[관찰]</strong> 측정한 4종 핵심 분변키트(pH, 암모니아, 잠혈, 유리 인)에서 트랙 2 모형 예측 범위로부터 뚜렷한 이탈이 관찰되지 않았습니다.</div><div>• <strong>[믹스피딩 · 약물 의사결정]</strong> 현재 설계된 믹스피딩 배합 비율과 투약 중인 약물 용량이 장내에서 예측 범위 내로 안정적인 반응을 보이고 있으므로 현 처방 유지를 검토합니다.</div></div>'
         : summary.analysis.patterns.map(p => `
             <div class="border border-slate-200 bg-slate-50 rounded-xl p-3.5 space-y-1.5">
               <div class="font-extrabold text-xs text-indigo-950 flex items-center space-x-1.5">
@@ -721,7 +689,7 @@
               <div class="text-[11px] font-bold text-indigo-700">${escapeHtml(p.items.join(" · "))}</div>
               <div class="text-xs text-slate-800 leading-relaxed">${escapeHtml(p.observation)}</div>
               <div class="text-xs text-slate-700 leading-relaxed">${escapeHtml(p.interpretation)}</div>
-              <div class="text-[11px] text-slate-600 bg-white p-2 rounded-lg border border-slate-200/80">${escapeHtml(p.nextCheck)}</div>
+              <div class="text-[11px] text-indigo-950 font-semibold bg-indigo-50/70 p-2.5 rounded-lg border border-indigo-200/80">${escapeHtml(p.nextCheck)}</div>
             </div>
           `).join("");
 
@@ -743,13 +711,13 @@
 
     const srcLabel = summary.record.dataSource === "DEMO_SAMPLE"
       ? '<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">시연 예시 데이터</span>'
-      : '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">실제 측정 데이터</span>';
+      : '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">4종 키트 실제 측정 데이터</span>';
 
     card.innerHTML = `
       <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
         <div>
           <div class="flex items-center space-x-2">
-            <h4 class="font-black text-sm text-slate-900">개인 기준 대비 변화 요약 & 관찰·검토 패턴</h4>
+            <h4 class="font-black text-sm text-slate-900">[트랙 2 결과] 4대 핵심 분변키트 예측 vs 실측 비교 & 믹스피딩·약물 의사결정 리포트</h4>
             ${srcLabel}
           </div>
           <p class="text-xs text-slate-500 mt-0.5">환자 ID: ${escapeHtml(summary.record.patient)} | 채취일시: ${escapeHtml(summary.record.time)} | 규칙버전: ${escapeHtml(summary.record.ruleVersion)}</p>
@@ -758,7 +726,7 @@
       </div>
 
       <div class="space-y-2">
-        <h5 class="text-xs font-bold text-slate-700">관찰된 변화 · 함께 검토할 기전 후보 ([관찰 ➔ 해석 ➔ 동반조건 ➔ 다음 확인사항]):</h5>
+        <h5 class="text-xs font-bold text-slate-700">트랙 2 실측 비교 기반 의사결정 가이드 ([관찰 ➔ 해석 ➔ 믹스피딩·약물 조정 액션]):</h5>
         ${patternsHtml}
       </div>
 
@@ -766,11 +734,11 @@
         <table class="w-full text-xs text-left">
           <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
             <tr>
-              <th class="p-2.5">마커 항목</th>
-              <th class="p-2.5">① 실제 측정값</th>
+              <th class="p-2.5">트랙 2 분변키트 (4종)</th>
+              <th class="p-2.5">① 실제 키트 측정값</th>
               <th class="p-2.5">② 환자 이전 기록 대비 변화</th>
-              <th class="p-2.5">③ 모형 예상 대비 차이</th>
-              <th class="p-2.5">④ 연결 검토할 기능·조건</th>
+              <th class="p-2.5">③ 트랙 2 모형 예측 대비 판정</th>
+              <th class="p-2.5">④ 연결 검토할 믹스피딩·약물 요인</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
@@ -778,14 +746,14 @@
               const mVal = summary.record.markers[k].value;
               const valStr = mVal === null ? "미측정 (판단 보류)" : `${format(mVal)} ${summary.record.markers[k].unit !== '-' ? summary.record.markers[k].unit : ''}`;
               const compStr = summary.analysis.compared[k];
-              const compColor = compStr.includes("이내")
+              const compColor = compStr.includes("이내") || compStr.includes("음성 확인")
                 ? "text-emerald-700"
-                : compStr.includes("범위 밖")
-                ? "text-amber-700"
+                : compStr.includes("범위 밖") || compStr.includes("양성")
+                ? "text-rose-700"
                 : "text-slate-500";
               return `
               <tr class="hover:bg-slate-50">
-                <td class="p-2.5 font-bold text-slate-800">${escapeHtml(MARKERS[k].label)}</td>
+                <td class="p-2.5 font-extrabold text-slate-800">${escapeHtml(MARKERS[k].label)}</td>
                 <td class="p-2.5 font-semibold ${mVal === null ? 'text-slate-400 italic' : 'text-slate-900'}">
                   ${escapeHtml(valStr)}
                 </td>
@@ -824,18 +792,18 @@
 
     render(current);
     element("gpr-message").textContent =
-      "✅ 관찰·검토형 분변 패턴 분석이 완료되었습니다. 아래 4대 분리 표시 표와 검토 후보를 확인하세요.";
+      "✅ [트랙 2] 4종 핵심 분변키트(pH · 암모니아 · 잠혈 · 유리 인) 예측 vs 실측 비교 및 의사결정 분석이 완료되었습니다.";
   }
 
   function setBaseline() {
     if (!current) {
-      throw new Error("먼저 [2. 분변 패턴 분석 · 이전 기록 비교 실행]을 완료한 뒤 기준선으로 저장하세요.");
+      throw new Error("먼저 [2. 트랙 2 예측 vs 실측 비교 및 의사결정 분석 실행]을 완료한 뒤 기준선으로 저장하세요.");
     }
 
     baseline = clone(current.record);
     saveStoredBaseline(baseline.patient, baseline);
     element("gpr-message").textContent =
-      "📌 현재 측정 기록(" + baseline.time + ")을 환자(" + baseline.patient + ")의 개인 기준선(Baseline)으로 브라우저 저장소에 영구 보관했습니다.";
+      "📌 현재 4종 키트 측정 기록(" + baseline.time + ")을 환자(" + baseline.patient + ")의 개인 기준선(Baseline)으로 브라우저 저장소에 영구 보관했습니다.";
     current.baseline = clone(baseline);
     render(current);
   }
@@ -869,11 +837,6 @@
     const expected = {};
 
     KEYS.forEach(key => {
-      if (key === "sg") {
-        expected[key] = { value: null, unit: "-" };
-        return;
-      }
-
       const unit =
         typeof info[key]?.unit === "string" && info[key].unit !== ""
           ? info[key].unit
@@ -939,9 +902,9 @@
     }
 
     element("gpr-context").textContent =
-      "환자 조건 연결: " +
+      "트랙 2 가중치 연동: " +
       (latest.species || "종 정보") +
-      ` (${latest.weight_kg}kg, ${latest.age_years}세) | 미검증 초기 가설 계수(Prior) · 중복 통제 반영 완료`;
+      ` (${latest.weight_kg}kg, ${latest.age_years}세) | 4종 핵심 키트(pH·암모니아·잠혈·유리 인) 예측치 산출 완료`;
 
     KEYS.forEach(key => {
       const unitEl = document.getElementById("gpr-unit-" + key);
@@ -956,22 +919,18 @@
 
       const expEl = document.getElementById("gpr-expected-" + key);
       if (expEl) {
-        if (key === "sg") {
-          expEl.textContent = "전후 비교 전용 (예상치 미적용)";
+        const item = expected[key];
+        if (item && item.rangeText) {
+          expEl.innerHTML = `<div>${escapeHtml(item.rangeText)}</div>` +
+            (item.formulaNote ? `<div class="text-[10px] font-semibold text-slate-500 mt-0.5">${escapeHtml(item.formulaNote)}</div>` : "");
+        } else if (item && item.value !== null) {
+          const mVal = numberOrNull(marginEl?.value) ?? DEFAULT_MARGINS[key] ?? 0;
+          const low = Math.max(0, Math.round((item.value - mVal) * 100) / 100);
+          const high = Math.round((item.value + mVal) * 100) / 100;
+          const uStr = item.unit !== "-" ? " " + item.unit : "";
+          expEl.innerHTML = `<div>${format(item.value)} ± ${format(mVal)}${escapeHtml(uStr)} <span class="text-[10px] text-slate-600">[${format(low)}~${format(high)}]</span></div><div class="text-[10px] font-normal text-slate-500">트랙 2 가중치 예측치</div>`;
         } else {
-          const item = expected[key];
-          if (item && item.rangeText) {
-            expEl.innerHTML = `<div>${escapeHtml(item.rangeText)}</div>` +
-              (item.formulaNote ? `<div class="text-[10px] font-semibold text-slate-500 mt-0.5">${escapeHtml(item.formulaNote)}</div>` : "");
-          } else if (item && item.value !== null) {
-            const mVal = numberOrNull(marginEl?.value) ?? DEFAULT_MARGINS[key] ?? 0;
-            const low = Math.max(0, Math.round((item.value - mVal) * 100) / 100);
-            const high = Math.round((item.value + mVal) * 100) / 100;
-            const uStr = item.unit !== "-" ? " " + item.unit : "";
-            expEl.innerHTML = `<div>${format(item.value)} ± ${format(mVal)}${escapeHtml(uStr)} <span class="text-[10px] text-slate-600">[${format(low)}~${format(high)}]</span></div><div class="text-[10px] font-normal text-slate-500">미검증 초기 가설(Prior)</div>`;
-          } else {
-            expEl.textContent = "미설정";
-          }
+          expEl.textContent = "미설정";
         }
       }
       // [데이터 무결성 원칙] 실측값 입력칸(gpr-value-*)은 절대 모형 예상값이나 예시값으로 자동 덮어쓰지 않음!

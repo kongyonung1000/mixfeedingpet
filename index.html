@@ -2239,21 +2239,22 @@
                         </span>
                         <div class="space-y-2">
                             <div class="flex flex-wrap items-center gap-2">
-                                <h2 class="text-lg font-black text-slate-900">분변 패턴 · 급여 반응 다차원 검토 모듈</h2>
-                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-full">연구용·탐색적 가설 지표 (임상 확립값 아님)</span>
+                                <h2 class="text-lg font-black text-slate-900">장내환경 2-트랙(Two-Track) 예측 & 4종 분변키트 실측 의사결정 모듈</h2>
+                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-indigo-100 text-indigo-900 border border-indigo-300 rounded-full">트랙 1: 장내환경 상태 예측 (실측치 없음)</span>
+                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-full">트랙 2: 믹스피딩·약물 4종 키트(pH·암모니아·잠혈·유리 인) 예측 vs 실측 비교</span>
                                 <span id="vet-demo-data-badge-tab4" class="text-[11px] font-extrabold px-2.5 py-0.5 bg-rose-100 text-rose-800 border border-rose-300 rounded-full">🧪 시연용 예시 데이터 표시 중</span>
                             </div>
-                            <p class="text-xs text-slate-600">환자 조건(연령·체급·식이·약물·기저질환)과 분변 마커 실측값을 비교하여 급여 후 변화를 검토하는 탐색적 참고 화면입니다. 모형 가중치와 추정 흡수지수는 자동 처방이나 급여량 변경에 직접 연결되지 않습니다.</p>
+                            <p class="text-xs text-slate-600"><strong>[트랙 1]</strong>은 실측치 입력 없이 5대 축(연령/체급·식이·약물·기저질환·혈액검사) 조건만으로 장내환경 상태 예측치를 산출하며, <strong>[트랙 2]</strong>는 실질적인 임상 의사결정을 위해 핵심 <strong>4종 분변키트(pH · 암모니아 · 잠혈 · 유리 인)</strong>의 예측치와 실측치를 비교하여 믹스피딩 배합비 및 약물(인바인더·NSAIDs/스테로이드·요독흡착제·소화효소) 조정을 지원합니다.</p>
                             <!-- [개선점 ②] 계산·규칙 근거 출처 및 검증 상태 메타데이터 박스 -->
                             <details class="bg-slate-50 rounded-xl border border-slate-200 p-3 text-xs">
-                                <summary class="font-black text-indigo-900 cursor-pointer select-none">📚 [근거 · 수식 구조 및 검증 상태 확인] 미검증 초기 가설 계수(Prior) · pH 가산 모형 · 잠혈 등급 모형 · 중복 변수 통제 (클릭하여 펼치기)</summary>
+                                <summary class="font-black text-indigo-900 cursor-pointer select-none">📚 [2-트랙 모형 근거 · 수식 구조 확인] 트랙 1(장내환경 상태 예측 · 실측치 없음) & 트랙 2(4종 키트 pH·암모니아·잠혈·유리 인 예측 vs 실측 비교) (클릭하여 펼치기)</summary>
                                 <div class="mt-2.5 pt-2.5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-[11px] text-slate-700">
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ① 가설 계수 정의 (Prior):</strong> 분변 마커 변수별 계수는 확정된 생리학적 농도 배수가 아닌, 실측 데이터 축적 전 사용하는 <strong>미검증 초기 가설 계수(약한 사전정보, Prior)</strong>이며 항상 예측 오차 범위(<code>±Margin</code>)와 함께 제시됩니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ② 분변 pH 가산형 수식:</strong> 로그 척도인 pH는 배수 곱셈 대신 <code>예상 pH = 기준 pH(6.50) + ΔpH(식이) + ΔpH(약물) + ΔpH(질환·혈액)</code> 형태의 <strong>pH 단위 가산 변화량 모형</strong>으로 산출합니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ③ 잠혈·포도당(기준 0) 등급 모형:</strong> 정상 기준값이 <code>0(음성)</code>인 항목은 배수를 곱해도 0이 되는 수식 한계를 방지하기 위해, 농도 배수 대신 <strong>주의 신호 등급(음성 예상 / 약양성 주의 / 양성 고위험) 및 검출한계(Cut-off) 모형</strong>으로 분리합니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ① 2-트랙 분리 설계:</strong> <strong>[트랙 1]</strong>은 실측치 없이 환자·식이·약물·질환·혈액 조건으로 장내환경 상태(2축 4분면·4대 잠재 상태)를 예측하고, <strong>[트랙 2]</strong>는 4종 실측 분변키트(<code>pH</code>·<code>암모니아</code>·<code>잠혈</code>·<code>유리 인</code>)의 예측 vs 실측 비교를 통해 처방 의사결정을 지원합니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ② 분변 pH 가산형 수식:</strong> 로그 척도인 pH는 배수 곱셈 대신 <code>예상 pH = 기준 pH(6.50) + ΔpH(식이·약물·질환·혈액)</code> 형태의 <strong>pH 단위 가산 변화량 모형</strong>으로 산출합니다(『트랙2 장내환경 변수별 가중치 상관관계』 100% 동기화).</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ③ 잠혈(기준 0) 등급 & 유리 인(Free P) 모형:</strong> 기준값이 <code>0(음성)</code>인 잠혈은 주의 신호 등급 및 검출한계(<code>&lt;10 ng/mL</code>) 모형으로 평가하며, <strong>유리 인(Free P, 기준 2.5 mg/g)</strong>은 식이 인 유입·인바인더(<code>0.68/0.65</code>)·신장/장질환 가중치를 반영해 예측 범위와 실측치를 대조합니다.</div>
                                     <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ④ 동일 병태군 중복 반영 통제:</strong> <code>CKD + BUN/Cr 상승 + 신장약 + 신장식</code> 등 동일 임상 클러스터가 함께 존재할 때 같은 병태를 중복 계산하지 않도록 <strong>주효과 1개 외 연관 변수를 교차 감쇠(γ=0.25) 및 상한 캡(Cap)</strong>으로 통제합니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ⑤ 기준 개체 보존 및 실측 명칭 일치:</strong> 모든 변수 계수가 <code>1.0</code>인 기준 개체는 카테고리 민감도(C_k)와 무관하게 기준 예측값을 그대로 유지하며, 장운동·장염증·장누수·소화액분비는 <strong>직접 실측 항목이 아닌 가설적 잠재 상태</strong>로 분리 표시합니다.</div>
-                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 알고리즘 버전 / 검토일:</strong> <code>v1.3-prior-interval</code> (2026-11-05 수식·통계 타당성 고도화 반영)</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• ⑤ 기준 개체 보존 및 실측 명칭 일치:</strong> 모든 변수 계수가 <code>1.0</code>인 기준 개체는 카테고리 민감도(C_k)와 무관하게 기준 예측값을 그대로 유지하며, 장운동·장염증·장누수·소화액분비는 <strong>트랙 1의 가설적 잠재 상태</strong>로 분리 표시합니다.</div>
+                                    <div class="p-2 rounded-lg bg-white border border-slate-200"><strong>• 알고리즘 버전 / 데이터 기준:</strong> <code>v2.0-two-track</code> (『트랙2 장내환경 변수별 가중치 상관관계.xlsx』 개 77개·고양이 76개 변수 100% 반영)</div>
                                 </div>
                             </details>
                         </div>
@@ -2604,10 +2605,34 @@
                     </div>
                 </div>
 
-                <!-- NEW: 분변 해석 모듈 (소장계/대장 관련 패턴 검토 · 비중 SG 적용) -->
+                <!-- 2-트랙(Two-Track) 구조 바로가기 & 역할 안내 배너 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900 text-white p-4 rounded-2xl shadow-md border border-slate-700">
+                    <div onclick="document.getElementById('gut-cdss-result-panel')?.scrollIntoView({behavior:'smooth', block:'start'})" class="cursor-pointer p-3.5 rounded-xl bg-indigo-950/80 hover:bg-indigo-900/90 border border-indigo-500/40 transition flex items-start justify-between gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-indigo-500 text-white text-[11px] font-black">트랙 1 (실측치 없음)</span>
+                                <span class="text-xs font-black text-indigo-200">장내환경 상태 예측 모형 (사전 예측치)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-snug">실측 키트 입력 없이 5대 축(연령/체급·식이·약물·기저질환·혈액검사) 조건만으로 소장 잔류(X축)·대장 대사(Y축) 4분면과 4대 잠재 상태를 예측합니다.</p>
+                        </div>
+                        <span class="text-xs font-extrabold text-indigo-300 shrink-0 mt-1">이동 ↓</span>
+                    </div>
+                    <div onclick="document.getElementById('gut-pattern-review')?.scrollIntoView({behavior:'smooth', block:'start'})" class="cursor-pointer p-3.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900/90 border border-emerald-500/40 transition flex items-start justify-between gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[11px] font-black">트랙 2 (4종 키트 실측 비교)</span>
+                                <span class="text-xs font-black text-emerald-200">믹스피딩 · 약물 사용 예측 vs 실측 비교 폼</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-snug">실측 분변키트 4종(<strong>① pH · ② 암모니아 · ③ 잠혈 · ④ 유리 인</strong>)의 예측치와 실측치를 대조하여 믹스피딩 비율 및 약물(인바인더·소화효소·점막보호제) 의사결정을 지원합니다.</p>
+                        </div>
+                        <span class="text-xs font-extrabold text-emerald-300 shrink-0 mt-1">입력 ↓</span>
+                    </div>
+                </div>
+
+                <!-- [트랙 2] 4종 실측 분변키트(pH · 암모니아 · 잠혈 · 유리 인) 예측 vs 실측 비교 모듈 -->
                 <div id="gut-pattern-review" class="bg-white rounded-2xl p-6 shadow-md border-2 border-indigo-500/40 mb-6"></div>
 
-                <!-- [삭제됨: 분변해석모듈 표와 중복되어 9대 분변마커 실측값 입력 패널 제거됨] -->
+                <!-- [트랙 1 내부 연산용 히든 필드 — 기존 실측치 폼 제거 완료] -->
                 <div style="display:none;" aria-hidden="true">
                     <span id="cdss-meas-abs-label">68.0</span>
                     <strong id="cdss-recalc-kcal">0 kcal/day</strong>
@@ -2622,13 +2647,26 @@
                     <input type="number" id="m9-carbo" value="6.0">
                     <input type="number" id="m9-fat" value="4.0">
                     <input type="number" id="m9-absorption" value="85.0">
+                    <input type="number" id="m9-free_p" value="2.5">
                     <div id="fecal-9marker-toggle-badge"></div>
                     <div id="fecal-9marker-input-body"></div>
                     <div id="fecal-input-mode-badge"></div>
                 </div>
 
-                <!-- 관찰·검토형 결과 리포트 영역 ([변화 요약 ➔ 두 축 패턴 ➔ 상세 근거]) -->
+                <!-- [트랙 1] 장내환경 상태 예측 모형 리포트 영역 (실측치 없음 · 순수 사전 예측치) -->
                 <div id="gut-cdss-result-panel" class="space-y-6">
+                    <!-- 트랙 1 전용 상단 배너 -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-950 via-slate-900 to-blue-950 text-white border border-indigo-500/40 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-indigo-500 text-white text-xs font-black">[트랙 1] 장내환경 상태 예측 모형 (실측치 없음)</span>
+                                <span class="text-xs font-bold text-indigo-200">5대 축(연령/체급 · 식이 · 약물 · 기저질환 · 혈액검사) 기반 순수 예측치</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300">트랙 1은 별도의 분변 실측치 입력 없이 환자의 기저 조건과 현재 설계된 처방식·약물 조합만으로 예상되는 장내환경 상태(2축 4분면 매트릭스 및 4대 잠재 상태)를 시뮬레이션합니다.</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-xl bg-white/10 border border-white/20 text-[11px] font-extrabold text-indigo-200">실측 키트 비교는 상단 [트랙 2]에서 수행</span>
+                    </div>
+
                     <!-- 1. 영양성분 잔류 패턴(X축) · 분변 대사·화학적 환경 패턴(Y축) 2축 검토 모듈 -->
                     <div class="p-6 rounded-2xl bg-white border-2 border-indigo-200/80 shadow-sm space-y-5">
                         <!-- 상단 헤더 바 -->
@@ -2639,10 +2677,10 @@
                                 </span>
                                 <div>
                                     <h3 class="text-sm font-black text-slate-900 flex items-center space-x-2">
-                                        <span>영양성분 잔류 패턴(X축) · 분변 대사·화학적 환경 패턴(Y축) 2축 검토 모듈</span>
-                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">비배타적 2축 패턴 관찰</span>
+                                        <span>[트랙 1] 영양성분 잔류 예측(X축) · 분변 대사·화학적 환경 예측(Y축) 2축 모형</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">사전 예측 모형 (실측치 없음)</span>
                                     </h3>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">소장성·대장성 질환을 이분법으로 단정하지 않고, <strong>X축(영양성분 잔류 패턴: 소장계 처리·식이 기질 검토)</strong>과 <strong>Y축(분변 대사·화학적 환경 패턴: 대장 대사·산염기 환경 검토)</strong>의 변화를 함께 관찰합니다. (잠혈 반응은 상쇄하지 않고 별도 표시)</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">환자의 5대 축 가중치로부터 예측된 <strong>X축(영양성분 잔류 예측 패턴: 소장계 처리·식이 기질 부담)</strong>과 <strong>Y축(분변 대사·화학적 환경 예측 패턴: 대장 대사·산염기 환경 부담)</strong>을 보여줍니다.</p>
                                 </div>
                             </div>
                             <div id="quadrant-scenario-badge" class="px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-xs">
@@ -4168,7 +4206,7 @@
         // 2. 믹스피딩 가중치의 근거.docx (다차원 감쇠 결합 수식 α=0.40, 카테고리 민감도 C_k)
         // 3. 혈액/마커 체크박스 (개 15종 / 고양이 14종) + 정량 혈액 수치 연동 가중치(ΔW_Lab)
         // =========================================================================
-        const CDSS_MARKERS = ["ph", "ammonia", "glucose", "blood", "protein", "carbo", "fat", "absorption"];
+        const CDSS_MARKERS = ["ph", "ammonia", "glucose", "blood", "protein", "carbo", "fat", "absorption", "free_p"];
 
         const CDSS_MARKER_INFO = {
             ph:         { name: "① 분변 pH", unit: "-", base: 6.5, min: 6.0, max: 7.0, imp: 1.0 },
@@ -4179,6 +4217,7 @@
             carbo:      { name: "⑥ 전분 잔류 신호(루골)", unit: "% DM", base: 6.0, min: 3.0, max: 10.0, imp: 1.0 },
             fat:        { name: "⑦ 지방 잔류 신호", unit: "% DM", base: 4.0, min: 1.0, max: 7.0, imp: 1.4 },
             absorption: { name: "⑧ 모형 참고 흡수지수(직접측정 외)", unit: "%", base: 85.0, min: 80.0, max: 95.0, imp: 1.8 },
+            free_p:     { name: "⑨ 분변 유리 인 (Free P · 트랙2)", unit: "mg/g", base: 2.5, min: 1.0, max: 4.0, imp: 1.5 },
             // 하위 호환성용 유지
             indole:     { name: "인돌 (Indole)", unit: "μg/g", base: 15.0, min: 5.0, max: 25.0, imp: 1.5 },
             lactate:    { name: "젖산 (Lactate)", unit: "mmol/g", base: 8.0, min: 5.0, max: 12.0, imp: 1.2 }
@@ -4195,7 +4234,8 @@
             carbo:      { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.3 },
             fat:        { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.9 },
             absorption: { age: 1.1, size: 0.9, diet: 1.2, drug: 1.3, disease: 1.7, lab: 1.8 },
-            glucose:    { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.5 }
+            glucose:    { age: 1.0, size: 0.8, diet: 1.5, drug: 1.2, disease: 1.8, lab: 1.5 },
+            free_p:     { age: 0.7, size: 0.5, diet: 1.5, drug: 1.8, disease: 1.5, lab: 1.6 }
         };
 
         // ===========================================================================
@@ -4204,10 +4244,11 @@
 
 // ===========================================================================
 
-function _mkW(ph, amm, glu, bld, pro, car, fat, abs, mot = 1.0, dig = 1.0, leak = 1.0, inf = 1.0, mic = 1.0) {
+function _mkW(ph, amm, glu, bld, pro, car, fat, abs, mot = 1.0, dig = 1.0, leak = 1.0, inf = 1.0, mic = 1.0, free_p = 1.0) {
     return {
         ph, ammonia: amm, glucose: glu, blood: bld,
         protein: pro, carbo: car, fat, absorption: abs,
+        free_p,
         motility: mot, digestion: dig, leak: leak, inflammation: inf,
         microbial_index: mic,
         // 하위 호환성 및 기존 로직 방어 (인돌 및 젖산 참조 호환)
@@ -4411,6 +4452,70 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
         const CDSS_SIZE_WEIGHTS = CDSS_SIZE_WEIGHTS_DOG;
         const CDSS_DIET_WEIGHTS = CDSS_DIET_WEIGHTS_DOG;
         const CDSS_DRUG_WEIGHTS = CDSS_DRUG_WEIGHTS_DOG;
+
+        // ===========================================================================
+        // [트랙 2] 트랙2_장내환경_변수별_가중치_상관관계.xlsx 100% 반영 (유리 인 Free P 가중치 매핑)
+        // ===========================================================================
+        const TRACK2_FREE_P_DOG = {
+            "7년령 이상 (노령기)": 1.08,
+            "대형견 (>25kg)": 1.03,
+            "고단백사료": 1.25,
+            "저단백사료": 0.82,
+            "신장처방식 (저단백·고지방 k/d·레날)": 0.82,
+            "습식 (캔/파우치)": 1.02,
+            "화식 (신선식)": 1.05,
+            "간식 (트릿/육포 등)": 1.15,
+            "신장약 (인바인더/요독소흡착제 등)": 0.68,
+            "스테로이드 (Prednisolone 등)": 1.05,
+            "항암제 (Cytotoxic agents)": 1.05,
+            "CKD stage 3, 4": 1.25,
+            "만성췌장염": 1.15,
+            "IBD (염증성장질환)": 1.20,
+            "종양 (전신/악성)": 1.10,
+            "cPL 경도 상승 (1단계/경증 췌장염 의심)": 1.15,
+            "cPL 고도 상승 (2단계/급성·중증 췌장염)": 1.15,
+            "BUN / Creatinine 상승 (신부전/요독증)": 1.20,
+            "알부민 경도 저하 (경증 저단백혈증)": 0.82,
+            "알부민 중증 저하 (단백소실성 장병증 PLE)": 1.25,
+            "전해질 불균형 (저칼륨혈증/고인산혈증)": 1.25
+        };
+
+        const TRACK2_FREE_P_CAT = {
+            "7년령 이상 (노령묘/시니어)": 1.08,
+            "대형묘 (>6kg / 메인쿤·랙돌 등)": 1.03,
+            "고단백사료 (육식 특화 40%↑)": 1.28,
+            "저단백사료 (신부전 처방 등)": 0.80,
+            "신장처방식 (저단백·고지방 레날/k/d)": 0.80,
+            "습식 (주식캔/파우치 수분공급)": 1.03,
+            "화식 / 생식 (B.A.R.F. 신선식)": 1.06,
+            "간식 (츄르/동결건조/육포)": 1.18,
+            "신장약 (인바인더/요독흡착제/아조딜)": 0.65,
+            "스테로이드 (Prednisolone/Budesonide)": 1.05,
+            "항암제 (Chlorambucil/L-Asparaginase)": 1.08,
+            "3복강염 (Triaditis: 췌장염+담관염+IBD)": 1.15,
+            "만성 췌장염 (Feline Pancreatitis, fPL↑)": 1.15,
+            "IBD (만성 염증성 장질환)": 1.22,
+            "소화기 림프종 (GI Lymphoma, 소형/대형세포)": 1.25,
+            "CKD stage 3, 4 (말기 만성신부전/요독증)": 1.28,
+            "고양이 전염성 복막염 (FIP, 습식/건식)": 1.03,
+            "fPL 경도 상승 (1단계/경증 췌장염 의심)": 1.15,
+            "fPL 고도 상승 (2단계/급성·중증 췌장염)": 1.15,
+            "BUN / Creatinine 상승 (신부전/요독증)": 1.22,
+            "알부민 경도 저하 (경증 저단백혈증)": 0.80,
+            "알부민 중증 저하 (단백소실성 장병증 PLE)": 1.25,
+            "전해질 불균형 (저칼륨혈증/고인산혈증)": 1.28
+        };
+
+        [CDSS_AGE_WEIGHTS_DOG, CDSS_SIZE_WEIGHTS_DOG, CDSS_DIET_WEIGHTS_DOG, CDSS_DRUG_WEIGHTS_DOG, CDSS_DISEASE_WEIGHTS_DOG, CDSS_LAB_MARKER_WEIGHTS_DOG].forEach(dict => {
+            Object.keys(dict).forEach(k => {
+                if (TRACK2_FREE_P_DOG[k] !== undefined) dict[k].free_p = TRACK2_FREE_P_DOG[k];
+            });
+        });
+        [CDSS_AGE_WEIGHTS_CAT, CDSS_SIZE_WEIGHTS_CAT, CDSS_DIET_WEIGHTS_CAT, CDSS_DRUG_WEIGHTS_CAT, CDSS_DISEASE_WEIGHTS_CAT, CDSS_LAB_MARKER_WEIGHTS_CAT].forEach(dict => {
+            Object.keys(dict).forEach(k => {
+                if (TRACK2_FREE_P_CAT[k] !== undefined) dict[k].free_p = TRACK2_FREE_P_CAT[k];
+            });
+        });
 
 
         window.activeLabSpeciesTab = '개';
@@ -5084,28 +5189,28 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                 inf: attenuateGroupDelta(labWList, "inflammation", 0.40, false)
             };
 
-            // 4) 8대 분변 마커 실측치 기반 부하 가산
+            // 4) [트랙 1] 모형 예측치(expected, 실측치 없음) 기반 부하 가산
             let fecal_mot = 0.0, fecal_dig = 0.0, fecal_leak = 0.0, fecal_inf = 0.0;
             if (evalMap) {
-                if (evalMap.blood && evalMap.blood.meas >= 10.0) {
-                    const bRatio = Math.min(2.5, evalMap.blood.meas / 10.0);
+                if (evalMap.blood && evalMap.blood.w_total >= 1.25) {
+                    const bRatio = Math.min(2.5, Math.max(0.5, (evalMap.blood.w_total - 1.0) * 2.5));
                     fecal_leak += 0.40 * bRatio;
                     fecal_inf  += 0.35 * bRatio;
                 }
-                if (evalMap.absorption && evalMap.absorption.meas < 80.0) {
-                    const aDrop = (80.0 - evalMap.absorption.meas) / 20.0;
+                if (evalMap.absorption && evalMap.absorption.expected < 80.0) {
+                    const aDrop = (80.0 - evalMap.absorption.expected) / 20.0;
                     fecal_dig  += 0.40 * aDrop;
                     fecal_leak += 0.20 * aDrop;
                 }
-                if (evalMap.ammonia && evalMap.ammonia.meas > 30.0) {
+                if (evalMap.ammonia && evalMap.ammonia.expected > 28.0) {
                     fecal_inf += 0.25;
                     fecal_mot += 0.20;
                 }
-                if (evalMap.glucose && evalMap.glucose.meas >= 20.0) {
+                if (evalMap.glucose && evalMap.glucose.w_total >= 1.25) {
                     fecal_dig += 0.25;
                     fecal_mot += 0.15;
                 }
-                if ((evalMap.fat && evalMap.fat.meas > 7.0) || (evalMap.protein && evalMap.protein.meas > 8.0)) {
+                if ((evalMap.fat && evalMap.fat.expected > 5.2) || (evalMap.protein && evalMap.protein.expected > 6.2)) {
                     fecal_dig += 0.50;
                 }
             }
@@ -5312,7 +5417,8 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                 protein: 1.5,
                 carbo: 1.5,
                 fat: 1.5,
-                absorption: 5.0
+                absorption: 5.0,
+                free_p: 0.6
             };
 
             CDSS_MARKERS.forEach(m => {
@@ -5362,9 +5468,9 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                 let formulaNote = "미검증 초기 가설(Prior) · 중복통제 반영";
                 const priorMargin = DEFAULT_PRIOR_MARGINS[m] ?? 1.5;
 
-                // [개선 3-①] 분변 pH: 배수 곱셈 대신 가산형 변화량(ΔpH) 수식 적용
+                // [개선 3-① & 트랙2 엑셀 동기화] 분변 pH: 배수 곱셈 대신 가산형 변화량(ΔpH = 6.50 × ΔW) 수식 적용
                 if (m === "ph") {
-                    deltaPh = (d_age_size * 2.2) + (d_diet_controlled * 3.0) + (d_drug_controlled * 2.2) + (d_dis_lab_controlled * 2.5);
+                    deltaPh = 6.50 * (d_age_size + d_diet_controlled + d_drug_controlled + d_dis_lab_controlled);
                     deltaPh = Math.max(-1.10, Math.min(1.20, Math.round(deltaPh * 100) / 100));
                     expected = Math.round(Math.max(5.20, Math.min(8.20, info.base + deltaPh)) * 100) / 100;
                     expectedUpper = Math.round((expected + priorMargin) * 100) / 100;
@@ -5372,7 +5478,7 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                     w_total = Math.round((1.0 + deltaPh / info.base) * 100) / 100;
                     const signStr = deltaPh >= 0 ? `+${deltaPh.toFixed(2)}` : `${deltaPh.toFixed(2)}`;
                     expectedRangeText = `${expected.toFixed(2)} ± ${priorMargin.toFixed(2)} [${expLow.toFixed(2)}~${expectedUpper.toFixed(2)}]`;
-                    formulaNote = `가산 모형 (기준 6.50 ${signStr} ΔpH · 미검증 가설)`;
+                    formulaNote = `가산 모형 (기준 6.50 ${signStr} ΔpH · 트랙2 엑셀 동기화)`;
                 }
                 // [개선 3-②] 잠혈(blood) 및 포도당(glucose): 기준값이 0(음성)이므로 배수 곱셈 대신 주의 등급(Risk Tier) & 검출한계 모형 적용
                 else if (m === "blood" || m === "glucose") {
@@ -5400,6 +5506,12 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                     expectedUpper = Math.round((expected + priorMargin) * 10) / 10;
                     const expLow = Math.max(0, Math.round((expected - priorMargin) * 10) / 10);
                     expectedRangeText = `${expected} ± ${priorMargin} ${info.unit} [${expLow}~${expectedUpper}]`;
+                } else if (m === "free_p") {
+                    expected = Math.round(info.base * w_total * 100) / 100;
+                    expectedUpper = Math.round((expected + priorMargin) * 100) / 100;
+                    const expLow = Math.max(0, Math.round((expected - priorMargin) * 100) / 100);
+                    expectedRangeText = `${expected.toFixed(2)} ± ${priorMargin.toFixed(2)} ${info.unit} [${expLow.toFixed(2)}~${expectedUpper.toFixed(2)}]`;
+                    formulaNote = `트랙2 유리 인 예측식 (기준 2.50 × 가중치 ${w_total.toFixed(2)})`;
                 } else {
                     expected = Math.round(info.base * w_total * 10) / 10;
                     expectedUpper = Math.round((expected + priorMargin) * 10) / 10;
@@ -5407,29 +5519,18 @@ const CDSS_LAB_MARKER_WEIGHTS_CAT = {
                     expectedRangeText = `${expected} ± ${priorMargin} ${info.unit} [${expLow}~${expectedUpper}]`;
                 }
 
-                // 수동 입력 모드가 아닐 경우 환자의 현재 5대 축 상태에 맞춰 실측 추정치(m9-*)를 동적 동기화
+                // [트랙 1] 실측치 없음 — 환자 5대 축 기반 순수 예측치(expected)로 동기화
                 const measInput = document.getElementById(`m9-${m}`);
-                if (!window._fecalManualOverride && measInput) {
-                    let autoVal = expected;
-                    if (hasLipidOverload) {
-                        if (m === "fat") autoVal = Math.round(Math.max(expected * 1.28, 9.5) * 10) / 10;
-                        else if (m === "absorption") autoVal = Math.round(Math.min(expected - 3.1, 68.0) * 10) / 10;
-                        else if (m === "ammonia") autoVal = Math.round(Math.min(expected, Math.max(info.base, expected * 0.90)) * 10) / 10;
-                        else if (m === "indole") autoVal = Math.round(Math.min(expected, Math.max(info.base, expected * 0.85)) * 10) / 10;
-                    }
-                    if (hasTreatOverload) {
-                        if (m === "ammonia") autoVal = Math.round(expected * 1.18 * 10) / 10;
-                        else if (m === "indole") autoVal = Math.round(expected * 1.16 * 10) / 10;
-                        else if (m === "protein") autoVal = Math.round(expected * 1.20 * 10) / 10;
-                        else if (m === "ph") autoVal = Math.round(Math.max(expected, 7.45) * 100) / 100;
-                    }
-                    if (hasUlcerDrug && m === "blood") {
-                        autoVal = Math.round(Math.max(expectedUpper + 3.0, 18.0) * 10) / 10;
-                    }
-                    measInput.value = autoVal;
+                let track1ProjVal = expected;
+                if (m === "blood" && (w_total >= 1.35 || hasUlcerDrug)) {
+                    track1ProjVal = 12.0;
+                } else if (hasLipidOverload && m === "fat") {
+                    track1ProjVal = Math.round(Math.max(expected * 1.18, 7.6) * 10) / 10;
                 }
-
-                const meas = measInput && !isNaN(parseFloat(measInput.value)) ? parseFloat(measInput.value) : expected;
+                if (measInput) {
+                    measInput.value = track1ProjVal;
+                }
+                const meas = track1ProjVal;
 
                 // 카테고리 민감도(C_k)가 반영된 원인 기여 편차 (질병 축에 혈액검사 체크박스 가중치 연동)
                 const ws_age  = (sens.age * Math.abs(raw_age)) + (sens.size * Math.abs(raw_size));
@@ -5811,39 +5912,31 @@ try {
             const suppActions = [];
             const vetActions = [];
 
-            if (evalMap.ammonia && evalMap.ammonia.statusCode === "COMPENSATED") {
-                aiComments.push(`• <strong>[질소 대사 마커 관찰]</strong> [관찰] 암모니아(${evalMap.ammonia.meas} μmol/g)가 일반 기준보다 높으나 모형 예상 범위(${evalMap.ammonia.expected} μmol/g) 이내입니다. ➔ [관련 해석] 기저 질환·연령·식이 조건에서 예상된 범위 내의 변화로 해석합니다. ➔ [다음 확인사항] 이전 개인 기준선 대비 증감 여부를 지속적으로 비교합니다.`);
-            } else if (evalMap.ammonia && evalMap.ammonia.statusCode === "DECOMPENSATED") {
-                aiComments.push(`• <strong>[질소 대사 마커 예상 범위 상회]</strong> [관찰] 분변 암모니아(${evalMap.ammonia.meas} μmol/g)가 모형 예상 범위(${evalMap.ammonia.expected} μmol/g) 밖으로 높게 관찰되었습니다. ➔ [관련 해석] 대장 내 질소성 기질 유입 증가, 체류 시간 변화 또는 요독성 질소 역확산 조건과 연결해 검토합니다. ➔ [다음 확인사항] 고단백 간식 급여 여부 및 신장 관련 혈액 지표 추이를 함께 확인합니다.`);
-                dietActions.push("• <strong>[식이 조정 후보안]</strong> 고단백 간식(육포·트릿 등) 급여가 있었다면 제한을 검토하고, 영양 목표 유지 하에 고소화성 가수분해 사료 또는 저단백 처방식 비중 조정을 후보안으로 검토합니다.");
+            if (evalMap.ammonia && evalMap.ammonia.expected > 28.0) {
+                aiComments.push(`• <strong>[트랙 1 질소 대사 예측]</strong> 5대 축 조건 기반 분변 암모니아 예측치가 <strong>${evalMap.ammonia.expected} μmol/g</strong> (예상 범위 ${evalMap.ammonia.expectedRangeText})로 산출되었습니다. ➔ [트랙 2 연계] 실제 분변 암모니아 패드 실측치를 <strong>[트랙 2] 4종 키트 비교 폼</strong>에 입력하여 예측치 상회 여부(단백질 과잉·요독 역확산 vs 적정 관리)를 검증하세요.`);
+                dietActions.push("• <strong>[식이 조정 후보안]</strong> 고단백 간식(육포·트릿 등) 급여 제한 및 영양 목표 유지 하에 고소화성 가수분해 사료 또는 저단백 처방식 비중 조정을 검토합니다.");
                 suppActions.push("• <strong>[보조제 조정 가능성 검토]</strong> 장-신장 축 프로바이오틱스(레날맥스 등) 및 발효성 수용성 섬유소(프리바이오틱스) 병용 가능성을 수의사가 검토합니다.");
-                vetActions.push(`• <strong>[다음 확인사항]</strong> 혈중 BUN / Creatinine / SDMA 및 인 수치 추이를 대조하고, 구강 요독소 흡착제·인바인더 복용 순응도를 확인합니다.`);
+                vetActions.push(`• <strong>[다음 확인사항]</strong> 혈중 BUN / Creatinine / SDMA 추이를 대조하고, 구강 요독소 흡착제·인바인더 복용 순응도를 확인합니다.`);
             }
 
-            if (evalMap.glucose && evalMap.glucose.meas >= 20.0) {
-                aiComments.push(`• <strong>[포도당 패드 반응 관찰]</strong> [관찰] 분변 포도당(${evalMap.glucose.meas} mg/dL) 반응이 관찰되었습니다(참고 상한 ${evalMap.glucose.expectedUpper} mg/dL). ➔ [관련 해석] 탐색적 단당류 잔류 신호로서 식이 당류 변화·소장 처리 조건 또는 내분비·약물(스테로이드 등) 조건과 함께 검토하며 단독으로 당뇨를 확진하지 않습니다.`);
+            if (evalMap.free_p && (evalMap.free_p.expected > 2.8 || evalMap.free_p.expected < 2.1)) {
+                aiComments.push(`• <strong>[트랙 1·2 분변 유리 인(Free P) 예측]</strong> 환자 조건(신장질환·식이·인바인더 여부) 기반 분변 유리 인 예측치가 <strong>${evalMap.free_p.expected.toFixed(2)} mg/g</strong> (가중치 x${evalMap.free_p.w_total.toFixed(2)})로 산출되었습니다. ➔ [트랙 2 연계] <strong>[트랙 2] 분변 유리 인 키트 실측치</strong>와 비교하여 인바인더 용량 적정성 및 처방식 인 제한 효과를 판단하세요.`);
             }
 
-            if (evalMap.fat.statusCode === "DECOMPENSATED" || evalMap.absorption.statusCode === "DECOMPENSATED") {
-                aiComments.push(`• <strong>[지방 잔류 신호 증가 관찰]</strong> [관찰] 지방 잔류 신호(${evalMap.fat.meas}% DM)가 모형 예상 범위(${evalMap.fat.expected}%)를 상회하여 관찰되었습니다. ➔ [관련 해석] 식단 변경(고지방 신장 처방식 비중 등)과 시간적으로 함께 관찰된 변화이거나, ${isCat ? '고양이 췌장·담관(fPL)' : '췌장·담즙계(cPL)'} 소장계 지질 처리 조건 변화와 연결해 검토합니다. ➔ [다음 확인사항] 사료 지방 함량과 변 성상·체중 변화를 대조합니다.`);
+            if (evalMap.fat.statusCode === "DECOMPENSATED" || evalMap.fat.statusCode === "COMPENSATED" || evalMap.absorption.expected < 78.0) {
+                aiComments.push(`• <strong>[트랙 1 지질·소화기질 부하 예측]</strong> 현재 식이 배합 및 ${isCat ? '고양이 췌장·담관(fPL)' : '췌장·담즙계(cPL)'} 조건에서 소장계 지질·기질 처리 부담(예측 잔류 지방 ${evalMap.fat.expected}% DM, 참고 흡수지수 ${evalMap.absorption.expected}%)이 예측됩니다.`);
                 dietActions.push("• <strong>[믹스피딩 비율 조정 후보안 (70:30)]</strong> 현재 혼합 식단에서 지방 유입 부담을 낮추기 위해 <strong>[저지방 처방식 70% : 신장 처방식 30%]</strong> 배합 후보안을 제시합니다. 수의사 검토 및 영양 조건 재확인 후 승인 시 적용하십시오.");
                 suppActions.push("• <strong>[보조제 조정 가능성 검토]</strong> 췌장 소화효소 보충제(판크레딘 등) 또는 인지질 결합형 오메가-3(크릴오일) 적용 가능성을 수의사가 검토합니다.");
                 vetActions.push(`• <strong>[다음 확인사항]</strong> 혈중 ${isCat ? 'fPL · 코발라민(B12)' : 'cPL · TLI'} 추이를 확인하고, 신장 처방식 비율 조정 시 식이 인(P) 섭취량 변화에 맞춘 인바인더 조정 필요성을 함께 검토합니다.`);
             }
 
-            if (evalMap.blood.meas >= 10.0) {
-                aiComments.push(`• <strong>[잠혈 반응 별도 확인]</strong> [관찰] 분변 잠혈(${evalMap.blood.meas} ng/mL)이 관찰되었습니다(참고 상한 ${evalMap.blood.expectedUpper} ng/mL). ➔ [관련 해석] 다른 마커가 안정적이더라도 상쇄하지 않고 별도로 다루며, 약물 변경 시점(NSAIDs·스테로이드 등), 점막 유래 성분 또는 식이 간섭 요인과 함께 검토합니다.`);
+            if (evalMap.blood && (evalMap.blood.w_total >= 1.25 || hasUlcerDrug)) {
+                aiComments.push(`• <strong>[트랙 1 점막 자극·잠혈 위험 예측]</strong> 복용 약물(NSAIDs·스테로이드 등) 또는 기저 장·신장 질환 조건에 의해 점막 미세출혈 주의 등급(<strong>${evalMap.blood.riskTier}</strong>, 가중치 x${evalMap.blood.w_total.toFixed(2)})이 예측됩니다. ➔ [트랙 2 연계] <strong>[트랙 2] 분변 잠혈 키트 실측치</strong>로 실제 출혈 여부를 확인하세요.`);
                 suppActions.push("• <strong>[보조제 조정 가능성 검토]</strong> 점막 보호 영양소(L-글루타민, 아연-카르노신 등) 및 위장관 자극이 적은 관절 보조제 대체 가능성을 검토합니다.");
                 vetActions.push("• <strong>[다음 확인사항]</strong> NSAIDs·스테로이드 투여 이력과 변의 육안적 혈흔 여부를 확인하고, 수의사 판단하에 점막보호제(Sucralfate 등) 또는 약물 조정을 검토합니다.");
             }
 
-            const isActualMeasuredConfirmed = Boolean(document.getElementById('gpr-confirm')?.checked);
-            if (!isActualMeasuredConfirmed) {
-                aiComments.unshift("• ⚠️ <strong>[실측 검사 미확정 · 모형 추정 상태]</strong> 현재 표시된 분변 마커 수치는 환자 조건 기반 <strong>모형 추정치(또는 시연 예시 데이터)</strong>입니다. 실제 분변·혈액 검사를 입력하고 확정하기 전까지는 '안정적'이거나 '출혈 없음'으로 단정하지 않습니다.");
-            }
-            if (aiComments.length === 0) {
-                aiComments.push("• 입력된 실측 마커에서 모형 예상 범위를 크게 벗어난 항목이 관찰되지 않았습니다. 임상 증상 및 이전 개인 기준선과 함께 비교하세요.");
-            }
+            aiComments.unshift("• 🧭 <strong>[트랙 1 안내 — 장내환경 상태 사전 예측 모형 (실측치 없음)]</strong> 본 트랙 1 영역은 실측 분변 입력 없이 환자의 <strong>5대 축(연령/체급·식이·약물·기저질환·혈액검사)</strong>만으로 추론한 장내환경 상태 예측치입니다. 믹스피딩 및 약물 사용에 대한 실질적인 예측 vs 실측 비교는 상단 <strong>[트랙 2] 4종 분변키트(pH·암모니아·잠혈·유리 인) 비교 모듈</strong>에서 수행합니다.");
             if (dietActions.length === 0) {
                 dietActions.push("• <strong>[최종 행동 지침: 현 급여 계획 유지]</strong> 현재 설정된 기본 목표 열량(DER)과 처방식 배합 비율을 유지하며 섭취량과 배변 상태를 모니터링하세요.");
             } else {
@@ -5851,36 +5944,29 @@ try {
             }
             if (suppActions.length === 0) {
                 suppActions.push("• <strong>[보조제 검토]</strong> 추가적인 보조제 변경 지시가 없으며, 기존 투여 중인 약물·보조제는 담당 수의사의 처방 계획을 따르세요.");
-            } else if (evalMap.ammonia && evalMap.ammonia.statusCode === "COMPENSATED") {
-                suppActions.push("• <strong>[보조제 검토]</strong> 암모니아 수치가 모형 예상 범위 내에 있으므로 기존 보조제 유지 여부를 담당 수의사가 확인하세요.");
             }
             if (vetActions.length === 0) {
-                vetActions.push("• <strong>[다음 확인사항]</strong> 실제 분변 패드 실측값과 체중·BCS·혈액검사 추이를 정기 내원 시 비교하세요.");
+                vetActions.push("• <strong>[다음 확인사항]</strong> [트랙 2] 4종 분변키트(pH·암모니아·잠혈·유리 인) 실측값과 체중·BCS·혈액검사 추이를 정기 내원 시 비교하세요.");
             }
 
             // =========================================================================
-            // [신규] 장내 병태생리 4대 축(장운동·장염·장누수·소화액분비) + 해당없음 확률 계산 및 카드 4 렌더링
+            // [트랙 1] 소장 vs 대장 2축 4분면(Quadrants) & 4대 잠재 상태 사전 예측 (실측치 없음)
             // =========================================================================
-            // =========================================================================
-            // [신규] 소장 vs 대장 2축 4분면(Quadrants) 교차검증 & 6대 임상 시나리오 실행 및 렌더링
-            // =========================================================================
-            // 정량 혈액 수치 입력값 추출 및 검증
             const cplVal = parseFloat(document.getElementById('lab-cpl')?.value || '0');
             const altVal = parseFloat(document.getElementById('lab-alt')?.value || '0');
             const albVal = parseFloat(document.getElementById('lab-alb')?.value || '3.5');
 
-            // 약물 + 질병 + 연령 종합 연동운동 지수 (이뇨제/신장약/거대결장 정체 vs 완하제 과속)
             const d_mot_drug = attenuateGroupDelta(drugWList, "motility", 0.40);
             const d_mot_dis = attenuateGroupDelta(disWList, "motility", 0.40);
             const combinedTransit = Math.max(0.3, Math.min(1.8, (ageW.motility || 1.0) * (dietW.motility || 1.0) * (1.0 + d_mot_drug + d_mot_dis)));
 
             const cvInput = {
-                protein: evalMap.protein ? evalMap.protein.meas : 5.0,
+                protein: evalMap.protein ? evalMap.protein.expected : 5.0,
                 fat: evalMap.fat ? evalMap.fat.meas : 4.0,
-                carbo: evalMap.carbo ? evalMap.carbo.meas : 6.0,
-                ammonia: evalMap.ammonia ? evalMap.ammonia.meas : 20.0,
-                blood: evalMap.blood ? evalMap.blood.meas : 0.0,
-                ph: evalMap.ph ? evalMap.ph.meas : 6.5,
+                carbo: evalMap.carbo ? evalMap.carbo.expected : 6.0,
+                ammonia: evalMap.ammonia ? evalMap.ammonia.expected : 20.0,
+                blood: (evalMap.blood && (evalMap.blood.w_total >= 1.35 || hasUlcerDrug)) ? 12.0 : 0.0,
+                ph: evalMap.ph ? evalMap.ph.expected : 6.5,
                 transitScore: combinedTransit,
                 labCpl: checkedLabItems.some(x => x.includes("cPL") || x.includes("fPL")) || (cplVal >= 400),
                 labBile: checkedLabItems.some(x => x.includes("빌리루빈") || x.includes("담즙") || x.includes("ALT") || x.includes("담관") || x.includes("간세포")) || (altVal >= 120),
@@ -7375,8 +7461,8 @@ try {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="static/supabase_config.js"></script>
 <script src="static/supabase_auth_pet.js"></script>
-<script src="static/gut-pattern-review.js?v=20261103_13"></script>
-<script src="static/guardian_portal.js?v=20261103_ai"></script>
+<script src="static/gut-pattern-review.js?v=20261106_track2"></script>
+<script src="static/guardian_portal.js?v=20261106_track2"></script>
     <script>
         // 초기 CDSS 자동 시뮬레이션 및 Tab 1 환자 정보 실시간 동기화 이벤트 바인딩
         document.addEventListener('DOMContentLoaded', function() {
